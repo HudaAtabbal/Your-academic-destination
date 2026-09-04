@@ -1,0 +1,254 @@
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Light.otf') format('opentype');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  background-color: #FFF4E0;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Step Header */
+.step-header {
+  background-color: #134F47;
+  color: #FFFFFF;
+  padding: 28px 24px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  direction: ltr;
+  position: relative;
+}
+
+.step-header::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 8px;
+  background-image: radial-gradient(circle at 10px 8px, #FFF4E0 6.5px, transparent 7px);
+  background-size: 20px 8px;
+  background-repeat: repeat-x;
+  background-position: 0 0;
+  z-index: 2;
+}
+
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.step-title-group {
+  text-align: right;
+}
+
+.step-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.step-subtitle {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* Progress Bar */
+.progress-container {
+  display: flex;
+  gap: 12px;
+  padding: 24px 24px 0 24px;
+  direction: rtl; /* لجعل مؤشر الخطوة يبدأ من اليسار لليمن مثل التصميم */
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background-color: #E2D9C8;
+}
+
+.progress-bar.active {
+  background-color: #E85B0D; /* البرتقالي الخاص بالخطوة الفعالة */
+}
+
+/* Body & Form */
+.card-body {
+  padding: 24px;
+  flex: 1;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  gap: 8px;
+}
+
+.input-label {
+  color: #71122B;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.custom-input {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  background-color: #FFFFFF;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.95rem;
+  color: #134F47;
+  outline: none;
+  box-sizing: border-box;
+  text-align: right;
+}
+
+.custom-input::placeholder {
+  color: #A0AAB0;
+  font-size: 0.9rem;
+}
+
+.custom-input:focus {
+  border-color: #134F47;
+}
+
+/* Info / Privacy Box */
+.note-box {
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  padding: 16px;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.note-text {
+  color: #134F47;
+  font-size: 0.82rem;
+  line-height: 1.6;
+  font-weight: 500;
+  opacity: 0.85;
+  margin: 0;
+}
+
+/* Button */
+.actions {
+  margin-top: 40px;
+}
+
+.btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  font-family: 'Ghroob', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #134F47;
+  color: #FFFFFF;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0d3832;
+}
+
+/* Date Inputs Row */
+.date-inputs-row {
+  display: flex;
+  gap: 10px;
+  direction: rtl;
+}
+
+.date-input-small {
+  text-align: center;
+}
+
+/* Validation States */
+.input-error {
+  border-color: #C0392B !important;
+}
+
+.error-text {
+  color: #C0392B;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.btn-primary:disabled {
+  background-color: #A0AAB0;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.btn-primary:disabled:hover {
+  background-color: #A0AAB0;
+}
