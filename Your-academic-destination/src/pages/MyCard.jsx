@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import QRCode from 'react-qr-code'; // يمكنك استخدام مكتبة react-qr-code أو صورة QR جاهزة
-import logo from '../assets/English logo white-01.png';
+import HeaderStep from '../components/HeaderStep';
+import BottomNav from '../components/BottomNav';
 import '../style/MyCard.css';
 
 const MyCard = () => {
+  const qrWrapperRef = useRef(null);
+
   const cardData = {
     name: 'عمر أحمد العسورة',
     code: 'R-0248',
@@ -12,30 +15,82 @@ const MyCard = () => {
   };
 
   const handleSaveCard = () => {
-    // كود حفظ البطاقة أو التقاط شاشة
+    try {
+      // بنلاقي الـ SVG يلي مكتبة react-qr-code رندرته جوا qr-wrapper
+      const svg = qrWrapperRef.current?.querySelector('svg');
+      if (!svg) {
+        console.error('ما تم إيجاد عنصر الـ SVG جوا qr-wrapper');
+        return;
+      }
+
+      // بعض المتصفحات محتاجة width/height صريحة على الـ SVG
+      // (بدون هيك الصورة بتطلع بحجم 0 والكانفاس بيصير فاضي)
+      const qrSize = 140; // نفس القيمة يلي مررناها لـ <QRCode size={140} />
+      svg.setAttribute('width', qrSize);
+      svg.setAttribute('height', qrSize);
+
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+
+      const img = new Image();
+
+      img.onerror = (err) => {
+        console.error('فشل تحميل صورة الـ SVG', err);
+        URL.revokeObjectURL(svgUrl);
+      };
+
+      img.onload = () => {
+        try {
+          const scale = 4;
+          const width = (img.width || qrSize) * scale;
+          const height = (img.height || qrSize) * scale;
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#FFFFFF';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          URL.revokeObjectURL(svgUrl);
+
+          const pngUrl = canvas.toDataURL('image/png');
+
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = `${cardData.code}-QR.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        } catch (err) {
+          console.error('فشل تحويل الصورة أو تنزيلها', err);
+        }
+      };
+
+      img.src = svgUrl;
+    } catch (err) {
+      console.error('خطأ عام أثناء حفظ البطاقة', err);
+    }
   };
 
   return (
     <div className="card-wrapper">
       <div className="card-container scrollable">
         
-        {/* Header */}
-        <header className="card-main-header">
-            <div className="header-text">
-            <h1 className="brand-name">بطاقتي</h1>
-            <span className="brand-subtitle">وجهتك الأكاديمية 2 • جامعة حمص</span>
-          </div>
-          <div className="header-icon">
-            <img src={logo} alt="شعار" className="header-logo" />
-          </div>
-          
-        </header>
+        <HeaderStep 
+          title=" بطاقتي الخاصة" 
+          stepText="وجهتك الأكاديمية 2 • جامعة حمص" 
+          onBack={() => window.history.back()} 
+        />
 
         <main className="card-body">
           
           {/* Digital ID Card Section */}
           <div className="id-card-box">
-            <div className="qr-wrapper">
+            <div className="qr-wrapper" ref={qrWrapperRef}>
               <QRCode 
                 value={cardData.qrValue} 
                 size={140}
@@ -53,10 +108,10 @@ const MyCard = () => {
 
           {/* Features Info Box */}
           <div className="info-card-box">
-            <h3 className="info-box-title">شو بتعمل هالبطاقة؟</h3>
+            <h3 className="info-box-title">ماذا تفعل هذه البطاقة ؟</h3>
             <ul className="info-list">
-              <li>بتفتحلك الدخول عبوابة الحرم الجامعي</li>
-              <li>بتسجّل حضورك بأي محاضرة أو جولة أو استشارة</li>
+               <li>تسمح لك بالدخول عند بوابة الحرم الجامعي</li>
+              <li>تسجّل حضورك بأي محاضرة أو جولة أو استشارة</li>
               <li>تعمل بدون إنترنت &mdash; لقطة شاشة كافية</li>
             </ul>
           </div>
@@ -69,6 +124,8 @@ const MyCard = () => {
           </div>
 
         </main>
+
+        <BottomNav />
 
       </div>
     </div>

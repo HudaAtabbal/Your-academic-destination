@@ -6,6 +6,8 @@ import RegisterStep2Page from "./pages/RegisterStep2Page";
 import OTP from "./pages/OTP";
 
 import MyCard from "./pages/MyCard";
+import AcademicGuide from "./pages/AcademicGuide";
+import Survey from "./pages/Survey";
 
 
 function App() {
@@ -17,6 +19,8 @@ function App() {
         <Route path="/register-step2" element={<RegisterStep2Page />} />
         <Route path="/otp" element={<OTP />} />
         <Route path="/my-card" element={<MyCard/>}/>
+        <Route path="/academic-guide" element={<AcademicGuide/>}/>
+        <Route path="/survey" element={<Survey/>}/>
       </Routes>
     </BrowserRouter>
   );

@@ -45,7 +45,11 @@
   box-sizing: border-box;
 }
 
-/* توحيد الحجم مع السماح بالتمرير الداخلي في حال زيادة الطول */
+/* Step Header — الستايل صار مركزي بملف HeaderStep.css، ما عاد لازم يتكرر هون */
+
+
+
+/* توحيد الحجم: overflow hidden لأنو السكرول الفعلي هلق بس جوا card-body */
 .card-container {
   width: 100%;
   max-width: 380px;
@@ -53,64 +57,37 @@
   max-height: 90vh;
   background-color: #FFF4E0;
   border-radius: 36px;
-  overflow-y: auto;
+  overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
 }
 
-/* إخفاء شريط التمرير */
-.card-container::-webkit-scrollbar {
-  display: none;
-}
-.card-container {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Global Header */
-.card-main-header {
-  background-color: #134F47;
-  color: #FFFFFF;
-  padding: 20px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-shrink: 0;
-}
+/* ملاحظة: بما إنو HeaderStep مكوّن مشترك بلا CSS خاص فيه،
+   الكلاسات (step-header, back-btn, step-title...) تعريفهن هلق
+   فوق قبل card-container. الكلاسات القديمة (card-main-header,
+   header-icon, header-logo, brand-name, brand-subtitle) انشالت
+   لأنها صارت غير مستخدمة. */
 
 
-/* شعار الصورة بدل الـ SVG القديم */
-.header-logo {
-  height: 40px;
-  width: auto;
-  object-fit: contain;
-}
-
-.header-text {
-  text-align: right;
-}
-
-.brand-name {
-  font-size: 1.5rem;
-  font-weight: 800;
-  margin: 0;
-  line-height: 1.1;
-}
-
-.brand-subtitle {
-  font-size: 0.72rem;
-  font-weight: 400;
-  opacity: 0.85;
-}
-
-/* Body Content */
+/* Body Content — هون بس مكان السكرول الفعلي، مش على الكرت كله */
 .card-body {
   padding: 20px;
   flex: 1;
+  min-height: 0; /* ضروري حتى flex:1 مع overflow-y:auto يشتغلوا صح سوا */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+/* إخفاء شريط التمرير */
+.card-body::-webkit-scrollbar {
+  display: none;
+}
+.card-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 /* Inner White ID Card Box */

@@ -55,60 +55,9 @@
   flex-direction: column;
 }
 
-/* Step Header */
-.step-header {
-  background-color: #134F47;
-  color: #FFFFFF;
-  padding: 28px 24px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  direction: ltr;
-  position: relative;
-  border-radius: 36px 36px 0 0; /* FIX: بما إنو card-container عاد ما عندها overflow:hidden، لازم الهيدر ياخد الزوايا المدورة العلوية بنفسه */
-}
-
-/* .step-header::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 8px;
-  background-image: radial-gradient(circle at 10px 8px, #FFF4E0 6.5px, transparent 7px);
-  background-size: 20px 8px;
-  background-repeat: repeat-x;
-  background-position: 0 0;
-  z-index: 2;
-} */
+/* Step Header — الستايل صار مركزي بملف HeaderStep.css، ما عاد لازم يتكرر هون */
 
 
-.back-btn {
-  background: none;
-  border: none;
-  color: #FFFFFF;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.step-title-group {
-  text-align: right;
-}
-
-.step-title {
-  font-size: 1.4rem;
-  font-weight: 800;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.step-subtitle {
-  font-size: 0.75rem;
-  font-weight: 400;
-  opacity: 0.85;
-}
 
 /* Progress Bar */
 .progress-container {

@@ -1,0 +1,57 @@
+/* ============================================
+   ستايل خاص بمكوّن HeaderStep المشترك
+   مستورد مباشرة جوا HeaderStep.jsx — ما بيحتاج
+   أي صفحة تعرّف هالكلاسات بملفها الخاص بعد اليوم.
+   ============================================ */
+
+.step-header {
+  background-color: #134F47;
+  color: #FFFFFF;
+  padding: 28px 24px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  direction: ltr;
+  position: relative;
+  border-radius: 36px 36px 0 0;
+  flex-shrink: 0;
+}
+
+.step-title-group {
+  text-align: right;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.step-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.step-subtitle {
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: #FFFFFF;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.back-btn-logo {
+  height: 28px;
+  width: auto;
+  object-fit: contain;
+}

@@ -1,0 +1,198 @@
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Light.otf') format('opentype');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
+  background-color: #FFF4E0;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body {
+  padding: 20px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.card-body::-webkit-scrollbar {
+  display: none;
+}
+.card-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 16px;
+}
+
+/* Question Cards */
+.survey-card {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 16px 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.question-title {
+  color: #71122B;
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  text-align: right;
+}
+
+/* Options Chips Layout */
+.options-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+.chip-btn {
+  background-color: #FFFFFF;
+  color: #134F47;
+  border: 1.5 solid #134F47;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chip-btn.active {
+  background-color: #134F47;
+  color: #FFFFFF;
+  border-color: #134F47;
+}
+
+/* Custom Dropdown Select */
+.select-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1.5px solid #E2D2B8;
+  background-color: #FFFFFF;
+  color: #71122B;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.select-arrow {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #71122B;
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+/* Bottom Actions */
+.actions {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* حتى الأزرار تضل بالنص لما نصغّر عرضها */
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.btn {
+  width: 80%; /* بدل 100% حتى يصغر حجم الزر بدون ما يتغير مكانه (لسا بالنص) */
+  padding: 12px;
+  border-radius: 18px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-family: 'Ghroob', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #134F47;
+  color: #FFFFFF;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0d3832;
+}
+
+.btn-secondary {
+  background-color: #FFFFFF;
+  color: #134F47;
+  border: 1.5px solid #134F47;
+}
+
+.btn-secondary:hover {
+  background-color: #f7f7f7;
+}
