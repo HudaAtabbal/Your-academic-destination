@@ -1,9 +1,12 @@
 import React, { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeaderStep from '../components/HeaderStep';
 import InfoBox from '../components/InfoBox';
 import '../style/RegisterStep1Page.css';
 
 const RegisterStep1Page = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     fullName: '',
     birthDay: '',
@@ -109,7 +112,7 @@ const RegisterStep1Page = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    // الانتقال للخطوة التالية
+    navigate('/register-step2'); // الانتقال للخطوة التالية
   };
 
   return (

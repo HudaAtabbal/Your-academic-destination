@@ -1,0 +1,181 @@
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-Light.otf') format('opentype');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
+  background-color: #FFF4E0;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body {
+  padding: 40px 24px 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.form-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+/* OTP Grid Layout */
+.otp-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.otp-input {
+  width: 68px;
+  height: 72px;
+  border-radius: 24px;
+  background-color: #FFFFFF;
+  border: 2px solid transparent;
+  text-align: center;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #71122B;
+  outline: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.otp-input:focus {
+  border-color: #E85B0D;
+}
+
+/* حالة الخطأ: بورد أحمر + خلفية فاتحة تدل على الرفض */
+.otp-input.otp-error {
+  border-color: #C0392B;
+  background-color: #FDEDEC;
+  color: #C0392B;
+}
+
+/* حالة النجاح: أخضر بنفس لون البرايمري */
+.otp-input.otp-success {
+  border-color: #134F47;
+  background-color: #E7F0EE;
+  color: #134F47;
+}
+
+/* رسالة الخطأ تحت الخانات */
+.error-message {
+  color: #C0392B;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+  margin: -16px 0 20px;
+}
+
+/* Resend Link Section */
+.resend-text {
+  text-align: center;
+  color: #134F47;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.resend-btn {
+  background: none;
+  border: none;
+  color: #134F47;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: none;
+}
+
+.resend-btn:hover {
+  text-decoration: underline;
+}
+
+/* Submit Button Positioned at Bottom */
+.actions {
+  margin-top: auto;
+}
+
+.btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-family: 'Ghroob', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #134F47;
+  color: #FFFFFF;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0d3832;
+}
+
+/* حالة النجاح على الزر: نفس لون البرايمري تأكيداً بصرياً */
+.btn-success {
+  background-color: #134F47;
+}
