@@ -1,0 +1,225 @@
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-Light.otf') format('opentype');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/itfGhroobArabic-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+}
+
+/* توحيد الحجم مع السماح بالتمرير الداخلي في حال زيادة الطول */
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
+  background-color: #FFF4E0;
+  border-radius: 36px;
+  overflow-y: auto;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* إخفاء شريط التمرير */
+.card-container::-webkit-scrollbar {
+  display: none;
+}
+.card-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Global Header */
+.card-main-header {
+  background-color: #134F47;
+  color: #FFFFFF;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+
+/* شعار الصورة بدل الـ SVG القديم */
+.header-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.header-text {
+  text-align: right;
+}
+
+.brand-name {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.brand-subtitle {
+  font-size: 0.72rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* Body Content */
+.card-body {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Inner White ID Card Box */
+.id-card-box {
+  background-color: #FFFFFF;
+  border-radius: 28px;
+  padding: 24px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.qr-wrapper {
+  padding: 12px;
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  margin-bottom: 16px;
+}
+
+.user-name {
+  color: #71122B;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 4px 0;
+}
+
+.user-code {
+  color: #134F47;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 14px 0;
+  letter-spacing: 0.5px;
+}
+
+.status-badge {
+  background-color: #F8E8CB;
+  color: #B4690E;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 6px 20px;
+  border-radius: 20px;
+}
+
+/* Features Info Box */
+.info-card-box {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 20px;
+  text-align: right;
+}
+
+.info-box-title {
+  color: #71122B;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+}
+
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.info-list li {
+  color: #134F47;
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.5;
+  position: relative;
+  padding-right: 14px;
+}
+
+.info-list li::before {
+  content: "•";
+  color: #134F47;
+  font-size: 1.2rem;
+  position: absolute;
+  right: 0;
+  top: -2px;
+}
+
+/* Fixed Bottom Action */
+.actions {
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-family: 'Ghroob', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #134F47;
+  color: #FFFFFF;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #0d3832;
+}
