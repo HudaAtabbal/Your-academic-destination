@@ -6,7 +6,7 @@ Dependencies مشتركة عبر كل الروترات:
 
 from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError
+import jwt
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -30,7 +30,7 @@ def get_current_account(
     token = credentials.credentials
     try:
         payload = decode_access_token(token)
-    except JWTError:
+    except jwt.PyJWTError:
         raise AppError(
             status_code=401,
             error_code="invalid_credentials",
