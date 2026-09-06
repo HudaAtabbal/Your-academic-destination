@@ -2,9 +2,9 @@ import React from 'react';
 
 const ScannerFooter = ({ count, countLabel, isConnected = true }) => {
   return (
-    <footer className="scanner-footer">
+    <footer className="ss-footer">
       <span>{count} {countLabel}</span>
-      <span className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
+      <span className={`ss-connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
         {isConnected ? 'متصل' : 'غير متصل'}
       </span>
     </footer>

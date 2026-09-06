@@ -1,0 +1,262 @@
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+/* Viewport Setup for Desktop */
+.cta-page-viewport {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #FFF6E5;
+  color: #0F3B34;
+  direction: rtl;
+  font-family: 'Ghroob', 'Segoe UI', Tahoma, sans-serif;
+  box-sizing: border-box;
+}
+
+/* Header Component */
+.cta-page-header {
+  height: 80px;
+  background-color: #0F3B34;
+  padding: 0 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.cta-user-badge {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  padding: 8px 24px;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.cta-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.cta-brand-text {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.cta-brand-title {
+  color: #FFFFFF;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.cta-brand-subtitle {
+  color: #A3C2BB;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.cta-brand-logo {
+  width: 36px;
+  height: 36px;
+  color: #FFFFFF;
+}
+
+.cta-logo-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Main Container Area */
+.cta-main-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px 24px 60px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Back Link */
+.cta-back-wrapper {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.cta-back-btn {
+  background: none;
+  border: none;
+  color: #0F3B34;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.cta-back-btn:hover {
+  opacity: 0.8;
+}
+
+.cta-back-arrow {
+  font-size: 1.2rem;
+}
+
+/* Card Form Container */
+.cta-form-card {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 40px 48px;
+  box-shadow: 0 4px 16px rgba(15, 59, 52, 0.03);
+}
+
+.cta-form-title {
+  color: #52151D;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0 0 32px 0;
+  text-align: right;
+}
+
+.cta-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Grid & Fields Layout */
+.cta-grid-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+.cta-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: right;
+}
+
+.cta-field-label {
+  color: #0F3B34;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.cta-label-hint {
+  color: #7A6855;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.cta-input-field {
+  width: 100%;
+  height: 54px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E5D7C3;
+  border-radius: 50px;
+  padding: 0 24px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0F3B34;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.cta-input-field:focus {
+  border-color: #0F3B34;
+}
+
+.cta-input-field::placeholder {
+  color: #B5A795;
+  font-weight: 700;
+}
+
+.cta-input-field.disabled {
+  background-color: #FAFAFA;
+  border-color: #EFE6D8;
+  color: #A39685;
+  text-align: center;
+  cursor: not-allowed;
+}
+
+.cta-input-field.disabled::placeholder {
+  color: #A39685;
+}
+
+/* Roles Radio Selection Buttons */
+.cta-roles-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.cta-role-btn {
+  height: 52px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E5D7C3;
+  border-radius: 50px;
+  color: #0F3B34;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cta-role-btn:hover {
+  border-color: #0F3B34;
+}
+
+.cta-role-btn.active {
+  background-color: #0F3B34;
+  border-color: #0F3B34;
+  color: #FFFFFF;
+}
+
+/* Actions & Buttons */
+.cta-form-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 12px;
+}
+
+.cta-submit-btn {
+  width: 280px;
+  height: 54px;
+  background-color: #0F3B34;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.cta-submit-btn:hover {
+  background-color: #0A2B26;
+}

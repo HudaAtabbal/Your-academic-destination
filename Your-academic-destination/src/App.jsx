@@ -28,6 +28,12 @@ import InWalkIncompletePage from "./pages/UniGate/InWalkIncompletePage";
 
 
 
+import GeneralDirectorDashboard from "./pages/Admin/GeneralDirectorDashboard";
+import CreateTeamAccountPage from "./pages/Admin/CreateTeamAccountPage";
+import GenerateWalkInCodesPage from "./pages/Admin/GenerateWalkInCodesPage";
+
+
+
 function App() {
   return (
     <BrowserRouter>
@@ -56,6 +62,11 @@ function App() {
         <Route path="/gate-entry-success" element={<GateEntrySuccessPage/>}/>
         <Route path="/gate-manage" element={<StudentDataManagerPage/>}/>
         <Route path="/gate-incomplete" element={<InWalkIncompletePage/>}/>
+
+
+        <Route path="/dashboard" element={<GeneralDirectorDashboard/>}/>
+        <Route path="/create-team-account" element={<CreateTeamAccountPage/>}/>
+        <Route path="/generate-walkin-code" element={<GenerateWalkInCodesPage/>}/>
       </Routes>
     </BrowserRouter>
   );

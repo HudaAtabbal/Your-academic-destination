@@ -22,8 +22,8 @@ const CollegePage = () => {
   };
 
   return (
-    <div className="card-wrapper">
-      <div className="card-container">
+    <div className="ss-card-wrapper">
+      <div className="ss-card-container">
         <StaffScanHeader
           title="ركن التوجيه — الطب البشري"
           username="rima_staff"
@@ -31,25 +31,25 @@ const CollegePage = () => {
           location="داخل مبنى كلية الهندسة"
         />
 
-        <main className="card-body">
+        <main className="ss-body">
           <ScanBox caption="امسح رمز الطالب لتوجيهه" onScan={handleScan} />
 
           {scannedStudent && (
-            <div className="orientation-prompt">
-              <h3 className="orientation-question">
+            <div className="ss-orientation-prompt">
+              <h3 className="ss-orientation-question">
                 وين رايح {scannedStudent.name}؟ ({scannedStudent.code})
               </h3>
-              <div className="orientation-options">
+              <div className="ss-orientation-options">
                 <button
                   type="button"
-                  className={`orientation-btn ${choice === 'consultation' ? 'selected' : ''}`}
+                  className={`ss-orientation-btn ${choice === 'consultation' ? 'selected' : ''}`}
                   onClick={() => handleChoice('consultation')}
                 >
                   استشارة فردية
                 </button>
                 <button
                   type="button"
-                  className={`orientation-btn ${choice === 'tour' ? 'selected' : ''}`}
+                  className={`ss-orientation-btn ${choice === 'tour' ? 'selected' : ''}`}
                   onClick={() => handleChoice('tour')}
                 >
                   جولة الكلية
@@ -58,7 +58,7 @@ const CollegePage = () => {
             </div>
           )}
 
-          <p className="scan-rule-text">
+          <p className="ss-rule-text">
             هاد بس توجيه — الحضور الفعلي بينسجّل عند باب الكلية أو باب الاستشارة تحديداً.
           </p>
         </main>

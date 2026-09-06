@@ -27,8 +27,8 @@ const TourPage = () => {
   };
 
   return (
-    <div className="card-wrapper">
-      <div className="card-container">
+    <div className="ss-card-wrapper">
+      <div className="ss-card-container">
         <StaffScanHeader
           title="جولة تعريفية — الطب البشري"
           username="yousef_tour"
@@ -36,7 +36,7 @@ const TourPage = () => {
           location="باب الكلية"
         />
 
-        <main className="card-body">
+        <main className="ss-body">
           <ScanBox onScan={handleScan} />
 
           <ScanResultCard
@@ -46,7 +46,7 @@ const TourPage = () => {
             studentCode={result?.studentCode}
           />
 
-          <p className="scan-rule-text">
+          <p className="ss-rule-text">
             يمكن للطالب زيارة عدة كليات مختلفة، لكن لا يمكنه تسجيل حضور جولة نفس الكلية مرتين.
           </p>
         </main>

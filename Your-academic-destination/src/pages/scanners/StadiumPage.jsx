@@ -55,8 +55,8 @@ const StadiumPage = () => {
   };
 
   return (
-    <div className="card-wrapper">
-      <div className="card-container">
+    <div className="ss-card-wrapper">
+      <div className="ss-card-container">
         <StaffScanHeader
           title="مسح عند المدرج"
           username="hadi_gate"
@@ -64,14 +64,14 @@ const StadiumPage = () => {
           location={selectedLecture.hall}
         />
 
-        <main className="card-body">
+        <main className="ss-body">
           <div>
             <p className="input-label" style={{ marginBottom: 8, color: '#71122B', fontWeight: 700 }}>
               المحاضرة الجارية الآن
             </p>
-            <div className="lecture-select-wrapper">
+            <div className="ss-lecture-select-wrapper">
               <select
-                className="lecture-select"
+                className="ss-lecture-select"
                 value={selectedLectureId}
                 onChange={(e) => {
                   setSelectedLectureId(e.target.value);
@@ -96,7 +96,7 @@ const StadiumPage = () => {
             studentCode={result?.studentCode}
           />
 
-          <button type="button" className="quick-register-btn" onClick={handleQuickRegister}>
+          <button type="button" className="ss-quick-register-btn" onClick={handleQuickRegister}>
             تسجيل الخط السريع (بدون بطاقة)
           </button>
         </main>

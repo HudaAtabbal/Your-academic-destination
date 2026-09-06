@@ -29,8 +29,8 @@ const ConsultationPage = () => {
   };
 
   return (
-    <div className="card-wrapper">
-      <div className="card-container">
+    <div className="ss-card-wrapper">
+      <div className="ss-card-container">
         <StaffScanHeader
           title="استشارة فردية — الطب البشري"
           username="nour_staff"
@@ -38,7 +38,7 @@ const ConsultationPage = () => {
           location="باب الاستشارة"
         />
 
-        <main className="card-body">
+        <main className="ss-body">
           <ScanBox onScan={handleScan} />
 
           <ScanResultCard
@@ -48,7 +48,7 @@ const ConsultationPage = () => {
             studentCode={result?.studentCode}
           />
 
-          <p className="scan-rule-text">
+          <p className="ss-rule-text">
             يُسمح للطالب بحضور استشارة واحدة بس طول الفعالية كلها — بغض النظر عن الكلية.
           </p>
         </main>

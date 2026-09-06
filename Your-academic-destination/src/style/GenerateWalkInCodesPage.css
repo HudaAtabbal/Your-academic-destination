@@ -1,0 +1,317 @@
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+/* Desktop Viewport Setup */
+.gwic-viewport {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #FFF6E5;
+  color: #0F3B34;
+  direction: rtl;
+  font-family: 'Ghroob', 'Segoe UI', Tahoma, sans-serif;
+  box-sizing: border-box;
+}
+
+/* App Header */
+.gwic-header {
+  height: 80px;
+  background-color: #0F3B34;
+  padding: 0 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.gwic-user-badge {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  padding: 8px 24px;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.gwic-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.gwic-brand-text {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.gwic-brand-title {
+  color: #FFFFFF;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.gwic-brand-subtitle {
+  color: #A3C2BB;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.gwic-brand-logo {
+  width: 36px;
+  height: 36px;
+  color: #FFFFFF;
+}
+
+.gwic-logo-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Main Area Container */
+.gwic-main-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 28px 24px 60px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Back Link */
+.gwic-back-wrapper {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.gwic-back-btn {
+  background: none;
+  border: none;
+  color: #0F3B34;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  transition: opacity 0.2s;
+}
+
+.gwic-back-btn:hover {
+  opacity: 0.8;
+}
+
+.gwic-back-arrow {
+  font-size: 1.2rem;
+}
+
+/* Form Card Panel */
+.gwic-card-panel {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 32px 40px;
+  box-shadow: 0 4px 16px rgba(15, 59, 52, 0.03);
+}
+
+.gwic-panel-title {
+  color: #52151D;
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 24px 0;
+  text-align: right;
+}
+
+.gwic-generate-form {
+  width: 100%;
+}
+
+.gwic-form-row {
+  display: grid;
+  grid-template-columns: 220px 220px 180px;
+  gap: 24px;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.gwic-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: right;
+}
+
+.gwic-field-label {
+  color: #7A6855;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.gwic-input-field {
+  width: 100%;
+  height: 52px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E5D7C3;
+  border-radius: 16px;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #0F3B34;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.gwic-input-center {
+  text-align: center;
+}
+
+.gwic-input-field:focus {
+  border-color: #0F3B34;
+}
+
+.gwic-action-group {
+  display: flex;
+}
+
+.gwic-submit-btn {
+  width: 100%;
+  height: 52px;
+  background-color: #0F3B34;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.gwic-submit-btn:hover {
+  background-color: #0A2B26;
+}
+
+/* Output Batch Row */
+.gwic-output-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.gwic-batch-title {
+  color: #52151D;
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.gwic-print-btn {
+  background-color: #FFFFFF;
+  border: 1.5px solid #E5D7C3;
+  color: #0F3B34;
+  border-radius: 16px;
+  padding: 12px 32px;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.gwic-print-btn:hover {
+  border-color: #0F3B34;
+  background-color: #FAFAFA;
+}
+
+/* QR Grid Panel */
+.gwic-qr-panel {
+  padding: 32px;
+}
+
+.gwic-qr-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+}
+
+.gwic-qr-card {
+  border: 2px dashed #E5D7C3;
+  border-radius: 16px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background-color: #FFFFFF;
+}
+
+/* QR Stylized Graphic */
+.gwic-qr-graphic {
+  width: 64px;
+  height: 64px;
+  position: relative;
+}
+
+.gwic-qr-corner {
+  width: 16px;
+  height: 16px;
+  border: 4px solid #0F3B34;
+  position: absolute;
+  box-sizing: border-box;
+}
+
+.gwic-qr-tl { top: 0; left: 0; }
+.gwic-qr-tr { top: 0; right: 0; }
+.gwic-qr-bl { bottom: 0; left: 0; }
+
+.gwic-qr-center-dots {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 28px;
+  height: 28px;
+}
+
+.gwic-qr-dot {
+  position: absolute;
+  background-color: #0F3B34;
+  width: 6px;
+  height: 6px;
+}
+
+.gwic-qr-dot.d1 { top: 2px; right: 2px; }
+.gwic-qr-dot.d2 { top: 10px; left: 6px; }
+.gwic-qr-dot.d3 { bottom: 2px; right: 8px; }
+.gwic-qr-dot.d4 { top: 16px; right: 2px; }
+.gwic-qr-dot.d5 { bottom: 6px; left: 2px; }
+
+.gwic-qr-code-text {
+  color: #0F3B34;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+/* Footer Helper Note */
+.gwic-footer-instruction {
+  text-align: center;
+  color: #7A6855;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 8px 0 0 0;
+}

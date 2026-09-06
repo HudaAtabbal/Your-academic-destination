@@ -1,15 +1,10 @@
 /* ============================================
    ستايل مشترك لكل شاشات المسح تبع فريق العمل
    (استشارة، جولة الكلية، ركن التوجيه، مسؤول المدرج)
-   ============================================ */
-
-/* ============================================
-   ستايل مشترك لكل شاشات المسح تبع فريق العمل
-   (استشارة، جولة الكلية، ركن التوجيه، مسؤول المدرج)
    نفس مقاسات الكرت المستخدمة بباقي الشاشات (موبايل)
    ============================================ */
 
-.card-wrapper {
+.ss-card-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -21,7 +16,7 @@
   box-sizing: border-box;
 }
 
-.card-container {
+.ss-card-container {
   width: 100%;
   max-width: 380px;
   height: 680px;
@@ -34,22 +29,21 @@
   flex-direction: column;
 }
 
-/* Header */
-.staff-scan-header {
+.ss-header {
   background-color: #134F47;
   color: #FFFFFF;
   padding: 24px;
   flex-shrink: 0;
 }
 
-.staff-scan-title {
+.ss-title {
   font-size: 1.5rem;
   font-weight: 800;
   margin: 0 0 6px 0;
   text-align: right;
 }
 
-.staff-scan-meta {
+.ss-meta {
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -61,12 +55,11 @@
   direction: ltr;
 }
 
-.staff-scan-dot {
+.ss-meta-dot {
   opacity: 0.6;
 }
 
-/* Body */
-.card-body {
+.ss-body {
   flex: 1;
   padding: 20px 24px;
   display: flex;
@@ -76,16 +69,15 @@
   min-height: 0;
 }
 
-.card-body::-webkit-scrollbar {
+.ss-body::-webkit-scrollbar {
   display: none;
 }
-.card-body {
+.ss-body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-/* Scan Box */
-.scan-box-wrapper {
+.ss-scanbox-wrapper {
   background-color: #FFFFFF;
   border-radius: 28px;
   padding: 32px 24px;
@@ -95,7 +87,7 @@
   gap: 20px;
 }
 
-.scan-box {
+.ss-scanbox {
   width: 220px;
   height: 220px;
   border-radius: 28px;
@@ -108,22 +100,22 @@
   transition: transform 0.15s ease;
 }
 
-.scan-box:hover {
+.ss-scanbox:hover {
   transform: scale(1.02);
 }
 
-.scan-box:active {
+.ss-scanbox:active {
   transform: scale(0.98);
 }
 
-.scan-box-frame {
+.ss-scanbox-frame {
   width: 130px;
   height: 130px;
   border: 3px solid #6FE3C4;
   border-radius: 20px;
 }
 
-.scan-caption {
+.ss-scan-caption {
   color: #71122B;
   font-size: 0.95rem;
   font-weight: 600;
@@ -131,8 +123,7 @@
   text-align: center;
 }
 
-/* Result Card */
-.scan-result-card {
+.ss-result-card {
   border-radius: 24px;
   padding: 20px;
   display: flex;
@@ -141,27 +132,27 @@
   gap: 16px;
 }
 
-.scan-result-success {
+.ss-result-success {
   background-color: #DCF1E9;
 }
 
-.scan-result-error {
+.ss-result-error {
   background-color: #FADADA;
 }
 
-.scan-result-text {
+.ss-result-text {
   text-align: right;
   flex: 1;
 }
 
-.scan-result-title {
+.ss-result-title {
   color: #71122B;
   font-size: 1.05rem;
   font-weight: 800;
   margin: 0 0 6px 0;
 }
 
-.scan-result-subtitle {
+.ss-result-subtitle {
   color: #134F47;
   font-size: 0.9rem;
   font-weight: 600;
@@ -169,12 +160,12 @@
   direction: rtl;
 }
 
-.scan-result-dot {
+.ss-result-dot {
   opacity: 0.5;
   margin: 0 4px;
 }
 
-.scan-result-icon {
+.ss-result-icon {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
@@ -187,16 +178,15 @@
   color: #FFFFFF;
 }
 
-.scan-result-success .scan-result-icon {
+.ss-result-success .ss-result-icon {
   background-color: #1B9C6E;
 }
 
-.scan-result-error .scan-result-icon {
+.ss-result-error .ss-result-icon {
   background-color: #C0392B;
 }
 
-/* Rule / helper text under the result card */
-.scan-rule-text {
+.ss-rule-text {
   color: #7A6953;
   font-size: 0.9rem;
   font-weight: 500;
@@ -205,14 +195,13 @@
   margin: 0;
 }
 
-/* Lecture dropdown (مسؤول المسح عند المدرج) */
-.lecture-select-wrapper {
+.ss-lecture-select-wrapper {
   background-color: #FFFFFF;
   border-radius: 20px;
   padding: 4px;
 }
 
-.lecture-select {
+.ss-lecture-select {
   width: 100%;
   padding: 16px;
   border: none;
@@ -230,27 +219,26 @@
   direction: rtl;
 }
 
-/* Orientation choice buttons (ركن التوجيه) */
-.orientation-prompt {
+.ss-orientation-prompt {
   background-color: #FFFFFF;
   border-radius: 24px;
   padding: 24px;
   text-align: center;
 }
 
-.orientation-question {
+.ss-orientation-question {
   color: #71122B;
   font-size: 1.1rem;
   font-weight: 800;
   margin: 0 0 16px 0;
 }
 
-.orientation-options {
+.ss-orientation-options {
   display: flex;
   gap: 12px;
 }
 
-.orientation-btn {
+.ss-orientation-btn {
   flex: 1;
   padding: 16px;
   border-radius: 18px;
@@ -264,14 +252,13 @@
   transition: all 0.2s ease;
 }
 
-.orientation-btn.selected {
+.ss-orientation-btn.selected {
   background-color: #DCF1E9;
   border-color: #134F47;
   color: #0d3832;
 }
 
-/* Quick registration link button (بدون بطاقة) */
-.quick-register-btn {
+.ss-quick-register-btn {
   width: 100%;
   padding: 16px;
   border-radius: 18px;
@@ -285,12 +272,11 @@
   transition: all 0.2s ease;
 }
 
-.quick-register-btn:hover {
+.ss-quick-register-btn:hover {
   background-color: #f7f7f7;
 }
 
-/* Footer */
-.scanner-footer {
+.ss-footer {
   background-color: #134F47;
   color: #FFFFFF;
   padding: 16px 24px;
@@ -302,10 +288,10 @@
   flex-shrink: 0;
 }
 
-.connection-status.connected {
+.ss-connection-status.connected {
   color: #6FE3C4;
 }
 
-.connection-status.disconnected {
+.ss-connection-status.disconnected {
   color: #E85B0D;
 }
