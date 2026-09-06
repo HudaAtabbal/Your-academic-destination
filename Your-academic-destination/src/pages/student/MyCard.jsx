@@ -1,8 +1,8 @@
 import React, { useRef } from 'react';
 import QRCode from 'react-qr-code'; // يمكنك استخدام مكتبة react-qr-code أو صورة QR جاهزة
-import HeaderStep from '../components/HeaderStep';
-import BottomNav from '../components/BottomNav';
-import '../style/MyCard.css';
+import HeaderStep from '../../components/HeaderStep';
+import BottomNav from '../../components/BottomNav';
+import '../../style/MyCard.css';
 
 const MyCard = () => {
   const qrWrapperRef = useRef(null);

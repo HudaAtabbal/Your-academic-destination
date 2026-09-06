@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import HeaderStep from "../components/HeaderStep";
-import StepProgress from '../components/Stepprogress';
-import "../style/RegisterStep3Page.css";
+import HeaderStep from "../../components/HeaderStep";
+import StepProgress from '../../components/Stepprogress';
+import "../../style/RegisterStep3Page.css";
 
 const RegisterStep3Page = () => {
   const navigate = useNavigate();
 
-  const [channel, setChannel] = useState("whatsapp");
+  const [channel, setChannel] = useState("sms");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
 
@@ -19,19 +19,19 @@ const RegisterStep3Page = () => {
     // الحقل فارغ
     if (!value) {
       setError(
-        channel === "whatsapp"
-          ? "يرجى إدخال رقم الواتساب"
+        channel === "sms"
+          ? "يرجى إدخال رقم الهاتف"
           : "يرجى إدخال معرف التيليغرام",
       );
       return;
     }
 
-    // التحقق من رقم الواتساب
-    if (channel === "whatsapp") {
+    // التحقق من رقم الهاتف
+    if (channel === "sms") {
       const phoneRegex = /^09\d{8}$/;
 
       if (!phoneRegex.test(value)) {
-        setError("يرجى إدخال رقم واتساب صحيح مكون من 10 أرقام ويبدأ بـ 09");
+        setError("يرجى إدخال رقم هاتف صحيح مكون من 10 أرقام ويبدأ بـ 09");
         return;
       }
     }
@@ -82,15 +82,15 @@ const RegisterStep3Page = () => {
                 <button
                   type="button"
                   className={`channel-btn ${
-                    channel === "whatsapp" ? "selected" : ""
+                    channel === "sms" ? "selected" : ""
                   }`}
                   onClick={() => {
-                    setChannel("whatsapp");
+                    setChannel("sms");
                     setPhoneNumber("");
                     setError("");
                   }}
                 >
-                  واتساب
+                  SMS
                 </button>
 
                 <button
@@ -112,20 +112,20 @@ const RegisterStep3Page = () => {
             {/* Dynamic Input */}
             <div className="input-group">
               <label htmlFor="phoneNumber" className="input-label">
-                {channel === "whatsapp" ? "رقم الواتساب" : "معرف التيليغرام"}
+                {channel === "sms" ? "رقم الهاتف" : "معرف التيليغرام"}
               </label>
 
               <input
                 id="phoneNumber"
                 name="phoneNumber"
                 type="tel"
-                placeholder={channel === "whatsapp" ? "09xxxxxxxx" : "@xxxxxxx"}
+                placeholder={channel === "sms" ? "09xxxxxxxx" : "@xxxxxxx"}
                 value={phoneNumber}
-                maxLength={channel === "whatsapp" ? 10 : undefined}
+                maxLength={channel === "sms" ? 10 : undefined}
                 onChange={(e) => {
                   let value = e.target.value;
 
-                  if (channel === "whatsapp") {
+                  if (channel === "sms") {
                     // السماح بالأرقام فقط
                     value = value.replace(/\D/g, "");
 

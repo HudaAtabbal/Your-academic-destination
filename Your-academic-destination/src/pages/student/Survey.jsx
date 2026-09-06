@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import HeaderStep from '../components/HeaderStep';
-import SurveyQuestionOne from '../components/SurveyQuestionOne';
-import SurveyQuestionTwo from '../components/SurveyQuestionTwo';
-import BottomNav from '../components/BottomNav';
-import '../style/Survey.css';
+import HeaderStep from '../../components/HeaderStep';
+import SurveyQuestionOne from '../../components/SurveyQuestionOne';
+import SurveyQuestionTwo from '../../components/SurveyQuestionTwo';
+import BottomNav from '../../components/BottomNav';
+import '../../style/Survey.css';
 
 const Survey = () => {
   const [q1Option, setQ1Option] = useState('decided');

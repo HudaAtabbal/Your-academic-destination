@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import HeaderStep from '../components/HeaderStep';
-import MajorCard from '../components/MajorCard';
-import BottomNav from '../components/BottomNav';
-import '../style/AcademicGuide.css';
+import HeaderStep from '../../components/HeaderStep';
+import MajorCard from '../../components/MajorCard';
+import BottomNav from '../../components/BottomNav';
+import '../../style/AcademicGuide.css';
 
 const AcademicGuide = () => {
   const [searchTerm, setSearchTerm] = useState('');

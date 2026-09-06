@@ -1,0 +1,311 @@
+/* ============================================
+   ستايل مشترك لكل شاشات المسح تبع فريق العمل
+   (استشارة، جولة الكلية، ركن التوجيه، مسؤول المدرج)
+   ============================================ */
+
+/* ============================================
+   ستايل مشترك لكل شاشات المسح تبع فريق العمل
+   (استشارة، جولة الكلية، ركن التوجيه، مسؤول المدرج)
+   نفس مقاسات الكرت المستخدمة بباقي الشاشات (موبايل)
+   ============================================ */
+
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
+  background-color: #FFF4E0;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.staff-scan-header {
+  background-color: #134F47;
+  color: #FFFFFF;
+  padding: 24px;
+  flex-shrink: 0;
+}
+
+.staff-scan-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+  text-align: right;
+}
+
+.staff-scan-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+  color: #FFFFFF;
+  opacity: 0.85;
+  font-size: 0.9rem;
+  font-weight: 500;
+  direction: ltr;
+}
+
+.staff-scan-dot {
+  opacity: 0.6;
+}
+
+/* Body */
+.card-body {
+  flex: 1;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.card-body::-webkit-scrollbar {
+  display: none;
+}
+.card-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Scan Box */
+.scan-box-wrapper {
+  background-color: #FFFFFF;
+  border-radius: 28px;
+  padding: 32px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.scan-box {
+  width: 220px;
+  height: 220px;
+  border-radius: 28px;
+  background-color: #134F47;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.scan-box:hover {
+  transform: scale(1.02);
+}
+
+.scan-box:active {
+  transform: scale(0.98);
+}
+
+.scan-box-frame {
+  width: 130px;
+  height: 130px;
+  border: 3px solid #6FE3C4;
+  border-radius: 20px;
+}
+
+.scan-caption {
+  color: #71122B;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+/* Result Card */
+.scan-result-card {
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.scan-result-success {
+  background-color: #DCF1E9;
+}
+
+.scan-result-error {
+  background-color: #FADADA;
+}
+
+.scan-result-text {
+  text-align: right;
+  flex: 1;
+}
+
+.scan-result-title {
+  color: #71122B;
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+}
+
+.scan-result-subtitle {
+  color: #134F47;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+  direction: rtl;
+}
+
+.scan-result-dot {
+  opacity: 0.5;
+  margin: 0 4px;
+}
+
+.scan-result-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #FFFFFF;
+}
+
+.scan-result-success .scan-result-icon {
+  background-color: #1B9C6E;
+}
+
+.scan-result-error .scan-result-icon {
+  background-color: #C0392B;
+}
+
+/* Rule / helper text under the result card */
+.scan-rule-text {
+  color: #7A6953;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.6;
+  text-align: center;
+  margin: 0;
+}
+
+/* Lecture dropdown (مسؤول المسح عند المدرج) */
+.lecture-select-wrapper {
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 4px;
+}
+
+.lecture-select {
+  width: 100%;
+  padding: 16px;
+  border: none;
+  border-radius: 16px;
+  background-color: transparent;
+  color: #71122B;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: right;
+  direction: rtl;
+}
+
+/* Orientation choice buttons (ركن التوجيه) */
+.orientation-prompt {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+}
+
+.orientation-question {
+  color: #71122B;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0 0 16px 0;
+}
+
+.orientation-options {
+  display: flex;
+  gap: 12px;
+}
+
+.orientation-btn {
+  flex: 1;
+  padding: 16px;
+  border-radius: 18px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E2D2B8;
+  color: #71122B;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.orientation-btn.selected {
+  background-color: #DCF1E9;
+  border-color: #134F47;
+  color: #0d3832;
+}
+
+/* Quick registration link button (بدون بطاقة) */
+.quick-register-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E2D2B8;
+  color: #71122B;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.quick-register-btn:hover {
+  background-color: #f7f7f7;
+}
+
+/* Footer */
+.scanner-footer {
+  background-color: #134F47;
+  color: #FFFFFF;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.connection-status.connected {
+  color: #6FE3C4;
+}
+
+.connection-status.disconnected {
+  color: #E85B0D;
+}

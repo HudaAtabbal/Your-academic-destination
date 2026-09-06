@@ -1,14 +1,23 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import WelcomePage from "./pages/WelcomePage";
-import RegisterStep1Page from "./pages/RegisterStep1Page";
-import RegisterStep2Page from "./pages/RegisterStep2Page";
-import RegisterStep3Page from "./pages/RegisterStep3Page";
-import OTP from "./pages/OTP";
+import WelcomePage from "./pages/student/WelcomePage";
+import RegisterStep1Page from "./pages/student/RegisterStep1Page";
+import RegisterStep2Page from "./pages/student/RegisterStep2Page";
+import RegisterStep3Page from "./pages/student/RegisterStep3Page";
+import OTP from "./pages/student/OTP";
 
-import MyCard from "./pages/MyCard";
-import AcademicGuide from "./pages/AcademicGuide";
-import Survey from "./pages/Survey";
+import MyCard from "./pages/student/MyCard";
+import AcademicGuide from "./pages/student/AcademicGuide";
+import Survey from "./pages/student/Survey";
+
+
+
+import TeamLoginPage from "./pages/scanners/TeamLoginPage";
+import TourPage from "./pages/scanners/TourPage";
+import CollegePage from "./pages/scanners/CollegePage";
+import StadiumPage from "./pages/scanners/StadiumPage";
+import ConsultationPage from "./pages/scanners/ConsultationPage";
+
 
 
 function App() {
@@ -23,6 +32,13 @@ function App() {
         <Route path="/my-card" element={<MyCard/>}/>
         <Route path="/academic-guide" element={<AcademicGuide/>}/>
         <Route path="/survey" element={<Survey/>}/>
+
+
+        <Route path="/team-log" element={<TeamLoginPage/>}/>
+        <Route path="/team-tour" element={<TourPage/>}/>
+        <Route path="/team-college" element={<CollegePage/>}/>
+        <Route path="/team-consultation" element={<ConsultationPage/>}/>
+        <Route path="/team-stadium" element={<StadiumPage/>}/>
       </Routes>
     </BrowserRouter>
   );

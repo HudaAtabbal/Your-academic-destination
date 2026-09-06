@@ -1,8 +1,8 @@
 import React from "react";
-import Header from "../components/Header";
-import InfoCard from "../components/InfoCard";
-import "../style/WelcomePage.css";
-import logo from "../assets/English logo white-01.png";
+import Header from "../../components/Header";
+import InfoCard from "../../components/InfoCard";
+import "../../style/WelcomePage.css";
+import logo from "../../assets/English logo white-01.png";
 import { useNavigate } from "react-router-dom";
 
 const WelcomePage = () => {

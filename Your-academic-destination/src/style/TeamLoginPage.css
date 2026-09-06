@@ -1,0 +1,146 @@
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
+  background-color: #FFF4E0;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.card-body {
+  padding: 32px 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.card-body::-webkit-scrollbar {
+  display: none;
+}
+.card-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Logo Section */
+.logo-container {
+  margin-top: 10px;
+  margin-bottom: 16px;
+}
+
+.brand-logo {
+  height: 72px;
+  width: auto;
+  object-fit: contain;
+}
+
+/* Titles */
+.header-text {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.main-title {
+  color: #3B0D23;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0 0 6px 0;
+}
+
+.subtitle {
+  color: #7A6953;
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Form Styles */
+.login-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-group label {
+  color: #3B0D23;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 16px 20px;
+  border-radius: 20px;
+  border: 1.5px solid #E5D5BC;
+  background-color: #FFFFFF;
+  color: #A09383;
+  font-family: sans-serif;
+  font-size: 1.1rem;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-group input::placeholder {
+  color: #C2B49F;
+}
+
+.input-group input:focus {
+  border-color: #0E3E37;
+}
+
+/* Action Button */
+.btn-primary {
+  width: 100%;
+  padding: 16px;
+  margin-top: 8px;
+  border-radius: 20px;
+  background-color: #0E3E37;
+  color: #FFFFFF;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-family: 'Ghroob', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #082924;
+}
+
+/* Footer Text */
+.footer-notice {
+  margin-top: auto;
+  padding-top: 16px;
+  color: #7A6953;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-align: center;
+}

@@ -167,6 +167,32 @@
   text-align: center;
 }
 
+/* Certificate Type Chips (علمي / أدبي) */
+.certificate-type-options {
+  display: flex;
+  gap: 10px;
+}
+
+.type-btn {
+  flex: 1;
+  background-color: #FFFFFF;
+  color: #134F47;
+  border: 1.5px solid #E2D2B8;
+  padding: 12px;
+  border-radius: 16px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.type-btn.selected {
+  background-color: #134F47;
+  color: #FFFFFF;
+  border-color: #134F47;
+}
+
 /* Validation States */
 .input-error {
   border-color: #C0392B !important;

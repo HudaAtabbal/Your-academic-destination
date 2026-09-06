@@ -92,26 +92,6 @@
   opacity: 0.85;
 }
 
-/* Progress Bar */
-.progress-container {
-  display: flex;
-  gap: 12px;
-  padding: 24px 24px 0 24px;
-  direction: ltr;
-}
-
-.progress-bar {
-  flex: 1;
-  height: 4px;
-  border-radius: 2px;
-  background-color: #E2D9C8;
-   direction: rtl;
-}
-
-.progress-bar.active {
-  background-color: #E85B0D;
-}
-
 /* Body & Description */
 .card-body {
   padding: 20px 24px 24px;
@@ -209,6 +189,22 @@
   border-color: #134F47;
 }
 
+/* Validation States — كانوا مفقودين بالكامل، وهاد سبب ظهور رسالة
+   الخطأ بشكل غريب (بستايل المتصفح الافتراضي بدل مكان واضح تحت الحقل) */
+.input-error {
+  border-color: #C0392B !important;
+}
+
+.error-message {
+  color: #C0392B !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  text-align: right !important;
+  margin: 8px 0 0 0 !important;
+  display: block !important;
+  width: 100% !important;
+}
+
 /* Submit Action Button */
 .actions {
   margin-top: auto;
@@ -235,4 +231,3 @@
 .btn-primary:hover {
   background-color: #0d3832;
 }
-

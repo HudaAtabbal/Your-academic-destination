@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import HeaderStep from '../components/HeaderStep';
-import '../style/OTP.css';
+import HeaderStep from '../../components/HeaderStep';
+import '../../style/OTP.css';
 
 // موك: الكود الصحيح للتجربة فقط، لازم يتبدل بطلب فعلي للباك اند لاحقاً
 const MOCK_CORRECT_OTP = '1234';

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import HeaderStep from '../components/HeaderStep';
-import StepProgress from '../components/Stepprogress';
-import InfoBox from '../components/InfoBox';
-import '../style/RegisterStep1Page.css';
+import HeaderStep from '../../components/HeaderStep';
+import StepProgress from '../../components/Stepprogress';
+import InfoBox from '../../components/InfoBox';
+import '../../style/RegisterStep1Page.css';
 
 const RegisterStep1Page = () => {
   const navigate = useNavigate();
@@ -11,7 +11,8 @@ const RegisterStep1Page = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     certificateYear: '',
-    baccalaureateScore: ''
+    certificateType: '',
+    averageScore: ''
   });
 
   const [errors, setErrors] = useState({});
@@ -22,6 +23,11 @@ const RegisterStep1Page = () => {
     setFormData((prev) => ({ ...prev, fullName: filtered }));
   };
 
+  const handleTypeSelect = (type) => {
+    setFormData((prev) => ({ ...prev, certificateType: type }));
+    setErrors((prev) => ({ ...prev, certificateType: undefined }));
+  };
+
   const handleScoreChange = (e) => {
     let value = e.target.value;
     value = value.replace(/[^0-9.]/g, '');
@@ -29,7 +35,7 @@ const RegisterStep1Page = () => {
     if (parts.length > 2) {
       value = parts[0] + '.' + parts.slice(1).join('');
     }
-    setFormData((prev) => ({ ...prev, baccalaureateScore: value }));
+    setFormData((prev) => ({ ...prev, averageScore: value }));
   };
 
   const handleCertificateYearChange = (e) => {
@@ -59,10 +65,14 @@ const RegisterStep1Page = () => {
       newErrors.certificateYear = 'سنة الشهادة غير صحيحة';
     }
 
-    if (!formData.baccalaureateScore.trim()) {
-      newErrors.baccalaureateScore = 'مجموع البكالوريا مطلوب';
-    } else if (Number(formData.baccalaureateScore) <= 0 || Number(formData.baccalaureateScore) > 300) {
-      newErrors.baccalaureateScore = 'الرجاء إدخال مجموع صحيح';
+    if (!formData.certificateType) {
+      newErrors.certificateType = 'يرجى اختيار نوع الشهادة';
+    }
+
+    if (!formData.averageScore.trim()) {
+      newErrors.averageScore = 'المعدل مطلوب';
+    } else if (Number(formData.averageScore) <= 0 || Number(formData.averageScore) > 100) {
+      newErrors.averageScore = 'الرجاء إدخال معدل صحيح بين 0 و100';
     }
 
     setErrors(newErrors);
@@ -121,18 +131,39 @@ const RegisterStep1Page = () => {
             </div>
 
             <div className="input-group">
-              <label htmlFor="baccalaureateScore" className="input-label">مجموع البكالوريا</label>
+              <label className="input-label">نوع الشهادة</label>
+              <div className="certificate-type-options">
+                <button
+                  type="button"
+                  className={`type-btn ${formData.certificateType === 'scientific' ? 'selected' : ''}`}
+                  onClick={() => handleTypeSelect('scientific')}
+                >
+                  علمي
+                </button>
+                <button
+                  type="button"
+                  className={`type-btn ${formData.certificateType === 'literary' ? 'selected' : ''}`}
+                  onClick={() => handleTypeSelect('literary')}
+                >
+                  أدبي
+                </button>
+              </div>
+              {errors.certificateType && <span className="error-text">{errors.certificateType}</span>}
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="averageScore" className="input-label">المعدل (النسبة المئوية)</label>
               <input
-                id="baccalaureateScore"
-                name="baccalaureateScore"
+                id="averageScore"
+                name="averageScore"
                 type="text"
                 inputMode="decimal"
-                placeholder="مثال: 228.5"
-                value={formData.baccalaureateScore}
+                placeholder="مثال: 76.5"
+                value={formData.averageScore}
                 onChange={handleScoreChange}
-                className={`custom-input ${errors.baccalaureateScore ? 'input-error' : ''}`}
+                className={`custom-input ${errors.averageScore ? 'input-error' : ''}`}
               />
-              {errors.baccalaureateScore && <span className="error-text">{errors.baccalaureateScore}</span>}
+              {errors.averageScore && <span className="error-text">{errors.averageScore}</span>}
             </div>
 
             <InfoBox text="بياناتك بتُستخدم بس لتنظيم الدخول ومتابعة أثر الفعالية، وما بتتشارك مع أي جهة تانية." />

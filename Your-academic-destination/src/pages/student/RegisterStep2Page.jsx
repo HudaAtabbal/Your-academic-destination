@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import HeaderStep from '../components/HeaderStep';
-import StepProgress from '../components/Stepprogress';
-import '../style/RegisterStep2Page.css';
+import HeaderStep from '../../components/HeaderStep';
+import StepProgress from '../../components/Stepprogress';
+import '../../style/RegisterStep2Page.css';
 
 // --- Sub-Component: InterestChips ---
 const InterestChips = ({ categories, selectedCategory, onSelectCategory, isUndecided, onToggleUndecided }) => (
