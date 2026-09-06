@@ -6,8 +6,14 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException as FastAPIHTTPException
 from fastapi.responses import JSONResponse
-from app.routers.auth import auth_router
+
 from app.errors import AppError
+from app.routers.accounts import account_router
+from app.routers.auth import auth_router
+from app.routers.bookings import booking_router
+from app.routers.checkins import checkin_router
+from app.routers.survey import survey_router
+from app.routers.walkin import walkin_router
 
 app = FastAPI(
     title="Wijhatak Al-Akademia API",
@@ -51,6 +57,11 @@ def http_exception_handler(request: Request, exc: FastAPIHTTPException) -> JSONR
 
 # تسجيل الروترات — كل روتر جديد بيتضاف هون بس
 app.include_router(auth_router.router)
+app.include_router(walkin_router.router)
+app.include_router(checkin_router.router)
+app.include_router(booking_router.router)
+app.include_router(survey_router.router)
+app.include_router(account_router.router)
 
 
 @app.get("/health", tags=["health"])
