@@ -1,0 +1,251 @@
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
+  background-color: #FFF4E0;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.gate-header {
+  background-color: #0E3E37;
+  padding: 20px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #FFFFFF;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0 0 2px 0;
+}
+
+.header-subtitle {
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.dot {
+  margin: 0 4px;
+}
+
+/* Main Body Area */
+.gate-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.gate-body::-webkit-scrollbar {
+  display: none;
+}
+.gate-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Stats Row */
+.stats-row {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-card {
+  flex: 1;
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.stat-label {
+  color: #0E3E37;
+  font-size: 0.85rem;
+  font-weight: 700;
+  opacity: 0.8;
+}
+
+.stat-value {
+  color: #0E3E37;
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* QR Card — صارت <button> عشان تصير قابلة للضغط، فمحتاجة نصفّر ستايل الزر الافتراضي */
+.qr-card {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 20px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  border: none;
+  cursor: pointer;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+  transition: transform 0.15s ease;
+}
+
+.qr-card:hover {
+  transform: scale(1.01);
+}
+
+.qr-card:active {
+  transform: scale(0.99);
+}
+
+.qr-viewfinder {
+  width: 170px;
+  height: 170px;
+  background-color: #0E3E37;
+  border-radius: 28px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.qr-frame {
+  width: 110px;
+  height: 110px;
+  border: 2px solid #52C4A5;
+  border-radius: 20px;
+}
+
+.qr-hint {
+  color: #0E3E37;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+  opacity: 0.85;
+}
+
+/* Divider */
+.divider {
+  text-align: center;
+  color: #7A6953;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 2px 0;
+}
+
+/* Search Form */
+.search-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  color: #3B0D23;
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1.5px solid #E5D5BC;
+  background-color: #FFFFFF;
+  color: #3B0D23;
+  font-family: sans-serif;
+  font-size: 1rem;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.input-group input::placeholder {
+  color: #A09383;
+}
+
+.input-group input:focus {
+  border-color: #0E3E37;
+}
+
+/* Buttons */
+.btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-family: 'Ghroob', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background-color: #FFFFFF;
+  color: #0E3E37;
+  border: 1.5px solid #E5D5BC;
+}
+
+.btn-secondary:hover {
+  background-color: #f7f7f7;
+}
+
+/* Bottom Status Bar */
+.status-bar {
+  margin-top: auto;
+  background-color: #0E3E37;
+  border-radius: 16px;
+  padding: 12px 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #FFFFFF;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.status-text {
+  opacity: 0.9;
+}
+
+.status-count {
+  opacity: 0.9;
+}

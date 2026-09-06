@@ -1,0 +1,337 @@
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Light.otf') format('opentype');
+  font-weight: 300;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
+  background-color: #FFF4E0;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.page-header {
+  background-color: #0E3E37;
+  padding: 18px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #FFFFFF;
+}
+
+.header-badge {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-text {
+  text-align: left;
+}
+
+.brand-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.brand-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0;
+  opacity: 0.8;
+}
+
+/* Body Area */
+.page-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.page-body::-webkit-scrollbar {
+  display: none;
+}
+
+.page-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Stats Row */
+.stats-row {
+  display: flex;
+  gap: 12px;
+}
+
+.stat-card {
+  flex: 1;
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  text-align: center;
+}
+
+/* الكرت صار <button> عشان يصير قابل للضغط، فمحتاج نصفّر ستايل الزر الافتراضي */
+.stat-card-clickable {
+  border: none;
+  cursor: pointer;
+  font-family: 'Ghroob', sans-serif;
+  transition: transform 0.15s ease;
+}
+
+.stat-card-clickable:hover {
+  transform: scale(1.02);
+}
+
+.stat-label {
+  color: #7A6953;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-value.orange-text {
+  color: #E65100;
+}
+
+.stat-value.primary-text {
+  color: #3B0D23;
+}
+
+/* Search Section */
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-label {
+  color: #3B0D23;
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.search-box {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1.5px solid #E5D5BC;
+  background-color: #FFFFFF;
+  color: #3B0D23;
+  font-family: sans-serif;
+  font-size: 1rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.btn-search {
+  background-color: #0E3E37;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  padding: 0 24px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Edit Card Section */
+.edit-card {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.edit-title {
+  color: #3B0D23;
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin: 0;
+  direction: rtl;
+}
+
+.status-chip.success {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+/* Edit Form */
+.edit-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.input-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input-group label {
+  color: #7A6953;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1.5px solid #E5D5BC;
+  background-color: #FFFFFF;
+  color: #3B0D23;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+  outline: none;
+  text-align: right;
+}
+
+.input-group input[dir="ltr"] {
+  font-family: sans-serif;
+  text-align: left;
+}
+
+.verified-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.verified-input-wrapper .check-mark {
+  position: absolute;
+  right: 12px;
+  color: #2E7D32;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.verified-input-wrapper input {
+  padding-right: 28px;
+  color: #2E7D32;
+}
+
+/* Save Button */
+.btn-save {
+  width: 100%;
+  padding: 14px;
+  margin-top: 4px;
+  background-color: #0E3E37;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-family: 'Ghroob', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-save:hover {
+  background-color: #082924;
+}

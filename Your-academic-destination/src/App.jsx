@@ -6,10 +6,11 @@ import RegisterStep2Page from "./pages/student/RegisterStep2Page";
 import RegisterStep3Page from "./pages/student/RegisterStep3Page";
 import OTP from "./pages/student/OTP";
 
+
 import MyCard from "./pages/student/MyCard";
 import AcademicGuide from "./pages/student/AcademicGuide";
 import Survey from "./pages/student/Survey";
-
+import MyPointsPage from "./pages/student/MyPointsPage";
 
 
 import TeamLoginPage from "./pages/scanners/TeamLoginPage";
@@ -17,6 +18,13 @@ import TourPage from "./pages/scanners/TourPage";
 import CollegePage from "./pages/scanners/CollegePage";
 import StadiumPage from "./pages/scanners/StadiumPage";
 import ConsultationPage from "./pages/scanners/ConsultationPage";
+
+
+
+import UniversityGatePage from "./pages/UniGate/UniversityGatePage";
+import GateEntrySuccessPage from "./pages/UniGate/GateEntrySuccessPage";
+import StudentDataManagerPage from "./pages/UniGate/StudentDataManagerPage"
+import InWalkIncompletePage from "./pages/UniGate/InWalkIncompletePage";
 
 
 
@@ -29,9 +37,12 @@ function App() {
         <Route path="/register-step2" element={<RegisterStep2Page />} />
         <Route path="/register-step3" element={<RegisterStep3Page />} />
         <Route path="/otp" element={<OTP />} />
+
+
         <Route path="/my-card" element={<MyCard/>}/>
         <Route path="/academic-guide" element={<AcademicGuide/>}/>
         <Route path="/survey" element={<Survey/>}/>
+        <Route path="/my-points" element={<MyPointsPage/>}/>
 
 
         <Route path="/team-log" element={<TeamLoginPage/>}/>
@@ -39,6 +50,12 @@ function App() {
         <Route path="/team-college" element={<CollegePage/>}/>
         <Route path="/team-consultation" element={<ConsultationPage/>}/>
         <Route path="/team-stadium" element={<StadiumPage/>}/>
+
+
+        <Route path="/gate" element={<UniversityGatePage/>}/>
+        <Route path="/gate-entry-success" element={<GateEntrySuccessPage/>}/>
+        <Route path="/gate-manage" element={<StudentDataManagerPage/>}/>
+        <Route path="/gate-incomplete" element={<InWalkIncompletePage/>}/>
       </Routes>
     </BrowserRouter>
   );

@@ -1,0 +1,211 @@
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
+  background-color: #FFF4E0;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.gate-header {
+  background-color: #0E3E37;
+  padding: 20px 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #FFFFFF;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.header-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0 0 2px 0;
+}
+
+.header-subtitle {
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.dot {
+  margin: 0 4px;
+}
+
+/* Main Body Area */
+.gate-body {
+  padding: 24px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+.gate-body::-webkit-scrollbar {
+  display: none;
+}
+
+.gate-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Success Icon Circle */
+.success-icon-wrapper {
+  width: 110px;
+  height: 110px;
+  background-color: #0E3E37;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 16px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(14, 62, 55, 0.15);
+}
+
+.check-icon {
+  width: 48px;
+  height: 48px;
+  color: #FFFFFF;
+}
+
+/* Details Section */
+.success-details {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.success-title {
+  color: #3B0D23;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+}
+
+.student-name {
+  color: #3B0D23;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  opacity: 0.9;
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #0E3E37;
+  font-size: 1.1rem;
+  font-weight: 700;
+  direction: ltr;
+}
+
+.meta-time {
+  direction: rtl;
+}
+
+.meta-id {
+  font-family: sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.dot-separator {
+  color: #0E3E37;
+  opacity: 0.6;
+}
+
+/* Info Box */
+.info-card {
+  width: 100%;
+  background-color: #FFFFFF;
+  border-radius: 20px;
+  padding: 18px 20px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  box-sizing: border-box;
+}
+
+.info-text {
+  color: #0E3E37;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+/* Action Button */
+.action-container {
+  margin-top: auto;
+  width: 100%;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-family: 'Ghroob', sans-serif;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn-primary {
+  background-color: #0E3E37;
+  color: #FFFFFF;
+  border: none;
+}
+
+.btn-primary:hover {
+  background-color: #082924;
+}
+
+/* رابط تعديل بيانات الطالب — ثانوي، أقل تأكيداً من زر المسح التالي */
+.edit-link {
+  background: none;
+  border: none;
+  color: #0E3E37;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 4px;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.edit-link:hover {
+  text-decoration: underline;
+  opacity: 1;
+}

@@ -1,0 +1,204 @@
+.card-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+  padding: 16px;
+  direction: rtl;
+  font-family: 'Ghroob', sans-serif;
+  box-sizing: border-box;
+}
+
+.card-container {
+  width: 100%;
+  max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
+  background-color: #FFF8EB;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header */
+.page-header {
+  padding: 24px 20px 12px 20px;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.header-title {
+  color: #0E3E37;
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+/* Body Area */
+.page-body {
+  padding: 0 16px 16px 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+
+.page-body::-webkit-scrollbar {
+  display: none;
+}
+
+.page-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Score Card */
+.score-card {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 28px 20px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.score-value {
+  color: #E65100;
+  font-size: 3.8rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.score-subtitle {
+  color: #7A6953;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.score-subtitle .dot {
+  margin: 0 4px;
+}
+
+/* Points Breakdown Card */
+.points-table-card {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 20px 18px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+}
+
+.table-caption {
+  color: #7A6953;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: right;
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
+.points-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.points-table th {
+  color: #7A6953;
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding-bottom: 12px;
+  opacity: 0.7;
+}
+
+.points-table td {
+  padding: 12px 0;
+  border-top: 1px solid #F3E8D8;
+  color: #0E3E37;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.col-name {
+  text-align: right;
+}
+
+.col-points {
+  text-align: left;
+}
+
+.table-note {
+  color: #7A6953;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 16px 0 0 0;
+  line-height: 1.5;
+  text-align: right;
+  opacity: 0.85;
+}
+
+/* Awards Notice */
+.awards-notice {
+  text-align: center;
+  color: #7A6953;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin-top: auto;
+  padding: 8px 0;
+  opacity: 0.85;
+}
+
+/* Bottom Navigation Bar */
+.bottom-nav {
+  background-color: #FFF8EB;
+  border-top: 1px solid #EFE2CE;
+  padding: 10px 12px 14px 12px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.nav-item {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #7A6953;
+  cursor: pointer;
+  padding: 0;
+  font-family: 'Ghroob', sans-serif;
+  opacity: 0.7;
+  transition: opacity 0.2s, color 0.2s;
+}
+
+.nav-item.active {
+  color: #0E3E37;
+  opacity: 1;
+}
+
+.nav-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.nav-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
