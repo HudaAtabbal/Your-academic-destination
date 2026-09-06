@@ -1,0 +1,17 @@
+.progress-container {
+  display: flex;
+  gap: 12px;
+  padding: 24px 24px 0 24px;
+  direction: rtl;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background-color: #E2D9C8;
+}
+
+.progress-bar.active {
+  background-color: #E85B0D;
+}

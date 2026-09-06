@@ -59,24 +59,9 @@
 
 
 
-/* Progress Bar */
-.progress-container {
-  display: flex;
-  gap: 12px;
-  padding: 24px 24px 0 24px;
-  direction: rtl; 
-}
+/* Progress Bar — الستايل صار مركزي بملف StepProgress.css، ما عاد لازم يتكرر هون */
 
-.progress-bar {
-  flex: 1;
-  height: 4px;
-  border-radius: 2px;
-  background-color: #E2D9C8;
-}
 
-.progress-bar.active {
-  background-color: #E85B0D; /* البرتقالي الخاص بالخطوة الفعالة */
-}
 
 /* Body & Form */
 .card-body {
