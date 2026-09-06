@@ -3,6 +3,10 @@
 super_admin (وحسابات تجريبية لباقي الأدوار)، لأنه ما في تسجيل ذاتي لأي حساب
 فريق عمل بالنظام — كلهم بينشأو من قبل super_admin عبر POST /admin/accounts.
 
+كمان بيزرع طالب تجريبي واحد "نظامي" (registered، مش walk-in) مشان يصير فيك
+تجرّبي عمليات المسح (checkins) والحجز (bookings) بدون ما تضطري تعدّي فعلياً
+عبر فلو التسجيل الإلكتروني (تسجيل + OTP) يلي لسا ما بنيناه.
+
 ⚠️ كلمات السر هون كلها تجريبية وواضحة (dev-only) — لازم تتغيّر يدوياً قبل أي
 استخدام فعلي بيوم الفعالية.
 
@@ -10,8 +14,19 @@ super_admin (وحسابات تجريبية لباقي الأدوار)، لأنه
     python -m app.seed_data
 """
 
+from datetime import date
+
 from app.database import Base, SessionLocal, engine
-from app.models import Account, AccountRole, College
+from app.models import (
+    Account,
+    AccountRole,
+    College,
+    ContactPlatform,
+    RegistrationType,
+    Student,
+    StudentStatus,
+    VerificationStatus,
+)
 from app.security import hash_password
 
 # (username, password, role, college)
@@ -21,6 +36,22 @@ SEED_ACCOUNTS = [
     ("rima_staff", "staff123", AccountRole.college_staff, College.college_placeholder_1),
     ("hadi_gate", "gate123", AccountRole.gate_scanner, None),
 ]
+
+# طالب تجريبي واحد "نظامي" (registered) — verified وbالكامل مكتمل البيانات،
+# مشان يصير فيك تجرّبي عليه checkins/bookings مباشرة
+SEED_STUDENT = {
+    "unique_code": "R-9001",
+    "full_name": "طالب تجريبي",
+    "contact_platform": ContactPlatform.whatsapp,
+    "contact_id": "0999999999",
+    "birth_date": date(2008, 1, 1),
+    "bacc_year": 2026,
+    "bacc_average": 285.5,
+    "initial_preferred_major": College.college_placeholder_1,
+    "verification_status": VerificationStatus.verified,
+    "registration_type": RegistrationType.registered,
+    "status": StudentStatus.complete,
+}
 
 
 def seed():
@@ -44,6 +75,20 @@ def seed():
             db.add(account)
             db.commit()
             print(f"✅ تم إنشاء الحساب: {username} / {password}  (دور: {role.value})")
+
+        existing_student = (
+            db.query(Student).filter(Student.unique_code == SEED_STUDENT["unique_code"]).first()
+        )
+        if existing_student:
+            print(f"⏭  الطالب '{SEED_STUDENT['unique_code']}' موجود مسبقاً — تم تخطّيه")
+        else:
+            student = Student(**SEED_STUDENT)
+            db.add(student)
+            db.commit()
+            print(
+                f"✅ تم إنشاء طالب تجريبي: {SEED_STUDENT['unique_code']} "
+                f"({SEED_STUDENT['full_name']}) — registered / verified / complete"
+            )
     finally:
         db.close()
 
