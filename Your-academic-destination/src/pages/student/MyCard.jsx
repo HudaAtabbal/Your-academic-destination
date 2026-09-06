@@ -7,19 +7,22 @@ import '../../style/MyCard.css';
 const MyCard = () => {
   const qrWrapperRef = useRef(null);
 
+  // بنقرأ الكود من localStorage (اتخزن هناك بصفحة OTP بعد نجاح التحقق)
+  // بدل ما يكون ثابت بالكود؛ الاسم لسا موك لحد ما نربط API فعلي يرجّعه
+  const studentCode = localStorage.getItem('studentCode') || 'R-0248';
+
   const cardData = {
     name: 'عمر أحمد العسورة',
-    code: 'R-0248',
+    code: studentCode,
     status: 'بانتظار التفعيل',
-    qrValue: 'R-0248-OMAR-ALASOORA'
   };
 
   const handleSaveCard = () => {
     try {
-      // بنلاقي الـ SVG يلي مكتبة react-qr-code رندرته جوا mc-qr-wrapper
+      // بنلاقي الـ SVG يلي مكتبة react-qr-code رندرته جوا qr-wrapper
       const svg = qrWrapperRef.current?.querySelector('svg');
       if (!svg) {
-        console.error('ما تم إيجاد عنصر الـ SVG جوا mc-qr-wrapper');
+        console.error('ما تم إيجاد عنصر الـ SVG جوا qr-wrapper');
         return;
       }
 
@@ -77,39 +80,42 @@ const MyCard = () => {
   };
 
   return (
-    <div className="mc-card-wrapper">
-      <div className="mc-card-container scrollable">
+    <div className="card-wrapper">
+      <div className="card-container scrollable">
         
         <HeaderStep 
-          title=" بطاقتي الخاصة" 
+          title="بطاقتي" 
           stepText="وجهتك الأكاديمية 2 • جامعة حمص" 
           onBack={() => window.history.back()} 
         />
 
-        <main className="mc-card-body">
+        <main className="card-body">
           
           {/* Digital ID Card Section */}
-          <div className="mc-id-card-box">
-            <div className="mc-qr-wrapper" ref={qrWrapperRef}>
+          <div className="id-card-box">
+            <div className="qr-wrapper" ref={qrWrapperRef}>
+              {/* الـ QR بيحمل بس unique_code تبع الطالب (زي R-0248)،
+                  بدون أي بيانات شخصية زي الاسم. لما موظف السكانر يمسحه،
+                  الباك اند هو يلي بيرجّع اسم الطالب وكل بياناته من قاعدة البيانات. */}
               <QRCode 
-                value={cardData.qrValue} 
+                value={cardData.code}
                 size={140}
                 fgColor="#134F47"
                 bgColor="#FFFFFF"
                 level="L"
               />
             </div>
-            <h2 className="mc-user-name">{cardData.name}</h2>
-            <p className="mc-user-code">{cardData.code}</p>
-            <div className="mc-status-badge">
+            <h2 className="user-name">{cardData.name}</h2>
+            <p className="user-code">{cardData.code}</p>
+            <div className="status-badge">
               {cardData.status}
             </div>
           </div>
 
           {/* Features Info Box */}
-          <div className="mc-info-card-box">
-            <h3 className="mc-info-box-title">ماذا تفعل هذه البطاقة ؟</h3>
-            <ul className="mc-info-list">
+          <div className="info-card-box">
+            <h3 className="info-box-title">ماذا تفعل هذه البطاقة ؟</h3>
+            <ul className="info-list">
                <li>تسمح لك بالدخول عند بوابة الحرم الجامعي</li>
               <li>تسجّل حضورك بأي محاضرة أو جولة أو استشارة</li>
               <li>تعمل بدون إنترنت &mdash; لقطة شاشة كافية</li>
@@ -117,8 +123,8 @@ const MyCard = () => {
           </div>
 
           {/* Action Button */}
-          <div className="mc-actions">
-            <button type="button" onClick={handleSaveCard} className="mc-btn mc-btn-primary">
+          <div className="actions">
+            <button type="button" onClick={handleSaveCard} className="btn btn-primary">
               احفظ البطاقة
             </button>
           </div>

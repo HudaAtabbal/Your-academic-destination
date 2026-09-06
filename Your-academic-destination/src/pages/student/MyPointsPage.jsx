@@ -1,4 +1,5 @@
 import React from 'react';
+import HeaderStep from '../../components/HeaderStep';
 import BottomNav from '../../components/BottomNav'; // قم بتعديل المسار حسب مكان حفظك لمكون BottomNav
 import '../../style/MyPointsPage.css';
 
@@ -18,11 +19,12 @@ const MyPointsPage = ({
   return (
     <div className="card-wrapper">
       <div className="card-container">
-        
-        {/* Title Header */}
-        <header className="page-header">
-          <h1 className="header-title">نقاطي</h1>
-        </header>
+
+        <HeaderStep
+          title="نقاطي"
+          stepText="تجميع نقاطك خلال الفعالية"
+          onBack={() => window.history.back()}
+        />
 
         {/* Scrollable Main Content */}
         <main className="page-body">

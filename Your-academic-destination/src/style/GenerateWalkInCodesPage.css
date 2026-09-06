@@ -1,16 +1,4 @@
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
-  font-weight: 800;
-  font-display: swap;
-}
 
 /* Desktop Viewport Setup */
 .gwic-viewport {
@@ -23,61 +11,8 @@
   box-sizing: border-box;
 }
 
-/* App Header */
-.gwic-header {
-  height: 80px;
-  background-color: #0F3B34;
-  padding: 0 48px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.gwic-user-badge {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
-  padding: 8px 24px;
-  border-radius: 50px;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.gwic-header-brand {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.gwic-brand-text {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-}
-
-.gwic-brand-title {
-  color: #FFFFFF;
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.gwic-brand-subtitle {
-  color: #A3C2BB;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.gwic-brand-logo {
-  width: 36px;
-  height: 36px;
-  color: #FFFFFF;
-}
-
-.gwic-logo-svg {
-  width: 100%;
-  height: 100%;
-}
+/* ملاحظة: ستايل الهيدر (gwic-header, gwic-brand-*, gwic-user-badge...)
+   صار مركزي بملف AdminHeader.css المشترك، شلناه من هون. */
 
 /* Main Area Container */
 .gwic-main-container {
@@ -146,6 +81,10 @@
   justify-content: flex-end;
 }
 
+.gwic-form-row-simplified {
+  grid-template-columns: 220px 180px;
+}
+
 .gwic-field-group {
   display: flex;
   flex-direction: column;
@@ -205,6 +144,14 @@
   background-color: #0A2B26;
 }
 
+.gwic-error-text {
+  color: #B71C1C;
+  font-size: 0.88rem;
+  font-weight: 700;
+  margin: 12px 0 0 0;
+  text-align: right;
+}
+
 /* Output Batch Row */
 .gwic-output-header {
   display: flex;
@@ -260,51 +207,76 @@
   background-color: #FFFFFF;
 }
 
-/* QR Stylized Graphic */
-.gwic-qr-graphic {
-  width: 64px;
-  height: 64px;
-  position: relative;
-}
-
-.gwic-qr-corner {
-  width: 16px;
-  height: 16px;
-  border: 4px solid #0F3B34;
-  position: absolute;
-  box-sizing: border-box;
-}
-
-.gwic-qr-tl { top: 0; left: 0; }
-.gwic-qr-tr { top: 0; right: 0; }
-.gwic-qr-bl { bottom: 0; left: 0; }
-
-.gwic-qr-center-dots {
-  position: absolute;
-  top: 18px;
-  left: 18px;
-  width: 28px;
-  height: 28px;
-}
-
-.gwic-qr-dot {
-  position: absolute;
-  background-color: #0F3B34;
-  width: 6px;
-  height: 6px;
-}
-
-.gwic-qr-dot.d1 { top: 2px; right: 2px; }
-.gwic-qr-dot.d2 { top: 10px; left: 6px; }
-.gwic-qr-dot.d3 { bottom: 2px; right: 8px; }
-.gwic-qr-dot.d4 { top: 16px; right: 2px; }
-.gwic-qr-dot.d5 { bottom: 6px; left: 2px; }
-
 .gwic-qr-code-text {
   color: #0F3B34;
   font-size: 0.95rem;
   font-weight: 800;
   letter-spacing: 0.5px;
+}
+
+.gwic-more-note {
+  text-align: center;
+  color: #7A6855;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 16px 0 0 0;
+}
+
+/* قسم الطباعة الكامل — مخفي بالشاشة العادية، وبيظهر بس وقت الطباعة الفعلية */
+.gwic-print-only {
+  display: none;
+}
+
+.gwic-print-title {
+  display: none;
+}
+
+/* ============================================
+   قواعد الطباعة الفعلية
+   ============================================ */
+@media print {
+  /* بنخفي كل شي غير قسم الطباعة (الهيدر، النافيغيشن، الفورم، المعاينة، الفوتر) */
+  .admin-header,
+  .gwic-back-wrapper,
+  .gwic-card-panel:not(.gwic-print-only),
+  .gwic-output-header,
+  .gwic-footer-instruction {
+    display: none !important;
+  }
+
+  .gwic-viewport {
+    background-color: #FFFFFF;
+    min-height: auto;
+  }
+
+  .gwic-main-container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  .gwic-print-only {
+    display: block;
+  }
+
+  .gwic-print-title {
+    display: block;
+    color: #0F3B34;
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0 0 16px 0;
+    text-align: center;
+  }
+
+  .gwic-print-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .gwic-qr-card {
+    border: 1px dashed #999999;
+    break-inside: avoid;
+  }
 }
 
 /* Footer Helper Note */

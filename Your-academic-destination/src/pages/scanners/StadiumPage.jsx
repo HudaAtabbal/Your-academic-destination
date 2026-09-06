@@ -12,12 +12,12 @@ const LECTURES = [
 ];
 
 // موك: طلاب سبق ومسحوا لنفس المحاضرة، لمحاكاة كشف التكرار
-const ALREADY_SCANNED = ['R-08321'];
+const ALREADY_SCANNED = ['R-0832'];
 
 const MOCK_STUDENTS = [
-  { name: 'محمد الخطيب', code: 'R-08321' }, // هاد مكرر (موجود فوق) — رح يطلع تحذير
-  { name: 'ليان حاج علي', code: 'R-11907' },
-  { name: 'سارة يوسف', code: 'R-03871' },
+  { name: 'محمد الخطيب', code: 'R-0832' }, // هاد مكرر (موجود فوق) — رح يطلع تحذير
+  { name: 'ليان حاج علي', code: 'R-1190' },
+  { name: 'سارة يوسف', code: 'R-0387' },
 ];
 
 const StadiumPage = () => {
@@ -55,8 +55,8 @@ const StadiumPage = () => {
   };
 
   return (
-    <div className="ss-card-wrapper">
-      <div className="ss-card-container">
+    <div className="card-wrapper">
+      <div className="card-container">
         <StaffScanHeader
           title="مسح عند المدرج"
           username="hadi_gate"
@@ -64,14 +64,14 @@ const StadiumPage = () => {
           location={selectedLecture.hall}
         />
 
-        <main className="ss-body">
+        <main className="card-body">
           <div>
             <p className="input-label" style={{ marginBottom: 8, color: '#71122B', fontWeight: 700 }}>
               المحاضرة الجارية الآن
             </p>
-            <div className="ss-lecture-select-wrapper">
+            <div className="lecture-select-wrapper">
               <select
-                className="ss-lecture-select"
+                className="lecture-select"
                 value={selectedLectureId}
                 onChange={(e) => {
                   setSelectedLectureId(e.target.value);
@@ -96,7 +96,7 @@ const StadiumPage = () => {
             studentCode={result?.studentCode}
           />
 
-          <button type="button" className="ss-quick-register-btn" onClick={handleQuickRegister}>
+          <button type="button" className="quick-register-btn" onClick={handleQuickRegister}>
             تسجيل الخط السريع (بدون بطاقة)
           </button>
         </main>

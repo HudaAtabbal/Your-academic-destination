@@ -1,16 +1,4 @@
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
-  font-weight: 800;
-  font-display: swap;
-}
 
 /* Viewport Setup for Desktop */
 .cta-page-viewport {
@@ -23,61 +11,8 @@
   box-sizing: border-box;
 }
 
-/* Header Component */
-.cta-page-header {
-  height: 80px;
-  background-color: #0F3B34;
-  padding: 0 48px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.cta-user-badge {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
-  padding: 8px 24px;
-  border-radius: 50px;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.cta-header-brand {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.cta-brand-text {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-}
-
-.cta-brand-title {
-  color: #FFFFFF;
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.cta-brand-subtitle {
-  color: #A3C2BB;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.cta-brand-logo {
-  width: 36px;
-  height: 36px;
-  color: #FFFFFF;
-}
-
-.cta-logo-svg {
-  width: 100%;
-  height: 100%;
-}
+/* ملاحظة: ستايل الهيدر (cta-page-header, cta-brand-*, cta-user-badge...)
+   صار مركزي بملف AdminHeader.css المشترك، شلناه من هون. */
 
 /* Main Container Area */
 .cta-main-container {
@@ -201,6 +136,24 @@
 
 .cta-input-field.disabled::placeholder {
   color: #A39685;
+}
+
+/* Select Field (الكلية المرتبطة) — نفس شكل الـ input بالضبط بس مع سهم dropdown */
+.cta-select-field {
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230F3B34' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 20px center;
+  background-size: 18px;
+  padding-left: 48px;
+}
+
+.cta-select-field.disabled {
+  cursor: not-allowed;
+  background-image: none;
+  text-align: center;
 }
 
 /* Roles Radio Selection Buttons */

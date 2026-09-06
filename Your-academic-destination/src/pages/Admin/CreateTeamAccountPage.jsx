@@ -1,61 +1,77 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import AdminHeader from '../../components/AdminHeader';
 import '../../style/CreateTeamAccountPage.css';
 
-const CreateTeamAccountPage = ({
-  userRole = 'المدير العام',
-  onBack,
-  onSubmit,
-}) => {
-  const [username, setUsername] = useState('');
+// الكليات المعروفة حالياً بالمشروع (نفس القائمة المستخدمة بصفحات الطالب)
+const KNOWN_COLLEGES = [
+  'الطب البشري',
+  'المعلوماتية',
+  'الهندسة المعمارية',
+  'الحقوق',
+  'الصيدلة',
+  'الهندسة الزراعية',
+  'التربية',
+  'الهندسة المدنية',
+];
+
+const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // إذا الصفحة انفتحت بوضع تعديل (جاي من لوحة التحكم عبر زر "تعديل")،
+  // منعبّي الفورم ببيانات العضو الحالية بدل ما تضل فاضية
+  const editMember = location.state?.editMember || null;
+
+  const [username, setUsername] = useState(editMember?.username || '');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('scanner'); // 'general', 'data', 'scanner', 'college'
-  const [faculty, setFaculty] = useState('');
+  const [role, setRole] = useState(editMember?.roleType || 'gate_scanner'); // 'super_admin', 'students_admin', 'gate_scanner', 'college_staff'
+  const [faculty, setFaculty] = useState(
+    editMember?.roleType === 'college_staff' ? editMember.faculty : ''
+  );
 
   const rolesList = [
-    { id: 'general', label: 'المدير العام' },
-    { id: 'data', label: 'مدير بيانات الطلاب' },
-    { id: 'scanner', label: 'مسؤول المسح' },
-    { id: 'college', label: 'مسؤول الكلية' },
+    { id: 'super_admin', label: 'المدير العام' },
+    { id: 'students_admin', label: 'مدير بيانات الطلاب' },
+    { id: 'gate_scanner', label: 'مسؤول المسح' },
+    { id: 'college_staff', label: 'مسؤول الكلية' },
   ];
+
+  const handleBack = () => {
+    navigate('/dashboard');
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const payload = { username, password, role, faculty };
     if (onSubmit) {
-      onSubmit({ username, password, role, faculty });
+      onSubmit(payload);
+    } else {
+      console.log(editMember ? 'Updating account:' : 'Creating account:', payload);
     }
+    navigate('/dashboard');
   };
 
   return (
     <div className="cta-page-viewport">
-      
-      {/* Top Application Header */}
-      <header className="cta-page-header">
-        
-        
-        <div className="cta-header-brand">
-          <div className="cta-brand-text">
-            <span className="cta-brand-title">وجهتك الأكاديمية 2</span>
-            <span className="cta-brand-subtitle">لوحة التحكم</span>
-          </div>
-          <div className="cta-header-user">
-          <span className="cta-user-badge">{userRole}</span>
-        </div>
-        </div>
-      </header>
+
+      <AdminHeader userRole={userRole} />
 
       {/* Main Form Area */}
       <main className="cta-main-container">
         
         {/* Back Link */}
         <div className="cta-back-wrapper">
-          <button type="button" className="cta-back-btn" onClick={onBack}>
+          <button type="button" className="cta-back-btn" onClick={handleBack}>
             <span className="cta-back-arrow">←</span> رجوع لقائمة الحسابات
           </button>
         </div>
 
         {/* Card Form */}
         <div className="cta-form-card">
-          <h1 className="cta-form-title">إنشاء حساب فريق عمل جديد</h1>
+          <h1 className="cta-form-title">
+            {editMember ? `تعديل حساب — ${editMember.username}` : 'إنشاء حساب فريق عمل جديد'}
+          </h1>
 
           <form onSubmit={handleSubmit} className="cta-form-body">
             
@@ -79,13 +95,13 @@ const CreateTeamAccountPage = ({
 
               <div className="cta-field-group">
                 <label className="cta-field-label" htmlFor="cta-password">
-                  كلمة السر المبدئية
+                  {editMember ? 'كلمة سر جديدة' : 'كلمة السر المبدئية'}
                 </label>
                 <input
                   id="cta-password"
                   type="text"
                   className="cta-input-field"
-                  placeholder="تُنشأ تلقائياً"
+                  placeholder={editMember ? 'اتركها فارغة لعدم التغيير' : 'تُنشأ تلقائياً'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -110,25 +126,32 @@ const CreateTeamAccountPage = ({
               </div>
             </div>
 
-            {/* Inputs Row 3: Faculty Selection (Active only for 'college' role) */}
+            {/* Inputs Row 3: Faculty Selection (Active only for 'college_staff' role) */}
             <div className="cta-field-group">
               <label className="cta-field-label">
                 الكلية المرتبطة <span className="cta-label-hint">(يظهر فقط لدور "مسؤول الكلية")</span>
               </label>
-              <input
-                type="text"
-                className={`cta-input-field ${role !== 'college' ? 'disabled' : ''}`}
-                placeholder={role === 'college' ? 'اختر الكلية...' : '— غير مطلوب لهذا الدور —'}
-                value={role === 'college' ? faculty : ''}
+              <select
+                className={`cta-input-field cta-select-field ${role !== 'college_staff' ? 'disabled' : ''}`}
+                value={role === 'college_staff' ? faculty : ''}
                 onChange={(e) => setFaculty(e.target.value)}
-                disabled={role !== 'college'}
-              />
+                disabled={role !== 'college_staff'}
+              >
+                <option value="" disabled>
+                  {role === 'college_staff' ? 'اختر الكلية...' : '— غير مطلوب لهذا الدور —'}
+                </option>
+                {KNOWN_COLLEGES.map((college) => (
+                  <option key={college} value={college}>
+                    {college}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Action Submit Button */}
             <div className="cta-form-actions">
               <button type="submit" className="cta-submit-btn">
-                إنشاء الحساب
+                {editMember ? 'حفظ التعديلات' : 'إنشاء الحساب'}
               </button>
             </div>
 

@@ -1,49 +1,73 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import QRCode from 'react-qr-code';
+import AdminHeader from '../../components/AdminHeader';
 import '../../style/GenerateWalkInCodesPage.css';
 
-const GenerateWalkInCodesPage = ({
-  userRole = 'المدير العام',
-  onBack,
-  onPrint,
-}) => {
+const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint }) => {
+  const navigate = useNavigate();
   const [count, setCount] = useState('50');
-  const [startCode, setStartCode] = useState('W-0001');
-
-  // نماذج بطاقات الـ QR المخففة
-  const sampleCodes = Array.from({ length: 12 }, (_, i) => {
-    const num = (i + 1).toString().padStart(4, '0');
-    return `W-${num}`;
-  });
+  const [error, setError] = useState('');
+  const [generatedCodes, setGeneratedCodes] = useState([]);
+  const [batchInfo, setBatchInfo] = useState(null); // { total, start, end }
 
   const handleGenerate = (e) => {
     e.preventDefault();
-    // تنفيذ عملية توليد الرموز هنا
+
+    const parsedCount = parseInt(count, 10);
+    if (!parsedCount || parsedCount <= 0) {
+      setError('يرجى إدخال عدد رموز صحيح أكبر من صفر');
+      return;
+    }
+
+    setError('');
+
+    // موك مؤقت بس — بالواقع الباك هو يلي بيحدد رقم البداية تلقائياً
+    // (آخر رقم متوقف عنده بالدفعة السابقة) ويرجّع الأكواد الفعلية بالـ response.
+    // هون منفترض إنو الرد رجع أكواد تبدأ من W-0001 لغرض العرض بس.
+    const codes = Array.from({ length: parsedCount }, (_, i) =>
+      `W-${(i + 1).toString().padStart(4, '0')}`
+    );
+
+    setGeneratedCodes(codes);
+    setBatchInfo({
+      total: parsedCount,
+      start: codes[0],
+      end: codes[codes.length - 1],
+    });
+
+    console.log('تم توليد الدفعة (موك — بانتظار API حقيقي):', codes);
   };
+
+  const handleBack = () => {
+    navigate('/dashboard');
+  };
+
+  const handlePrint = () => {
+    if (onPrint) {
+      onPrint();
+    } else {
+      // كل كود QR رح يطلع فعلياً بالطباعة (حتى لو أكتر من الـ 24 يلي معروضين بالمعاينة)
+      // بفضل قسم الطباعة المخفي (.gwic-print-only) يلي بيظهر بس وقت الطباعة
+      window.print();
+    }
+  };
+
+  // بنعرض أول 24 كود كمعاينة بس، حتى ما يصير الجدول ثقيل لو الدفعة كبيرة (مثلاً 500 كود)
+  const previewCodes = generatedCodes.slice(0, 24);
+  const remainingCount = generatedCodes.length - previewCodes.length;
 
   return (
     <div className="gwic-viewport">
-      
-      {/* Top Application Header */}
-      <header className="gwic-header">
-        
-        
-        <div className="gwic-header-brand">
-          <div className="gwic-brand-text">
-            <span className="gwic-brand-title">وجهتك الأكاديمية 2</span>
-            <span className="gwic-brand-subtitle">لوحة التحكم</span>
-          </div>
-          <div className="gwic-header-user">
-          <span className="gwic-user-badge">{userRole}</span>
-        </div>
-        </div>
-      </header>
+
+      <AdminHeader userRole={userRole} />
 
       {/* Main Content Area */}
       <main className="gwic-main-container">
         
         {/* Back Button Link */}
         <div className="gwic-back-wrapper">
-          <button type="button" className="gwic-back-btn" onClick={onBack}>
+          <button type="button" className="gwic-back-btn" onClick={handleBack}>
             <span className="gwic-back-arrow">←</span> رجوع
           </button>
         </div>
@@ -53,7 +77,7 @@ const GenerateWalkInCodesPage = ({
           <h1 className="gwic-panel-title">توليد دفعة رموز جديدة (Walk-in)</h1>
 
           <form onSubmit={handleGenerate} className="gwic-generate-form">
-            <div className="gwic-form-row">
+            <div className="gwic-form-row gwic-form-row-simplified">
               
               <div className="gwic-field-group">
                 <label className="gwic-field-label" htmlFor="gwic-count-input">
@@ -62,23 +86,10 @@ const GenerateWalkInCodesPage = ({
                 <input
                   id="gwic-count-input"
                   type="text"
+                  inputMode="numeric"
                   className="gwic-input-field gwic-input-center"
                   value={count}
-                  onChange={(e) => setCount(e.target.value)}
-                />
-              </div>
-
-              <div className="gwic-field-group">
-                <label className="gwic-field-label" htmlFor="gwic-start-input">
-                  يبدأ من الرقم
-                </label>
-                <input
-                  id="gwic-start-input"
-                  type="text"
-                  className="gwic-input-field gwic-input-center"
-                  value={startCode}
-                  onChange={(e) => setStartCode(e.target.value)}
-                  dir="ltr"
+                  onChange={(e) => setCount(e.target.value.replace(/[^0-9]/g, ''))}
                 />
               </div>
 
@@ -89,42 +100,65 @@ const GenerateWalkInCodesPage = ({
               </div>
 
             </div>
+            {error && <p className="gwic-error-text">{error}</p>}
           </form>
         </div>
 
-        {/* Output Section */}
-        <div className="gwic-output-header">
-          <h2 className="gwic-batch-title">
-            دفعة اليوم — ٥٠ رمزاَ (W-0001 إلى W-0050)
-          </h2>
-          <button type="button" className="gwic-print-btn" onClick={onPrint}>
-            طباعة الدفعة
-          </button>
-        </div>
+        {/* Output Section — ما بيظهر إلا بعد توليد ناجح */}
+        {batchInfo && (
+          <>
+            <div className="gwic-output-header">
+              <h2 className="gwic-batch-title">
+                دفعة اليوم — {batchInfo.total} رمزاً ({batchInfo.start} إلى {batchInfo.end})
+              </h2>
+              <button type="button" className="gwic-print-btn" onClick={handlePrint}>
+                طباعة الدفعة
+              </button>
+            </div>
 
-        {/* QR Codes Grid Card */}
-        <div className="gwic-card-panel gwic-qr-panel">
-          <div className="gwic-qr-grid">
-            {sampleCodes.map((code) => (
-              <div key={code} className="gwic-qr-card">
-                {/* Simulated Stylized QR Graphic */}
-                <div className="gwic-qr-graphic">
-                  <div className="gwic-qr-corner gwic-qr-tl"></div>
-                  <div className="gwic-qr-corner gwic-qr-tr"></div>
-                  <div className="gwic-qr-corner gwic-qr-bl"></div>
-                  <div className="gwic-qr-center-dots">
-                    <span className="gwic-qr-dot d1"></span>
-                    <span className="gwic-qr-dot d2"></span>
-                    <span className="gwic-qr-dot d3"></span>
-                    <span className="gwic-qr-dot d4"></span>
-                    <span className="gwic-qr-dot d5"></span>
+            {/* QR Codes Grid Card — معاينة على الشاشة (أول 24 كود بس) */}
+            <div className="gwic-card-panel gwic-qr-panel">
+              <div className="gwic-qr-grid">
+                {previewCodes.map((code) => (
+                  <div key={code} className="gwic-qr-card">
+                    <QRCode
+                      value={code}
+                      size={64}
+                      fgColor="#0F3B34"
+                      bgColor="#FFFFFF"
+                      level="L"
+                    />
+                    <span className="gwic-qr-code-text">{code}</span>
                   </div>
-                </div>
-                <span className="gwic-qr-code-text">{code}</span>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
+              {remainingCount > 0 && (
+                <p className="gwic-more-note">و{remainingCount} كود إضافي بنفس الدفعة (بيطلعوا كلهم بالطباعة)</p>
+              )}
+            </div>
+
+            {/* قسم مخفي بالشاشة، بيظهر بس وقت الطباعة، وفيه كل أكواد الدفعة كاملة */}
+            <div className="gwic-print-only">
+              <h2 className="gwic-print-title">
+                دفعة الرموز — {batchInfo.total} رمزاً ({batchInfo.start} إلى {batchInfo.end})
+              </h2>
+              <div className="gwic-qr-grid gwic-print-grid">
+                {generatedCodes.map((code) => (
+                  <div key={code} className="gwic-qr-card">
+                    <QRCode
+                      value={code}
+                      size={64}
+                      fgColor="#0F3B34"
+                      bgColor="#FFFFFF"
+                      level="L"
+                    />
+                    <span className="gwic-qr-code-text">{code}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Footer Helper Note */}
         <p className="gwic-footer-instruction">

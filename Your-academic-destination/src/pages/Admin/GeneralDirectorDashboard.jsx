@@ -1,4 +1,6 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import AdminHeader from '../../components/AdminHeader';
 import '../../style/GeneralDirectorDashboard.css';
 
 const GeneralDirectorDashboard = ({
@@ -10,10 +12,10 @@ const GeneralDirectorDashboard = ({
     { id: 'survey', label: 'أكملوا الاستبيان', value: '1,204' },
   ],
   teamMembers = [
-    { username: 'rima_staff', role: 'مسؤول الكلية', roleType: 'college', faculty: 'الطب البشري' },
-    { username: 'hadi_gate', role: 'مسؤول المسح', roleType: 'scanner', faculty: '—' },
-    { username: 'sedra_admin', role: 'مدير بيانات الطلاب', roleType: 'data', faculty: '—' },
-    { username: 'taher_super', role: 'المدير العام', roleType: 'general', faculty: '—' },
+    { username: 'rima_staff', role: 'مسؤول الكلية', roleType: 'college_staff', faculty: 'الطب البشري' },
+    { username: 'hadi_gate', role: 'مسؤول المسح', roleType: 'gate_scanner', faculty: '—' },
+    { username: 'sedra_admin', role: 'مدير بيانات الطلاب', roleType: 'students_admin', faculty: '—' },
+    { username: 'taher_super', role: 'المدير العام', roleType: 'super_admin', faculty: '—' },
   ],
   hallOccupancy = {
     title: 'مدرج 3 • الطب البشري',
@@ -22,25 +24,22 @@ const GeneralDirectorDashboard = ({
     total: 300,
   },
 }) => {
+  const navigate = useNavigate();
   const percentage = Math.round((hallOccupancy.current / hallOccupancy.total) * 100);
+
+  const handleCreateAccount = () => {
+    navigate('/create-team-account');
+  };
+
+  const handleEditMember = (member) => {
+    // بنمرر بيانات العضو الحالية حتى فورم الإنشاء يفتح بوضع "تعديل" ومعبّى مسبقاً
+    navigate('/create-team-account', { state: { editMember: member } });
+  };
 
   return (
     <div className="gd-dash-viewport">
-      
-      {/* Top Application Header */}
-      <header className="gd-dash-header">
-        
-        
-        <div className="gd-dash-header-brand">
-          <div className="gd-dash-brand-text">
-            <span className="gd-dash-brand-title">وجهتك الأكاديمية 2</span>
-            <span className="gd-dash-brand-subtitle">لوحة التحكم</span>
-          </div>
-          <div className="gd-dash-header-user">
-          <span className="gd-dash-user-badge">{userRole}</span>
-        </div>
-        </div>
-      </header>
+
+      <AdminHeader userRole={userRole} />
 
       {/* Desktop Main Content Container */}
       <main className="gd-dash-main-container">
@@ -57,7 +56,12 @@ const GeneralDirectorDashboard = ({
 
         {/* Team Accounts Section */}
         <section className="gd-dash-section-wrapper">
-          <h2 className="gd-dash-section-heading">حسابات فريق العمل</h2>
+          <div className="gd-dash-section-heading-row">
+            <h2 className="gd-dash-section-heading">حسابات فريق العمل</h2>
+            <button type="button" className="gd-dash-create-btn" onClick={handleCreateAccount}>
+              + إنشاء حساب جديد
+            </button>
+          </div>
           
           <div className="gd-dash-table-card">
             <table className="gd-dash-team-table">
@@ -73,7 +77,13 @@ const GeneralDirectorDashboard = ({
                 {teamMembers.map((member, idx) => (
                   <tr key={idx} className="gd-dash-table-row">
                     <td className="gd-dash-td-action">
-                      <button type="button" className="gd-dash-edit-btn">تعديل</button>
+                      <button
+                        type="button"
+                        className="gd-dash-edit-btn"
+                        onClick={() => handleEditMember(member)}
+                      >
+                        تعديل
+                      </button>
                     </td>
                     <td className="gd-dash-td-faculty">{member.faculty}</td>
                     <td className="gd-dash-td-role">

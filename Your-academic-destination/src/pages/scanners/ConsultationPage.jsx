@@ -7,9 +7,9 @@ import '../../style/StaffScan.css';
 
 // موك بيانات — لاحقاً بيتبدل بطلب فعلي للـ backend وقت مسح الـ QR الحقيقي
 const MOCK_STUDENTS = [
-  { name: 'سارة يوسف', code: 'R-03871' },
-  { name: 'ليان حاج علي', code: 'R-11907' },
-  { name: 'محمد الخطيب', code: 'R-08321' },
+  { name: 'سارة يوسف', code: 'R-0387' },
+  { name: 'ليان حاج علي', code: 'R-1190' },
+  { name: 'محمد الخطيب', code: 'R-0832' },
 ];
 
 const ConsultationPage = () => {
@@ -29,8 +29,8 @@ const ConsultationPage = () => {
   };
 
   return (
-    <div className="ss-card-wrapper">
-      <div className="ss-card-container">
+    <div className="card-wrapper">
+      <div className="card-container">
         <StaffScanHeader
           title="استشارة فردية — الطب البشري"
           username="nour_staff"
@@ -38,7 +38,7 @@ const ConsultationPage = () => {
           location="باب الاستشارة"
         />
 
-        <main className="ss-body">
+        <main className="card-body">
           <ScanBox onScan={handleScan} />
 
           <ScanResultCard
@@ -48,7 +48,7 @@ const ConsultationPage = () => {
             studentCode={result?.studentCode}
           />
 
-          <p className="ss-rule-text">
+          <p className="scan-rule-text">
             يُسمح للطالب بحضور استشارة واحدة بس طول الفعالية كلها — بغض النظر عن الكلية.
           </p>
         </main>

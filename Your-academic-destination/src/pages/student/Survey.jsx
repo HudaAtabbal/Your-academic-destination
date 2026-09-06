@@ -20,7 +20,10 @@ const Survey = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log({ q1Option, q2Major });
+    // بنقرأ studentCode من localStorage (اتخزن هناك بعد نجاح OTP)
+    // وبنضيفه لبيانات الاستبيان — بدون هالكود، الباك ما رح يعرف مين الطالب المجاوب
+    const studentCode = localStorage.getItem('studentCode');
+    console.log({ studentCode, q1Option, q2Major });
   };
 
   const handleSkip = () => {

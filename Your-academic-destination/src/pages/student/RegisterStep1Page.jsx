@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderStep from '../../components/HeaderStep';
-import StepProgress from '../../components/Stepprogress';
+import StepProgress from '../../components/StepProgress';
 import InfoBox from '../../components/InfoBox';
 import '../../style/RegisterStep1Page.css';
 
@@ -10,17 +10,55 @@ const RegisterStep1Page = () => {
 
   const [formData, setFormData] = useState({
     fullName: '',
-    certificateYear: '',
+    birthDay: '',
+    birthMonth: '',
+    birthYear: '',
+    certificateYear: '', // bacc_year بالباك — حقل منفصل عن تاريخ الميلاد
     certificateType: '',
     averageScore: ''
   });
 
   const [errors, setErrors] = useState({});
 
+  const dayRef = useRef(null);
+  const monthRef = useRef(null);
+  const yearRef = useRef(null);
+
   const handleNameChange = (e) => {
     const value = e.target.value;
     const filtered = value.replace(/[^a-zA-Zء-ي\s]/g, '');
     setFormData((prev) => ({ ...prev, fullName: filtered }));
+  };
+
+  const handleDayChange = (e) => {
+    let value = e.target.value.replace(/[^0-9]/g, '');
+    if (value !== '' && Number(value) > 31) value = '31';
+    setFormData((prev) => ({ ...prev, birthDay: value }));
+    if (value.length === 2) monthRef.current?.focus();
+  };
+
+  const handleMonthChange = (e) => {
+    let value = e.target.value.replace(/[^0-9]/g, '');
+    if (value !== '' && Number(value) > 12) value = '12';
+    setFormData((prev) => ({ ...prev, birthMonth: value }));
+    if (value.length === 2) yearRef.current?.focus();
+  };
+
+  const handleYearChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '');
+    setFormData((prev) => ({ ...prev, birthYear: value }));
+  };
+
+  const handleMonthKeyDown = (e) => {
+    if (e.key === 'Backspace' && formData.birthMonth === '') {
+      dayRef.current?.focus();
+    }
+  };
+
+  const handleYearKeyDown = (e) => {
+    if (e.key === 'Backspace' && formData.birthYear === '') {
+      monthRef.current?.focus();
+    }
   };
 
   const handleTypeSelect = (type) => {
@@ -54,13 +92,35 @@ const RegisterStep1Page = () => {
     }
 
     const currentYear = new Date().getFullYear();
-    const year = Number(formData.certificateYear);
 
+    // تاريخ الميلاد الحقيقي (birth_date بالباك)
+    const day = Number(formData.birthDay);
+    const month = Number(formData.birthMonth);
+    const year = Number(formData.birthYear);
+
+    if (!formData.birthDay || !formData.birthMonth || !formData.birthYear) {
+      newErrors.birthDate = 'تاريخ الميلاد مطلوب بالكامل';
+    } else if (
+      day < 1 || day > 31 ||
+      month < 1 || month > 12 ||
+      formData.birthYear.length !== 4 ||
+      year < currentYear - 100 || year > currentYear
+    ) {
+      newErrors.birthDate = 'تاريخ الميلاد غير صحيح';
+    } else {
+      const daysInMonth = new Date(year, month, 0).getDate();
+      if (day > daysInMonth) {
+        newErrors.birthDate = 'تاريخ الميلاد غير صحيح';
+      }
+    }
+
+    // سنة الشهادة (bacc_year بالباك) — حقل منفصل تماماً عن تاريخ الميلاد
+    const certYear = Number(formData.certificateYear);
     if (!formData.certificateYear.trim()) {
       newErrors.certificateYear = 'سنة الشهادة مطلوبة';
     } else if (
       formData.certificateYear.length !== 4 ||
-      year < currentYear - 100 || year > currentYear
+      certYear < currentYear - 100 || certYear > currentYear
     ) {
       newErrors.certificateYear = 'سنة الشهادة غير صحيحة';
     }
@@ -112,6 +172,45 @@ const RegisterStep1Page = () => {
                 className={`custom-input ${errors.fullName ? 'input-error' : ''}`}
               />
               {errors.fullName && <span className="error-text">{errors.fullName}</span>}
+            </div>
+
+            <div className="input-group">
+              <label className="input-label">تاريخ الميلاد</label>
+              <div className="date-inputs-row">
+                <input
+                  ref={dayRef}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="يوم"
+                  maxLength={2}
+                  value={formData.birthDay}
+                  onChange={handleDayChange}
+                  className={`custom-input date-input-small ${errors.birthDate ? 'input-error' : ''}`}
+                />
+                <input
+                  ref={monthRef}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="شهر"
+                  maxLength={2}
+                  value={formData.birthMonth}
+                  onChange={handleMonthChange}
+                  onKeyDown={handleMonthKeyDown}
+                  className={`custom-input date-input-small ${errors.birthDate ? 'input-error' : ''}`}
+                />
+                <input
+                  ref={yearRef}
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="سنة"
+                  maxLength={4}
+                  value={formData.birthYear}
+                  onChange={handleYearChange}
+                  onKeyDown={handleYearKeyDown}
+                  className={`custom-input date-input-small ${errors.birthDate ? 'input-error' : ''}`}
+                />
+              </div>
+              {errors.birthDate && <span className="error-text">{errors.birthDate}</span>}
             </div>
 
             <div className="input-group">

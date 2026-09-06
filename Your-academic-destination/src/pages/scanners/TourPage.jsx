@@ -6,9 +6,9 @@ import ScannerFooter from '../../components/ScannerFooter';
 import '../../style/StaffScan.css';
 
 const MOCK_STUDENTS = [
-  { name: 'ليان حاج علي', code: 'R-11907' },
-  { name: 'سارة يوسف', code: 'R-03871' },
-  { name: 'عمر أحمد العسورة', code: 'R-00248' },
+  { name: 'ليان حاج علي', code: 'R-1190' },
+  { name: 'سارة يوسف', code: 'R-0387' },
+  { name: 'عمر أحمد العسورة', code: 'R-0248' },
 ];
 
 const TourPage = () => {
@@ -27,8 +27,8 @@ const TourPage = () => {
   };
 
   return (
-    <div className="ss-card-wrapper">
-      <div className="ss-card-container">
+    <div className="card-wrapper">
+      <div className="card-container">
         <StaffScanHeader
           title="جولة تعريفية — الطب البشري"
           username="yousef_tour"
@@ -36,7 +36,7 @@ const TourPage = () => {
           location="باب الكلية"
         />
 
-        <main className="ss-body">
+        <main className="card-body">
           <ScanBox onScan={handleScan} />
 
           <ScanResultCard
@@ -46,7 +46,7 @@ const TourPage = () => {
             studentCode={result?.studentCode}
           />
 
-          <p className="ss-rule-text">
+          <p className="scan-rule-text">
             يمكن للطالب زيارة عدة كليات مختلفة، لكن لا يمكنه تسجيل حضور جولة نفس الكلية مرتين.
           </p>
         </main>

@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HeaderStep from "../../components/HeaderStep";
-import StepProgress from '../../components/Stepprogress';
+import StepProgress from '../../components/StepProgress';
 import "../../style/RegisterStep3Page.css";
 
 const RegisterStep3Page = () => {
   const navigate = useNavigate();
 
-  const [channel, setChannel] = useState("sms");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
 
@@ -18,41 +17,23 @@ const RegisterStep3Page = () => {
 
     // الحقل فارغ
     if (!value) {
-      setError(
-        channel === "sms"
-          ? "يرجى إدخال رقم الهاتف"
-          : "يرجى إدخال معرف التيليغرام",
-      );
+      setError("يرجى إدخال رقم الواتساب");
       return;
     }
 
-    // التحقق من رقم الهاتف
-    if (channel === "sms") {
-      const phoneRegex = /^09\d{8}$/;
-
-      if (!phoneRegex.test(value)) {
-        setError("يرجى إدخال رقم هاتف صحيح مكون من 10 أرقام ويبدأ بـ 09");
-        return;
-      }
-    }
-
-    if (channel === "telegram") {
-      const telegramRegex = /^@[A-Za-z0-9_]+$/;
-
-      if (!telegramRegex.test(value)) {
-        setError(
-          "معرف التيليغرام يجب أن يبدأ بـ @ ويحتوي على أحرف إنجليزية وأرقام فقط"
-        );
-        return;
-      }
+    // التحقق من رقم الواتساب
+    const phoneRegex = /^09\d{8}$/;
+    if (!phoneRegex.test(value)) {
+      setError("يرجى إدخال رقم واتساب صحيح مكون من 10 أرقام ويبدأ بـ 09");
+      return;
     }
 
     // إذا وصلنا لهون فالبيانات صحيحة
     setError("");
 
-    // إرسال رمز التحقق
-    console.log("إرسال رمز التحقق عبر:", channel);
-    console.log("الرقم/المعرف:", value);
+    // إرسال رمز التحقق (channel ثابتة دايماً whatsapp — مطابقة لـ enum الباك)
+    console.log("إرسال رمز التحقق عبر:", "whatsapp");
+    console.log("الرقم:", value);
 
     navigate("/otp");
   };
@@ -70,68 +51,29 @@ const RegisterStep3Page = () => {
 
         <main className="rs3-card-body">
           <p className="rs3-step-description">
-            سوف نرسل رمز تحقق عبر الوسيلة يلي تختارها.
+            سوف نرسل رمز تحقق عبر الواتساب.
           </p>
 
           <form onSubmit={handleSubmit} className="rs3-form-container">
-            {/* Channel Selection */}
-            <div className="rs3-channel-group">
-              <label className="rs3-input-label">القناة</label>
-
-              <div className="rs3-channel-options">
-                <button
-                  type="button"
-                  className={`rs3-channel-btn ${
-                    channel === "sms" ? "selected" : ""
-                  }`}
-                  onClick={() => {
-                    setChannel("sms");
-                    setPhoneNumber("");
-                    setError("");
-                  }}
-                >
-                  SMS
-                </button>
-
-                <button
-                  type="button"
-                  className={`rs3-channel-btn ${
-                    channel === "telegram" ? "selected" : ""
-                  }`}
-                  onClick={() => {
-                    setChannel("telegram");
-                    setPhoneNumber("");
-                    setError("");
-                  }}
-                >
-                  تيليغرام
-                </button>
-              </div>
-            </div>
-
-            {/* Dynamic Input */}
+            {/* Phone Input */}
             <div className="rs3-input-group">
               <label htmlFor="phoneNumber" className="rs3-input-label">
-                {channel === "sms" ? "رقم الهاتف" : "معرف التيليغرام"}
+                رقم الواتساب
               </label>
 
               <input
                 id="phoneNumber"
                 name="phoneNumber"
                 type="tel"
-                placeholder={channel === "sms" ? "09xxxxxxxx" : "@xxxxxxx"}
+                placeholder="09xxxxxxxx"
                 value={phoneNumber}
-                maxLength={channel === "sms" ? 10 : undefined}
+                maxLength={10}
                 onChange={(e) => {
                   let value = e.target.value;
-
-                  if (channel === "sms") {
-                    // السماح بالأرقام فقط
-                    value = value.replace(/\D/g, "");
-
-                    // الحد الأقصى 10 أرقام
-                    value = value.slice(0, 10);
-                  }
+                  // السماح بالأرقام فقط
+                  value = value.replace(/\D/g, "");
+                  // الحد الأقصى 10 أرقام
+                  value = value.slice(0, 10);
 
                   setPhoneNumber(value);
                   setError("");

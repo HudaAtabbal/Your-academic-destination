@@ -11,7 +11,7 @@ const CollegePage = () => {
 
   const handleScan = () => {
     // موك: طالب واحد ثابت للتجربة (لاحقاً بيجي من الـ backend الفعلي)
-    setScannedStudent({ name: 'ليان حاج علي', code: 'R-11907' });
+    setScannedStudent({ name: 'ليان حاج علي', code: 'R-1190' });
     setChoice(null);
   };
 
@@ -22,8 +22,8 @@ const CollegePage = () => {
   };
 
   return (
-    <div className="ss-card-wrapper">
-      <div className="ss-card-container">
+    <div className="card-wrapper">
+      <div className="card-container">
         <StaffScanHeader
           title="ركن التوجيه — الطب البشري"
           username="rima_staff"
@@ -31,25 +31,25 @@ const CollegePage = () => {
           location="داخل مبنى كلية الهندسة"
         />
 
-        <main className="ss-body">
+        <main className="card-body">
           <ScanBox caption="امسح رمز الطالب لتوجيهه" onScan={handleScan} />
 
           {scannedStudent && (
-            <div className="ss-orientation-prompt">
-              <h3 className="ss-orientation-question">
+            <div className="orientation-prompt">
+              <h3 className="orientation-question">
                 وين رايح {scannedStudent.name}؟ ({scannedStudent.code})
               </h3>
-              <div className="ss-orientation-options">
+              <div className="orientation-options">
                 <button
                   type="button"
-                  className={`ss-orientation-btn ${choice === 'consultation' ? 'selected' : ''}`}
+                  className={`orientation-btn ${choice === 'consultation' ? 'selected' : ''}`}
                   onClick={() => handleChoice('consultation')}
                 >
                   استشارة فردية
                 </button>
                 <button
                   type="button"
-                  className={`ss-orientation-btn ${choice === 'tour' ? 'selected' : ''}`}
+                  className={`orientation-btn ${choice === 'tour' ? 'selected' : ''}`}
                   onClick={() => handleChoice('tour')}
                 >
                   جولة الكلية
@@ -58,7 +58,7 @@ const CollegePage = () => {
             </div>
           )}
 
-          <p className="ss-rule-text">
+          <p className="scan-rule-text">
             هاد بس توجيه — الحضور الفعلي بينسجّل عند باب الكلية أو باب الاستشارة تحديداً.
           </p>
         </main>

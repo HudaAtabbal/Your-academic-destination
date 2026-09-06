@@ -6,6 +6,10 @@ import '../../style/OTP.css';
 // موك: الكود الصحيح للتجربة فقط، لازم يتبدل بطلب فعلي للباك اند لاحقاً
 const MOCK_CORRECT_OTP = '1234';
 
+// موك: هاد الكود المفروض يجي من استجابة الباك اند نفسها بعد نجاح التحقق
+// (حسب الـ SRS: "بعد إدخال رمز التحقق بنجاح، يُصدَر للطالب رمز QR فريد")
+const MOCK_ISSUED_CODE = 'R-0248';
+
 const OTP = () => {
   const navigate = useNavigate();
 
@@ -21,13 +25,17 @@ const OTP = () => {
       setStatus('success');
       setError('');
 
+      // منخزّن unique_code بـ localStorage حتى صفحات تانية (البطاقة، الاستبيان)
+      // تقدر تقرأه بدون ما نمرره يدوياً بكل خطوة تنقّل
+      localStorage.setItem('studentCode', MOCK_ISSUED_CODE);
+
       // نعطي فرصة يشوف اللون الأخضر قبل ما ننتقل
       setTimeout(() => {
-        navigate('/home');
+        navigate('/my-card');
       }, 600);
     } else {
       setStatus('error');
-      setError('الرمز المدخل غير صحيح ، حاول مرة اخرى ');
+      setError('الرمز يلي دخلتيه غير صحيح، حاولي مرة تانية');
       setOtp(['', '', '', '']);
       inputRefs.current[0]?.focus();
     }

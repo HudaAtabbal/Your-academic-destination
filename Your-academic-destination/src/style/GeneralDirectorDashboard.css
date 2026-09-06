@@ -1,16 +1,4 @@
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
-  font-weight: 800;
-  font-display: swap;
-}
 
 /* Base Viewport Setup for Desktop */
 .gd-dash-viewport {
@@ -23,61 +11,8 @@
   box-sizing: border-box;
 }
 
-/* Header Component */
-.gd-dash-header {
-  height: 80px;
-  background-color: #0F3B34;
-  padding: 0 48px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.gd-dash-user-badge {
-  background-color: rgba(255, 255, 255, 0.15);
-  color: #FFFFFF;
-  padding: 8px 24px;
-  border-radius: 50px;
-  font-size: 0.95rem;
-  font-weight: 700;
-}
-
-.gd-dash-header-brand {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.gd-dash-brand-text {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-}
-
-.gd-dash-brand-title {
-  color: #FFFFFF;
-  font-size: 1.25rem;
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.gd-dash-brand-subtitle {
-  color: #A3C2BB;
-  font-size: 0.85rem;
-  font-weight: 700;
-}
-
-.gd-dash-brand-logo {
-  width: 36px;
-  height: 36px;
-  color: #FFFFFF;
-}
-
-.gd-dash-logo-svg {
-  width: 100%;
-  height: 100%;
-}
+/* ملاحظة: ستايل الهيدر (gd-dash-header, gd-dash-brand-*, gd-dash-user-badge...)
+   صار مركزي بملف AdminHeader.css المشترك، شلناه من هون. */
 
 /* Main Container Area */
 .gd-dash-main-container {
@@ -129,11 +64,35 @@
   gap: 16px;
 }
 
+.gd-dash-section-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .gd-dash-section-heading {
   font-size: 1.35rem;
   font-weight: 800;
   color: #52151D;
   margin: 0;
+}
+
+/* زر إنشاء حساب جديد */
+.gd-dash-create-btn {
+  background-color: #0F3B34;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 28px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.gd-dash-create-btn:hover {
+  background-color: #0A2B26;
 }
 
 /* Table Styling */
@@ -204,22 +163,22 @@
   font-weight: 700;
 }
 
-.gd-dash-role-college {
+.gd-dash-role-college_staff {
   background-color: #E2F4EE;
   color: #0F3B34;
 }
 
-.gd-dash-role-scanner {
+.gd-dash-role-gate_scanner {
   background-color: #FCF0D3;
   color: #7A5300;
 }
 
-.gd-dash-role-data {
+.gd-dash-role-students_admin {
   background-color: #E3F2F2;
   color: #165253;
 }
 
-.gd-dash-role-general {
+.gd-dash-role-super_admin {
   background-color: #F8E2E6;
   color: #7B1B2B;
 }

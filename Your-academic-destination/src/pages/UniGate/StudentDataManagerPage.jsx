@@ -6,16 +6,18 @@ const StudentDataManagerPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // إذا الصفحة انفتحت بـ presetId (جاي من صفحة البوابة أو من صفحة السجلات الناقصة)،
-  // منعبّي خانة البحث فيه تلقائياً بدل ما تضل فاضية
-  const [searchId, setSearchId] = useState(location.state?.presetId || 'R-0248');
+  // searchInput: قيمة خانة الكتابة نفسها (بتتحدث بكل حرف)
+  // activeId: الرقم يلي فعلياً منعرض بياناته/عنوانه، ما بيتغير إلا بعد ضغط "بحث"
+  const [searchInput, setSearchInput] = useState(location.state?.presetId || 'R-0248');
+  const [activeId, setActiveId] = useState(location.state?.presetId || 'R-0248');
 
   const [formData, setFormData] = useState({
-    birthDate: '2008/03/14',
     fullName: 'عمر أحمد العسورة',
+    birthDate: '2008-03-14', // birth_date بالباك — تاريخ ميلاد حقيقي، منفصل تماماً عن سنة الشهادة
+    certificateYear: '2024',
     handle: '0991234567',
-    contactMethod: 'واتساب',
-    verificationStatus: 'مفعّل',
+    contactMethod: 'whatsapp', // enum: 'whatsapp' | 'telegram' — القيمة يلي بتتبعت فعلياً للباك
+    verificationStatus: 'verified', // enum: 'pending' | 'verified' — القيمة يلي بتتبعت فعلياً للباك
     baccalaureateScore: '90',
   });
 
@@ -27,9 +29,16 @@ const StudentDataManagerPage = () => {
     }));
   };
 
+  const handleCertificateYearChange = (e) => {
+    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+    setFormData((prev) => ({ ...prev, certificateYear: value }));
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    console.log('Searching for ID:', searchId);
+    console.log('Searching for ID:', searchInput);
+    setActiveId(searchInput);
+    // هون بعدين بيتحط طلب API فعلي لجلب بيانات الطالب صاحب هالرقم وتعبئة formData فيها
   };
 
   const handleSave = (e) => {
@@ -80,8 +89,8 @@ const StudentDataManagerPage = () => {
               
               <input
                 type="text"
-                value={searchId}
-                onChange={(e) => setSearchId(e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="R-0248"
                 dir="rtl"
               />
@@ -95,7 +104,7 @@ const StudentDataManagerPage = () => {
           <section className="edit-card">
             <div className="card-header-row">
               <span className="status-chip success">سجل مكتمل</span>
-              <h2 className="edit-title">تعديل سجل الطالب — {searchId}</h2>
+              <h2 className="edit-title">تعديل سجل الطالب — {activeId}</h2>
             </div>
 
             <form onSubmit={handleSave} className="edit-form">
@@ -112,9 +121,9 @@ const StudentDataManagerPage = () => {
                   />
                 </div>
                 <div className="input-group">
-                  <label htmlFor="birthDate">تاريخ الشهادة</label>
+                  <label htmlFor="birthDate">تاريخ الميلاد</label>
                   <input
-                    type="text"
+                    type="date"
                     id="birthDate"
                     name="birthDate"
                     value={formData.birthDate}
@@ -128,15 +137,36 @@ const StudentDataManagerPage = () => {
               {/* Row 2 */}
               <div className="form-row">
                 <div className="input-group">
-                  <label htmlFor="contactMethod">وسيلة التواصل</label>
+                  <label htmlFor="certificateYear">سنة الشهادة</label>
                   <input
                     type="text"
+                    id="certificateYear"
+                    name="certificateYear"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={formData.certificateYear}
+                    onChange={handleCertificateYearChange}
+                    dir="ltr"
+                  />
+                </div>
+                <div className="input-group">
+                  <label htmlFor="contactMethod">وسيلة التواصل</label>
+                  <select
                     id="contactMethod"
                     name="contactMethod"
                     value={formData.contactMethod}
                     onChange={handleInputChange}
-                  />
+                    className="select-field"
+                  >
+                    <option value="whatsapp">واتساب</option>
+                    <option value="telegram">تيليغرام</option>
+                  </select>
                 </div>
+                
+              </div>
+
+              {/* Row 3 */}
+              <div className="form-row">
                 <div className="input-group">
                   <label htmlFor="handle">المعرّف</label>
                   <input
@@ -148,11 +178,6 @@ const StudentDataManagerPage = () => {
                     dir="ltr"
                   />
                 </div>
-                
-              </div>
-
-              {/* Row 3 */}
-              <div className="form-row">
                 <div className="input-group">
                   <label htmlFor="baccalaureateScore">المعدل </label>
                   <input
@@ -164,18 +189,29 @@ const StudentDataManagerPage = () => {
                     dir="rtl"
                   />
                 </div>
+                
+              </div>
+
+              {/* Row 4 */}
+              <div className="form-row">
                 <div className="input-group">
                   <label htmlFor="verificationStatus">حالة التحقق</label>
                   <div className="verified-input-wrapper">
-                    <span className="check-mark">✓</span>
-                    <input
-                      type="text"
+                    {formData.verificationStatus === 'verified' && (
+                      <span className="check-mark">✓</span>
+                    )}
+                    <select
                       id="verificationStatus"
                       name="verificationStatus"
                       value={formData.verificationStatus}
                       onChange={handleInputChange}
-                      className="verified-text"
-                    />
+                      className={`select-field verified-text ${
+                        formData.verificationStatus === 'verified' ? 'is-verified' : ''
+                      }`}
+                    >
+                      <option value="pending">بانتظار التفعيل</option>
+                      <option value="verified">مفعّل</option>
+                    </select>
                   </div>
                 </div>
                 

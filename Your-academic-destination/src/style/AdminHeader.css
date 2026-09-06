@@ -1,0 +1,91 @@
+/* ============================================
+   ستايل خاص بمكوّن AdminHeader المشترك
+   مستورد مباشرة جوا AdminHeader.jsx — ما بيحتاج
+   أي صفحة إدارية تعرّف هالكلاسات بملفها الخاص بعد اليوم.
+   ============================================ */
+
+.admin-header {
+  height: 80px;
+  background-color: #0F3B34;
+  padding: 0 48px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  gap: 24px;
+}
+
+.admin-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.admin-logo {
+  height: 40px;
+  width: auto;
+  object-fit: contain;
+}
+
+.admin-brand-text {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+}
+
+.admin-brand-title {
+  color: #FFFFFF;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.admin-brand-subtitle {
+  color: #A3C2BB;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Nav Links */
+.admin-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-nav-link {
+  color: #A3C2BB;
+  text-decoration: none;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  padding: 10px 20px;
+  border-radius: 50px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.admin-nav-link:hover {
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.admin-nav-link.active {
+  color: #0F3B34;
+  background-color: #FFFFFF;
+}
+
+.admin-header-user {
+  flex-shrink: 0;
+}
+
+.admin-user-badge {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #FFFFFF;
+  padding: 8px 24px;
+  border-radius: 50px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
