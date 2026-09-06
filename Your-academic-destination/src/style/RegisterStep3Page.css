@@ -1,39 +1,4 @@
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-Light.otf') format('opentype');
-  font-weight: 300;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-Regular.otf') format('opentype');
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-Medium.otf') format('opentype');
-  font-weight: 500;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-ExtraBold.otf') format('opentype');
-  font-weight: 800;
-  font-display: swap;
-}
-
-.card-wrapper {
+.rs3-card-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -44,9 +9,11 @@
   font-family: 'Ghroob', sans-serif;
 }
 
-.card-container {
+.rs3-card-container {
   width: 100%;
   max-width: 380px;
+  height: 680px;
+  max-height: 90vh;
   background-color: #FFF4E0;
   border-radius: 36px;
   overflow: hidden;
@@ -55,52 +22,19 @@
   flex-direction: column;
 }
 
-/* Header */
-.step-header {
-  background-color: #134F47;
-  color: #FFFFFF;
-  padding: 20px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.back-btn {
-  background: none;
-  border: none;
-  color: #FFFFFF;
-  font-size: 1.5rem;
-  cursor: pointer;
-  padding: 0;
-  line-height: 1;
-}
-
-.step-title-group {
-  text-align: left;
-}
-
-.step-title {
-  font-size: 1.4rem;
-  font-weight: 800;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.step-subtitle {
-  font-size: 0.75rem;
-  font-weight: 400;
-  opacity: 0.85;
-}
+/* Header — الستايل صار مركزي بملف HeaderStep.css، ما عاد لازم يتكرر هون.
+   الكلاسات step-header / back-btn / step-title-group / step-title /
+   step-subtitle انشالت من هاد الملف لتجنب التضارب مع HeaderStep.css */
 
 /* Body & Description */
-.card-body {
+.rs3-card-body {
   padding: 20px 24px 24px;
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-.step-description {
+.rs3-step-description {
   color: #134F47;
   font-size: 0.88rem;
   font-weight: 600;
@@ -110,7 +44,7 @@
   opacity: 0.9;
 }
 
-.form-container {
+.rs3-form-container {
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -118,25 +52,25 @@
 }
 
 /* Channel Buttons */
-.channel-group {
+.rs3-channel-group {
   display: flex;
   flex-direction: column;
   text-align: right;
   gap: 8px;
 }
 
-.input-label {
+.rs3-input-label {
   color: #71122B;
   font-size: 0.95rem;
   font-weight: 700;
 }
 
-.channel-options {
+.rs3-channel-options {
   display: flex;
   gap: 12px;
 }
 
-.channel-btn {
+.rs3-channel-btn {
   flex: 1;
   padding: 16px;
   border-radius: 20px;
@@ -150,20 +84,20 @@
   transition: all 0.2s ease;
 }
 
-.channel-btn.selected {
+.rs3-channel-btn.selected {
   border-color: #134F47;
   color: #71122B;
 }
 
 /* Input Field */
-.input-group {
+.rs3-input-group {
   display: flex;
   flex-direction: column;
   text-align: right;
   gap: 8px;
 }
 
-.custom-input {
+.rs3-custom-input {
   width: 100%;
   padding: 16px;
   border-radius: 16px;
@@ -176,26 +110,25 @@
   box-sizing: border-box;
 }
 
-.phone-input {
+.rs3-phone-input {
   text-align: right;
 }
 
-.custom-input::placeholder {
+.rs3-custom-input::placeholder {
   color: #A0AAB0;
   font-size: 0.95rem;
 }
 
-.custom-input:focus {
+.rs3-custom-input:focus {
   border-color: #134F47;
 }
 
-/* Validation States — كانوا مفقودين بالكامل، وهاد سبب ظهور رسالة
-   الخطأ بشكل غريب (بستايل المتصفح الافتراضي بدل مكان واضح تحت الحقل) */
-.input-error {
+/* Validation States */
+.rs3-input-error {
   border-color: #C0392B !important;
 }
 
-.error-message {
+.rs3-error-message {
   color: #C0392B !important;
   font-size: 0.8rem !important;
   font-weight: 600 !important;
@@ -206,12 +139,12 @@
 }
 
 /* Submit Action Button */
-.actions {
+.rs3-actions {
   margin-top: auto;
   padding-top: 40px;
 }
 
-.btn {
+.rs3-btn {
   width: 100%;
   padding: 16px;
   border-radius: 16px;
@@ -222,12 +155,12 @@
   transition: all 0.2s ease;
 }
 
-.btn-primary {
+.rs3-btn-primary {
   background-color: #134F47;
   color: #FFFFFF;
   border: none;
 }
 
-.btn-primary:hover {
+.rs3-btn-primary:hover {
   background-color: #0d3832;
 }

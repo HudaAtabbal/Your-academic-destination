@@ -16,10 +16,10 @@ const MyCard = () => {
 
   const handleSaveCard = () => {
     try {
-      // بنلاقي الـ SVG يلي مكتبة react-qr-code رندرته جوا qr-wrapper
+      // بنلاقي الـ SVG يلي مكتبة react-qr-code رندرته جوا mc-qr-wrapper
       const svg = qrWrapperRef.current?.querySelector('svg');
       if (!svg) {
-        console.error('ما تم إيجاد عنصر الـ SVG جوا qr-wrapper');
+        console.error('ما تم إيجاد عنصر الـ SVG جوا mc-qr-wrapper');
         return;
       }
 
@@ -77,8 +77,8 @@ const MyCard = () => {
   };
 
   return (
-    <div className="card-wrapper">
-      <div className="card-container scrollable">
+    <div className="mc-card-wrapper">
+      <div className="mc-card-container scrollable">
         
         <HeaderStep 
           title=" بطاقتي الخاصة" 
@@ -86,11 +86,11 @@ const MyCard = () => {
           onBack={() => window.history.back()} 
         />
 
-        <main className="card-body">
+        <main className="mc-card-body">
           
           {/* Digital ID Card Section */}
-          <div className="id-card-box">
-            <div className="qr-wrapper" ref={qrWrapperRef}>
+          <div className="mc-id-card-box">
+            <div className="mc-qr-wrapper" ref={qrWrapperRef}>
               <QRCode 
                 value={cardData.qrValue} 
                 size={140}
@@ -99,17 +99,17 @@ const MyCard = () => {
                 level="L"
               />
             </div>
-            <h2 className="user-name">{cardData.name}</h2>
-            <p className="user-code">{cardData.code}</p>
-            <div className="status-badge">
+            <h2 className="mc-user-name">{cardData.name}</h2>
+            <p className="mc-user-code">{cardData.code}</p>
+            <div className="mc-status-badge">
               {cardData.status}
             </div>
           </div>
 
           {/* Features Info Box */}
-          <div className="info-card-box">
-            <h3 className="info-box-title">ماذا تفعل هذه البطاقة ؟</h3>
-            <ul className="info-list">
+          <div className="mc-info-card-box">
+            <h3 className="mc-info-box-title">ماذا تفعل هذه البطاقة ؟</h3>
+            <ul className="mc-info-list">
                <li>تسمح لك بالدخول عند بوابة الحرم الجامعي</li>
               <li>تسجّل حضورك بأي محاضرة أو جولة أو استشارة</li>
               <li>تعمل بدون إنترنت &mdash; لقطة شاشة كافية</li>
@@ -117,8 +117,8 @@ const MyCard = () => {
           </div>
 
           {/* Action Button */}
-          <div className="actions">
-            <button type="button" onClick={handleSaveCard} className="btn btn-primary">
+          <div className="mc-actions">
+            <button type="button" onClick={handleSaveCard} className="mc-btn mc-btn-primary">
               احفظ البطاقة
             </button>
           </div>

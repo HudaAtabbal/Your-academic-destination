@@ -1,39 +1,6 @@
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-Light.otf') format('opentype');
-  font-weight: 300;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-Regular.otf') format('opentype');
-  font-weight: 400;
-  font-display: swap;
-}
 
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-Medium.otf') format('opentype');
-  font-weight: 500;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/itfGhroobArabic-ExtraBold.otf') format('opentype');
-  font-weight: 800;
-  font-display: swap;
-}
-
-.card-wrapper {
+.mc-card-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -47,10 +14,8 @@
 
 /* Step Header — الستايل صار مركزي بملف HeaderStep.css، ما عاد لازم يتكرر هون */
 
-
-
-/* توحيد الحجم: overflow hidden لأنو السكرول الفعلي هلق بس جوا card-body */
-.card-container {
+/* توحيد الحجم: overflow hidden لأنو السكرول الفعلي هلق بس جوا mc-card-body */
+.mc-card-container {
   width: 100%;
   max-width: 380px;
   height: 680px;
@@ -69,9 +34,8 @@
    header-icon, header-logo, brand-name, brand-subtitle) انشالت
    لأنها صارت غير مستخدمة. */
 
-
 /* Body Content — هون بس مكان السكرول الفعلي، مش على الكرت كله */
-.card-body {
+.mc-card-body {
   padding: 20px;
   flex: 1;
   min-height: 0; /* ضروري حتى flex:1 مع overflow-y:auto يشتغلوا صح سوا */
@@ -82,16 +46,16 @@
 }
 
 /* إخفاء شريط التمرير */
-.card-body::-webkit-scrollbar {
+.mc-card-body::-webkit-scrollbar {
   display: none;
 }
-.card-body {
+.mc-card-body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 /* Inner White ID Card Box */
-.id-card-box {
+.mc-id-card-box {
   background-color: #FFFFFF;
   border-radius: 28px;
   padding: 24px 16px 20px;
@@ -101,21 +65,21 @@
   text-align: center;
 }
 
-.qr-wrapper {
+.mc-qr-wrapper {
   padding: 12px;
   background-color: #FFFFFF;
   border-radius: 16px;
   margin-bottom: 16px;
 }
 
-.user-name {
+.mc-user-name {
   color: #71122B;
   font-size: 1.5rem;
   font-weight: 800;
   margin: 0 0 4px 0;
 }
 
-.user-code {
+.mc-user-code {
   color: #134F47;
   font-size: 1.1rem;
   font-weight: 700;
@@ -123,7 +87,7 @@
   letter-spacing: 0.5px;
 }
 
-.status-badge {
+.mc-status-badge {
   background-color: #F8E8CB;
   color: #B4690E;
   font-size: 0.85rem;
@@ -133,21 +97,21 @@
 }
 
 /* Features Info Box */
-.info-card-box {
+.mc-info-card-box {
   background-color: #FFFFFF;
   border-radius: 24px;
   padding: 20px;
   text-align: right;
 }
 
-.info-box-title {
+.mc-info-box-title {
   color: #71122B;
   font-size: 1.05rem;
   font-weight: 800;
   margin: 0 0 12px 0;
 }
 
-.info-list {
+.mc-info-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -156,7 +120,7 @@
   gap: 8px;
 }
 
-.info-list li {
+.mc-info-list li {
   color: #134F47;
   font-size: 0.85rem;
   font-weight: 600;
@@ -165,7 +129,7 @@
   padding-right: 14px;
 }
 
-.info-list li::before {
+.mc-info-list li::before {
   content: "•";
   color: #134F47;
   font-size: 1.2rem;
@@ -175,12 +139,12 @@
 }
 
 /* Fixed Bottom Action */
-.actions {
+.mc-actions {
   margin-top: auto;
   padding-top: 8px;
 }
 
-.btn {
+.mc-btn {
   width: 100%;
   padding: 16px;
   border-radius: 16px;
@@ -191,12 +155,12 @@
   transition: all 0.2s ease;
 }
 
-.btn-primary {
+.mc-btn-primary {
   background-color: #134F47;
   color: #FFFFFF;
   border: none;
 }
 
-.btn-primary:hover {
+.mc-btn-primary:hover {
   background-color: #0d3832;
 }

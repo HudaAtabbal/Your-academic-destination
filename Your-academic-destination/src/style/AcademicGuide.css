@@ -1,5 +1,5 @@
 /* Global Container Setup */
-.card-wrapper {
+.ag-card-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -11,7 +11,7 @@
   box-sizing: border-box;
 }
 
-.card-container {
+.ag-card-container {
   width: 100%;
   max-width: 380px;
   height: 680px;
@@ -25,7 +25,7 @@
 }
 
 /* Scrollable Main Area */
-.scrollable-content {
+.ag-scrollable-content {
   padding: 16px 16px 8px;
   flex: 1;
   overflow-y: auto;
@@ -33,22 +33,22 @@
   flex-direction: column;
 }
 
-.scrollable-content::-webkit-scrollbar {
+.ag-scrollable-content::-webkit-scrollbar {
   display: none;
 }
-.scrollable-content {
+.ag-scrollable-content {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 /* MajorCard Component Styles */
-.majors-list {
+.ag-majors-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.major-card {
+.ag-major-card {
   background-color: #FFFFFF;
   border-radius: 20px;
   padding: 14px 18px;
@@ -60,22 +60,22 @@
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.major-card:hover {
+.ag-major-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.major-arrow {
+.ag-major-arrow {
   color: #71122B;
   font-size: 1.2rem;
   font-weight: 700;
 }
 
-.major-info {
+.ag-major-info {
   text-align: right;
 }
 
-.major-title-row {
+.ag-major-title-row {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -83,7 +83,7 @@
   margin-bottom: 2px;
 }
 
-.color-dot {
+.ag-color-dot {
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -91,14 +91,14 @@
   flex-shrink: 0;
 }
 
-.major-title {
+.ag-major-title {
   color: #71122B;
   font-size: 1.1rem;
   font-weight: 800;
   margin: 0;
 }
 
-.major-details {
+.ag-major-details {
   color: #134F47;
   font-size: 0.8rem;
   font-weight: 500;
@@ -106,7 +106,7 @@
   opacity: 0.8;
 }
 
-.scroll-hint {
+.ag-scroll-hint {
   text-align: center;
   color: #134F47;
   font-size: 0.82rem;
@@ -116,7 +116,7 @@
 }
 
 /* BottomNav Component Styles */
-.bottom-nav {
+.ag-bottom-nav {
   background-color: #FFFFFF;
   display: flex;
   justify-content: space-around;
@@ -126,7 +126,7 @@
   flex-shrink: 0;
 }
 
-.nav-item {
+.ag-nav-item {
   background: none;
   border: none;
   display: flex;
@@ -141,22 +141,17 @@
   transition: color 0.2s ease;
 }
 
-.nav-icon {
+.ag-nav-icon {
   width: 22px;
   height: 22px;
 }
 
-.nav-item.active {
+.ag-nav-item.active {
   color: #E85B0D;
 }
 
-/* ============================================
-   إضافات لازم تحطيها بملف AcademicGuide.css الأصلي عندك
-   (ما بتلمس أي شي موجود، بس بتضيفي هاد الكود)
-   ============================================ */
-
 /* Search Bar — ثابت تحت الهيدر ومو جزء من المحتوى القابل للسكرول */
-.search-wrapper {
+.ag-search-wrapper {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -169,16 +164,16 @@
   transition: border-color 0.2s ease;
 }
 
-.search-wrapper:focus-within {
+.ag-search-wrapper:focus-within {
   border-color: #134F47;
 }
 
-.search-icon {
+.ag-search-icon {
   color: #A0AAB0;
   flex-shrink: 0;
 }
 
-.search-input {
+.ag-search-input {
   flex: 1;
   border: none;
   outline: none;
@@ -189,12 +184,12 @@
   text-align: right;
 }
 
-.search-input::placeholder {
+.ag-search-input::placeholder {
   color: #A0AAB0;
 }
 
 /* رسالة "ما في نتائج" */
-.no-results {
+.ag-no-results {
   text-align: center;
   color: #A0AAB0;
   font-size: 0.9rem;

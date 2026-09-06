@@ -58,8 +58,8 @@ const RegisterStep3Page = () => {
   };
 
   return (
-    <div className="card-wrapper">
-      <div className="card-container">
+    <div className="rs3-card-wrapper">
+      <div className="rs3-card-container">
         <HeaderStep
           title="كيف نوصلك؟"
           stepText="خطوة 3 من 3"
@@ -68,20 +68,20 @@ const RegisterStep3Page = () => {
 
         <StepProgress totalSteps={3} currentStep={3} />
 
-        <main className="card-body">
-          <p className="step-description">
+        <main className="rs3-card-body">
+          <p className="rs3-step-description">
             سوف نرسل رمز تحقق عبر الوسيلة يلي تختارها.
           </p>
 
-          <form onSubmit={handleSubmit} className="form-container">
+          <form onSubmit={handleSubmit} className="rs3-form-container">
             {/* Channel Selection */}
-            <div className="channel-group">
-              <label className="input-label">القناة</label>
+            <div className="rs3-channel-group">
+              <label className="rs3-input-label">القناة</label>
 
-              <div className="channel-options">
+              <div className="rs3-channel-options">
                 <button
                   type="button"
-                  className={`channel-btn ${
+                  className={`rs3-channel-btn ${
                     channel === "sms" ? "selected" : ""
                   }`}
                   onClick={() => {
@@ -95,7 +95,7 @@ const RegisterStep3Page = () => {
 
                 <button
                   type="button"
-                  className={`channel-btn ${
+                  className={`rs3-channel-btn ${
                     channel === "telegram" ? "selected" : ""
                   }`}
                   onClick={() => {
@@ -110,8 +110,8 @@ const RegisterStep3Page = () => {
             </div>
 
             {/* Dynamic Input */}
-            <div className="input-group">
-              <label htmlFor="phoneNumber" className="input-label">
+            <div className="rs3-input-group">
+              <label htmlFor="phoneNumber" className="rs3-input-label">
                 {channel === "sms" ? "رقم الهاتف" : "معرف التيليغرام"}
               </label>
 
@@ -136,18 +136,18 @@ const RegisterStep3Page = () => {
                   setPhoneNumber(value);
                   setError("");
                 }}
-                className={`custom-input phone-input ${
-                  error ? "input-error" : ""
+                className={`rs3-custom-input rs3-phone-input ${
+                  error ? "rs3-input-error" : ""
                 }`}
                 dir="ltr"
               />
 
-              {error && <p className="error-message">{error}</p>}
+              {error && <p className="rs3-error-message">{error}</p>}
             </div>
 
             {/* Action Button */}
-            <div className="actions">
-              <button type="submit" className="btn btn-primary">
+            <div className="rs3-actions">
+              <button type="submit" className="rs3-btn rs3-btn-primary">
                 أرسل رمز التحقق
               </button>
             </div>

@@ -28,8 +28,8 @@ const AcademicGuide = () => {
   });
 
   return (
-    <div className="card-wrapper">
-      <div className="card-container">
+    <div className="ag-card-wrapper">
+      <div className="ag-card-container">
         
         <HeaderStep 
           title="الدليل الأكاديمي" 
@@ -38,9 +38,9 @@ const AcademicGuide = () => {
         />
 
         {/* Search Bar */}
-        <div className="search-wrapper">
+        <div className="ag-search-wrapper">
           <svg
-            className="search-icon"
+            className="ag-search-icon"
             width="20"
             height="20"
             viewBox="0 0 24 24"
@@ -58,12 +58,12 @@ const AcademicGuide = () => {
             placeholder="دوّري عن تخصص، تجمّع، أو مستوى صعوبة..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="search-input"
+            className="ag-search-input"
           />
         </div>
 
-        <main className="card-body scrollable-content">
-          <div className="majors-list">
+        <main className="ag-scrollable-content">
+          <div className="ag-majors-list">
             {filteredMajors.length > 0 ? (
               filteredMajors.map((major) => (
                 <MajorCard 
@@ -76,12 +76,12 @@ const AcademicGuide = () => {
                 />
               ))
             ) : (
-              <p className="no-results">ما لقينا نتائج مطابقة</p>
+              <p className="ag-no-results">ما لقينا نتائج مطابقة</p>
             )}
           </div>
 
           {!searchTerm && (
-            <p className="scroll-hint">و 35 فرعاً إضافياً... اسحب للأسفل</p>
+            <p className="ag-scroll-hint">و 35 فرعاً إضافياً... اسحب للأسفل</p>
           )}
         </main>
 
