@@ -9,8 +9,8 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import require_role
 from app.models import AccountRole
-from app.routers.admin.dashboard import dashboard_service
-from app.routers.admin.dashboard.dashboard_schema import (
+from app.routers.dashboard import dashboard_service
+from app.routers.dashboard.dashboard_schema import (
     DashboardStatsResponse,
     RoomOccupancyItem,
     RoomsOccupancyResponse,
