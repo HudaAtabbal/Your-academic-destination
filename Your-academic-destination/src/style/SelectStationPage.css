@@ -1,0 +1,133 @@
+
+/* Mobile Screen Centering Wrapper */
+.ssp-mobile-wrapper {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #E2D2BC;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 12px;
+  box-sizing: border-box;
+  direction: ltr;
+  font-family: 'Ghroob', 'Segoe UI', Tahoma, sans-serif;
+}
+
+/* Outer Frame for Mobile Interface */
+.ssp-mobile-card {
+  width: 100%;
+  max-width: 440px;
+  background-color: #FFF6E5;
+  border-radius: 36px;
+  overflow: hidden;
+  box-shadow: 0 12px 32px rgba(15, 59, 52, 0.12);
+  display: flex;
+  flex-direction: column;
+  min-height: 720px;
+}
+
+/* Application Mobile Header */
+.ssp-header {
+  background-color: #0F3B34;
+  padding: 24px 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  color: #FFFFFF;
+}
+
+.ssp-header-text {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ssp-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin: 0;
+  color: #FFFFFF;
+}
+
+.ssp-user-info {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #A3C2BB;
+}
+
+.ssp-header-brand {
+  width: 32px;
+  height: 32px;
+  color: #FFFFFF;
+  margin-top: 4px;
+}
+
+.ssp-logo-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Main Cards Area */
+.ssp-content {
+  padding: 28px 20px;
+  flex: 1;
+}
+
+.ssp-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ssp-option-card {
+  width: 100%;
+  background-color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: right;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(15, 59, 52, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ssp-option-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(15, 59, 52, 0.08);
+}
+
+.ssp-option-card:active {
+  transform: translateY(0);
+}
+
+.ssp-option-arrow {
+  color: #A39685;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.ssp-option-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 12px;
+}
+
+.ssp-option-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #52151D;
+  margin: 0;
+}
+
+.ssp-option-desc {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #7A6855;
+  margin: 0;
+  line-height: 1.45;
+}

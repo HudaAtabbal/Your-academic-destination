@@ -10,8 +10,8 @@ const ROLE_LANDING_PAGES = {
   students_admin: '/gate',
   gate_scanner: '/team-stadium',
   // مسؤول الكلية بيغطي 3 شاشات مختلفة (جولة/توجيه/استشارة) —
-  // مؤقتاً بنوجّهه لشاشة التوجيه كافتراضي، لحد ما يصير في شاشة اختيار حقيقية
-  college_staff: '/team-college',
+  // فبنوجّهه لصفحة اختيار المحطة، وهي يلي بتقرر أي شاشة يفتح
+  college_staff: '/select-station',
 };
 
 const TeamLoginPage = () => {
@@ -51,6 +51,7 @@ const TeamLoginPage = () => {
       });
 
       setAuthToken(response.access_token);
+      localStorage.setItem('accountUsername', formData.username.trim());
       localStorage.setItem('accountRole', response.role);
       if (response.college) {
         localStorage.setItem('accountCollege', response.college);

@@ -37,7 +37,30 @@ const AcademicGuide = () => {
           onBack={() => window.history.back()} 
         />
 
-        
+        <main className="ag-scrollable-content">
+          <div className="ag-coming-soon">
+            <svg
+              className="ag-coming-soon-icon"
+              width="48"
+              height="48"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#134F47"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6 2h12" />
+              <path d="M6 22h12" />
+              <path d="M6 2c0 5 4 6 6 8-2 2-6 3-6 8" />
+              <path d="M18 2c0 5-4 6-6 8 2 2 6 3 6 8" />
+            </svg>
+            <h2 className="ag-coming-soon-title">قريباً</h2>
+            <p className="ag-coming-soon-text">
+              الدليل الأكاديمي قيد التجهيز حالياً — رح يوصلكم قريباً بكل التفاصيل عن الـ42 فرع.
+            </p>
+          </div>
+        </main>
 
         {/* Search Bar
         <div className="ag-search-wrapper">

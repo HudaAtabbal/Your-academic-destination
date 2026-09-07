@@ -1,77 +1,63 @@
-/* Base Container & Screen Setup */
-.card-wrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-color: #f3f4f6;
-  padding: 16px;
-  direction: rtl;
-  font-family: 'Ghroob', sans-serif;
-  box-sizing: border-box;
-}
+/* ============================================
+   إضافات لازم تحطيها بملف RegisterStep2Page.css
+   بدل تعريفات chips-grid / chip-item القديمة (إذا موجودة، شيليها)
+   ============================================ */
 
-.card-container {
-  width: 100%;
-  max-width: 380px;
-  height: 680px;
-  max-height: 90vh;
-  background-color: #FFF4E0;
-  border-radius: 36px;
-  overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
-}
-
-
-/* Scrollable Main Area */
+/* تقليل الـ padding الجانبي حتى المحتوى (الحقول، القائمة) ياخد عرض أكبر جوا نفس الكرت
+   !important هون مقصودة — لتخطي أي تعارض كلاسات من صفحات تانية بالمشروع */
 .card-body {
-  padding: 24px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
+  padding: 24px 12px !important;
 }
 
-.card-body::-webkit-scrollbar {
-  display: none;
+.form-container {
+  width: 100% !important;
 }
 
-.card-body {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.interests-section,
+.majors-list-box,
+.major-search-input,
+.major-list-item,
+.undecided-box {
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-.page-title {
-  color: #134F47;
-  font-size: 1.6rem;
-  font-weight: 800;
-  margin: 0 0 24px 0;
-  text-align: center;
-}
-
-/* Interests Chips & Container */
 .interests-section {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-top: 20px;
+  gap: 12px;
 }
 
-.chips-grid {
+/* حقل البحث بيستخدم نفس ستايل custom-input الموحّد بالمشروع، وهاد تخصيص بسيط إضافي */
+.major-search-input {
+  margin-bottom: 4px;
+}
+
+.majors-list-box {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
 }
 
-.chip-item {
+.majors-list-box::-webkit-scrollbar {
+  width: 4px;
+}
+
+.majors-list-box::-webkit-scrollbar-thumb {
+  background-color: #E2D2B8;
+  border-radius: 4px;
+}
+
+.major-list-item {
+  width: 100%;
+  text-align: right;
   background-color: #FFFFFF;
   color: #134F47;
   border: 1.5px solid #E2D2B8;
-  padding: 10px 20px;
-  border-radius: 24px;
+  padding: 14px 18px;
+  border-radius: 16px;
   font-family: 'Ghroob', sans-serif;
   font-size: 0.95rem;
   font-weight: 700;
@@ -79,79 +65,57 @@
   transition: all 0.2s ease;
 }
 
-.chip-item.selected {
+.major-list-item.selected {
   background-color: #134F47;
   color: #FFFFFF;
   border-color: #134F47;
 }
 
-/* Undecided Box */
+.major-no-results {
+  text-align: center;
+  color: #A0AAB0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 16px 0;
+}
+
+/* "لسّا ما قرّرت" — تعريف مستقل بالكامل (مش متعلق بمكانها بالـ DOM) */
 .undecided-box {
-  background-color: rgba(226, 210, 184, 0.25);
-  border: 1.5px solid #D98C5F;
-  border-radius: 18px;
-  padding: 16px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E2D2B8;
+  border-radius: 16px;
+  padding: 16px 18px;
+  text-align: right;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
   flex-direction: column;
   gap: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
 }
 
 .undecided-box.active {
-  background-color: rgba(217, 140, 95, 0.15);
-  border-color: #B4690E;
+  background-color: #134F47;
+  border-color: #134F47;
 }
 
 .undecided-title {
-  color: #B4690E;
+  font-family: 'Ghroob', sans-serif;
   font-size: 1rem;
   font-weight: 800;
+  color: #134F47;
+}
+
+.undecided-box.active .undecided-title {
+  color: #FFFFFF;
 }
 
 .undecided-subtitle {
-  color: #134F47;
-  font-size: 0.85rem;
-  font-weight: 600;
-  opacity: 0.85;
-}
-
-/* Action Buttons */
-.actions {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-top: 20px;
-}
-
-.btn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 18px;
-  font-size: 1.1rem;
-  font-weight: 800;
   font-family: 'Ghroob', sans-serif;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #7A6953;
 }
 
-.btn-primary {
-  background-color: #134F47;
-  color: #FFFFFF;
-  border: none;
-}
-
-.btn-primary:hover {
-  background-color: #0d3832;
-}
-
-.btn-secondary {
-  background-color: #FFFFFF;
-  color: #134F47;
-  border: 1.5px solid #E2D2B8;
-}
-
-.btn-secondary:hover {
-  background-color: #f7f7f7;
+.undecided-box.active .undecided-subtitle {
+  color: #E2D2B8;
 }

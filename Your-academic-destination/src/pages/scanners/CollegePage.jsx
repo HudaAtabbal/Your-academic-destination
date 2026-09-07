@@ -29,8 +29,8 @@ const CollegePage = () => {
     loadCount();
   }, []);
 
-  const handleScan = async () => {
-    const code = manualCode.trim();
+  const handleScan = async (rawCode) => {
+    const code = rawCode.trim();
     if (!code) return;
 
     setLookupError('');
@@ -72,19 +72,19 @@ const CollegePage = () => {
         />
 
         <main className="card-body">
-          {/* ⚠️ الكاميرا الفعلية لسا مش مربوطة — إدخال يدوي مؤقت للاختبار */}
-          <ScanBox caption="اكتبي رمز الطالب تحت لتوجيهه (مؤقتاً لحد ما تجهز الكاميرا)" onScan={handleScan} />
+          {/* الكاميرا الفعلية — بتستدعي handleScan تلقائياً بمجرد ما تلتقط رمز */}
+          <ScanBox caption="وجّهي الكاميرا نحو رمز الطالب لتوجيهه" onScan={handleScan} />
 
           <div className="manual-code-row">
             <input
               type="text"
               className="manual-code-input"
-              placeholder="R-0248"
+              placeholder="R-0248 (بديل يدوي لو تعطلت الكاميرا)"
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               dir="ltr"
             />
-            <button type="button" className="manual-code-btn" onClick={handleScan}>
+            <button type="button" className="manual-code-btn" onClick={() => handleScan(manualCode)}>
               بحث
             </button>
           </div>

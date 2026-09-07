@@ -17,8 +17,8 @@ const TourPage = () => {
       .catch(() => {});
   }, []);
 
-  const handleScan = async () => {
-    const code = manualCode.trim();
+  const handleScan = async (rawCode) => {
+    const code = rawCode.trim();
     if (!code) return;
 
     try {
@@ -52,19 +52,19 @@ const TourPage = () => {
         />
 
         <main className="card-body">
-          {/* ⚠️ الكاميرا الفعلية لسا مش مربوطة — إدخال يدوي مؤقت للاختبار */}
-          <ScanBox caption="اكتبي رمز الطالب تحت واضغطي مسح (مؤقتاً لحد ما تجهز الكاميرا)" onScan={handleScan} />
+          {/* الكاميرا الفعلية — بتستدعي handleScan تلقائياً بمجرد ما تلتقط رمز */}
+          <ScanBox onScan={handleScan} />
 
           <div className="manual-code-row">
             <input
               type="text"
               className="manual-code-input"
-              placeholder="R-0248"
+              placeholder="R-0248 (بديل يدوي لو تعطلت الكاميرا)"
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               dir="ltr"
             />
-            <button type="button" className="manual-code-btn" onClick={handleScan}>
+            <button type="button" className="manual-code-btn" onClick={() => handleScan(manualCode)}>
               تحقق
             </button>
           </div>

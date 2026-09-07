@@ -153,14 +153,24 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
 
             {/* Inputs Row 2: Role Selector */}
             <div className="cta-field-group">
-              <label className="cta-field-label">الدور</label>
+              <label className="cta-field-label">
+                الدور
+                {editMember && (
+                  <span className="cta-label-hint">
+                    {' '}(ثابت بعد الإنشاء — لأنو اسم المستخدم مبني عليه، وتغييره بيسبب عدم تطابق)
+                  </span>
+                )}
+              </label>
               <div className="cta-roles-selector">
                 {rolesList.map((item) => (
                   <button
                     key={item.id}
                     type="button"
-                    className={`cta-role-btn ${role === item.id ? 'active' : ''}`}
-                    onClick={() => setRole(item.id)}
+                    className={`cta-role-btn ${role === item.id ? 'active' : ''} ${editMember ? 'locked' : ''}`}
+                    onClick={() => {
+                      if (!editMember) setRole(item.id);
+                    }}
+                    disabled={!!editMember}
                   >
                     {item.label}
                   </button>

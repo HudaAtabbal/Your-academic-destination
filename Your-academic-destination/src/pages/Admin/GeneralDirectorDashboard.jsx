@@ -125,13 +125,15 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
                 {teamMembers.map((member, idx) => (
                   <tr key={idx} className="gd-dash-table-row">
                     <td className="gd-dash-td-action">
-                      <button
-                        type="button"
-                        className="gd-dash-edit-btn"
-                        onClick={() => handleEditMember(member)}
-                      >
-                        تعديل
-                      </button>
+                      {member.roleType !== 'super_admin' && (
+                        <button
+                          type="button"
+                          className="gd-dash-edit-btn"
+                          onClick={() => handleEditMember(member)}
+                        >
+                          تعديل
+                        </button>
+                      )}
                     </td>
                     <td className="gd-dash-td-faculty">{member.faculty}</td>
                     <td className="gd-dash-td-role">

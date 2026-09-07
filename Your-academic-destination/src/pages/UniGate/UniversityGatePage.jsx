@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apiGet } from '../../api/api';
+import ScanBox from '../../components/ScanBox';
+import { apiGet, apiPost, ApiError, clearAuthToken } from '../../api/api';
 import '../../style/UniversityGatePage.css';
+import '../../style/StaffScan.css'; // فيها ستايل ScanBox (الكاميرا) المشترك
 
 const UniversityGatePage = () => {
   const navigate = useNavigate();
   const [studentId, setStudentId] = useState('');
   const [todayCount, setTodayCount] = useState(null);
+  const [scanError, setScanError] = useState('');
+
+  const handleLogout = () => {
+    clearAuthToken();
+    localStorage.removeItem('accountUsername');
+    localStorage.removeItem('accountRole');
+    localStorage.removeItem('accountCollege');
+    navigate('/team-log');
+  };
 
   useEffect(() => {
     apiGet('/checkins/count/today?activity_type=campus_entry')
@@ -22,10 +33,32 @@ const UniversityGatePage = () => {
     navigate('/gate-manage', { state: { presetId: studentId } });
   };
 
-  const handleScan = () => {
-    // ⚠️ موك لسا — محتاج مكتبة قراءة QR فعلية عبر الكاميرا (زي html5-qrcode)
-    // قبل ما نقدر نستدعي POST /checkins/campus-entry برمز حقيقي
-    navigate('/gate-entry-success');
+  const handleScan = async (rawCode) => {
+    const code = rawCode.trim();
+    if (!code) return;
+
+    setScanError('');
+
+    try {
+      const response = await apiPost('/checkins/campus-entry', { unique_code: code });
+
+      const entryTime = new Date(response.checked_in_at).toLocaleTimeString('ar', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+
+      setTodayCount((prev) => (prev != null ? prev + 1 : prev));
+
+      navigate('/gate-entry-success', {
+        state: {
+          studentName: response.student_name,
+          studentId: code,
+          entryTime,
+        },
+      });
+    } catch (err) {
+      setScanError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+    }
   };
 
   return (
@@ -40,6 +73,9 @@ const UniversityGatePage = () => {
               sedra_admin <span className="dot">•</span> مدير بيانات الطلاب
             </p>
           </div>
+          <button type="button" className="gate-logout-btn" onClick={handleLogout}>
+            تسجيل خروج
+          </button>
         </header>
 
         {/* Scrollable Content Area */}
@@ -54,13 +90,9 @@ const UniversityGatePage = () => {
             </div>
           </div>
 
-          {/* QR Scanner Area */}
-          <button type="button" className="qr-card" onClick={handleScan}>
-            <div className="qr-viewfinder">
-              <div className="qr-frame"></div>
-            </div>
-            <p className="qr-hint">امسح رمز QR لتسجيل دخول الطالب</p>
-          </button>
+          {/* QR Scanner Area — كاميرا حقيقية */}
+          <ScanBox caption="امسح رمز QR لتسجيل دخول الطالب" onScan={handleScan} />
+          {scanError && <p className="gate-scan-error">{scanError}</p>}
 
           {/* Divider */}
           <div className="divider">— أو —</div>

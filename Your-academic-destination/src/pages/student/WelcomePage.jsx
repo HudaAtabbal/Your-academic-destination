@@ -32,7 +32,12 @@ const WelcomePage = () => {
             >
               سجّل الآن • دقيقتين &larr;
             </button>
-            <button className="btn btn-secondary">عندي بطاقة من قبل</button>
+            <button
+              className="btn btn-secondary"
+              onClick={() => navigate("/find-card")}
+            >
+              عندي بطاقة من قبل
+            </button>
           </div>
         </main>
       </div>

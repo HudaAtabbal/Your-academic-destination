@@ -1,16 +1,18 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import '../../style/GateEntrySuccessPage.css';
 
-const GateEntrySuccessPage = ({
-  studentName = 'عمر أحمد العسورة',
-  studentId = 'R-0248',
-  entryTime = '١١:٢٤ ص',
-  entryCount = 3,
-  lastEntryTime = '٩:١٠ ص',
-  onNextScan,
-}) => {
+const GateEntrySuccessPage = ({ onNextScan }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // البيانات الحقيقية بتوصل عبر location.state من UniversityGatePage بعد نجاح المسح.
+  // القيم الافتراضية هون بس fallback بحال حدا فتح الصفحة مباشرة بدون مسح فعلي.
+  const {
+    studentName = 'الطالب',
+    studentId = '—',
+    entryTime = '—',
+  } = location.state || {};
 
   const handleNextScan = () => {
     if (onNextScan) {
@@ -57,12 +59,7 @@ const GateEntrySuccessPage = ({
             </div>
           </div>
 
-          {/* Entry Info Banner */}
-          <div className="info-card">
-            <p className="info-text">
-              هاد الدخول رقم {entryCount} إله اليوم — آخر دخول كان الساعة {lastEntryTime}.
-            </p>
-          </div>
+          {/* Entry Info Banner — شيلناها لأنو الباك ما بيرجّع entry_count/last_entry_time أصلاً بالـ response */}
 
           {/* Bottom Action Button */}
           <div className="action-container">

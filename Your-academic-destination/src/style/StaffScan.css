@@ -40,6 +40,27 @@
   color: #FFFFFF;
   padding: 24px;
   flex-shrink: 0;
+  position: relative;
+}
+
+.staff-scan-logout-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.staff-scan-logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.22);
 }
 
 .staff-scan-title {
@@ -95,32 +116,30 @@
   gap: 20px;
 }
 
-.scan-box {
+.scan-box-camera {
   width: 220px;
   height: 220px;
   border-radius: 28px;
   background-color: #134F47;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform 0.15s ease;
+  overflow: hidden;
+  position: relative;
 }
 
-.scan-box:hover {
-  transform: scale(1.02);
+/* html5-qrcode بيحقن video/canvas جوا الـ div — بنخلّيهن يملوا الصندوق بالكامل */
+.scan-box-camera video,
+.scan-box-camera canvas {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
+  border-radius: 28px;
 }
 
-.scan-box:active {
-  transform: scale(0.98);
-}
-
-.scan-box-frame {
-  width: 130px;
-  height: 130px;
-  border: 3px solid #6FE3C4;
-  border-radius: 20px;
+.scan-camera-error {
+  color: #C0392B;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
 }
 
 .scan-caption {

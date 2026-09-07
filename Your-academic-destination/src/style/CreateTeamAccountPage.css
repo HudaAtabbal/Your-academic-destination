@@ -201,6 +201,20 @@
   color: #FFFFFF;
 }
 
+/* حالة القفل وقت التعديل — الدور ثابت وما بيتغيّر */
+.cta-role-btn.locked {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.cta-role-btn.locked:hover {
+  border-color: #E5D7C3;
+}
+
+.cta-role-btn.locked.active:hover {
+  border-color: #0F3B34;
+}
+
 /* Actions & Buttons */
 .cta-error-message {
   color: #B71C1C;

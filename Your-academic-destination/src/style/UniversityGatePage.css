@@ -55,6 +55,32 @@
   margin: 0 4px;
 }
 
+.gate-scan-error {
+  color: #B71C1C;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  margin: -6px 0 0 0;
+}
+
+.gate-logout-btn {
+  background-color: rgba(255, 255, 255, 0.12);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.gate-logout-btn:hover {
+  background-color: rgba(255, 255, 255, 0.22);
+}
+
 /* Main Body Area */
 .gate-body {
   padding: 16px;

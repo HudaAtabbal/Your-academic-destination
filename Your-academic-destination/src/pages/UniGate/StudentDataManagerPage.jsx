@@ -8,8 +8,7 @@ const mapStudentDetailToFormData = (detail) => ({
   fullName: detail.full_name || '',
   birthDate: detail.birth_date || '',
   certificateYear: detail.bacc_year != null ? String(detail.bacc_year) : '',
-  handle: detail.contact_id || '',
-  contactMethod: detail.contact_platform || 'whatsapp',
+  phoneNumber: detail.contact_id || '',
   verificationStatus: detail.verification_status || 'pending',
   baccalaureateScore: detail.bacc_average != null ? String(detail.bacc_average) : '',
 });
@@ -101,8 +100,7 @@ const StudentDataManagerPage = () => {
     const payload = {
       full_name: formData.fullName,
       birth_date: formData.birthDate,
-      contact_platform: formData.contactMethod,
-      contact_id: formData.handle,
+      contact_id: formData.phoneNumber,
       bacc_year: Number(formData.certificateYear),
       bacc_average: Number(formData.baccalaureateScore),
       verification_status: formData.verificationStatus,
@@ -225,34 +223,21 @@ const StudentDataManagerPage = () => {
                     />
                   </div>
                   <div className="input-group">
-                    <label htmlFor="contactMethod">وسيلة التواصل</label>
-                    <select
-                      id="contactMethod"
-                      name="contactMethod"
-                      value={formData.contactMethod}
+                    <label htmlFor="phoneNumber">رقم الهاتف</label>
+                    <input
+                      type="text"
+                      id="phoneNumber"
+                      name="phoneNumber"
+                      value={formData.phoneNumber}
                       onChange={handleInputChange}
-                      className="select-field"
-                    >
-                      <option value="whatsapp">واتساب</option>
-                      <option value="telegram">تيليغرام</option>
-                    </select>
+                      dir="ltr"
+                    />
                   </div>
                   
                 </div>
 
                 {/* Row 3 */}
                 <div className="form-row">
-                  <div className="input-group">
-                    <label htmlFor="handle">المعرّف</label>
-                    <input
-                      type="text"
-                      id="handle"
-                      name="handle"
-                      value={formData.handle}
-                      onChange={handleInputChange}
-                      dir="ltr"
-                    />
-                  </div>
                   <div className="input-group">
                     <label htmlFor="baccalaureateScore">المعدل </label>
                     <input

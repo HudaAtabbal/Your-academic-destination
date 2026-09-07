@@ -99,6 +99,7 @@
   border-radius: 20px;
   padding: 16px;
   text-align: right;
+  direction: rtl;
   margin-bottom: 28px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
@@ -116,6 +117,11 @@
   line-height: 1.5;
   opacity: 0.85;
   margin: 0;
+}
+
+.info-text,
+.info-title {
+  unicode-bidi: plaintext;
 }
 
 /* Buttons */

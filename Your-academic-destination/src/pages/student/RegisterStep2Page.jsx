@@ -5,38 +5,57 @@ import StepProgress from '../../components/StepProgress';
 import { updateRegistrationData } from '../../api/RegistrationStorage';
 import '../../style/RegisterStep2Page.css';
 
-// --- Sub-Component: InterestChips ---
-const InterestChips = ({ categories, selectedCategory, onSelectCategory, isUndecided, onToggleUndecided }) => (
-  <div className="interests-section">
-    <div className="chips-grid">
-      {categories.map((cat) => (
-        <button
-          key={cat.id}
-          type="button"
-          className={`chip-item ${selectedCategory === cat.id && !isUndecided ? 'selected' : ''}`}
-          onClick={() => onSelectCategory(cat.id)}
-        >
-          {cat.name}
-        </button>
-      ))}
-    </div>
+// --- Sub-Component: قائمة تخصصات قابلة للبحث ---
+const MajorSearchList = ({
+  categories,
+  searchTerm,
+  onSearchChange,
+  selectedCategory,
+  onSelectCategory,
+  isUndecided,
+}) => {
+  const query = searchTerm.trim();
+  const filtered = categories.filter((cat) => !query || cat.name.includes(query));
 
-    <div
-      className={`undecided-box ${isUndecided ? 'active' : ''}`}
-      onClick={onToggleUndecided}
-    >
-      <span className="undecided-title">لسّا ما قرّرت</span>
-      <span className="undecided-subtitle">منرتّبلك جولة عامة على كل التجمّعات</span>
+  return (
+    <div className="interests-section">
+      <input
+        type="text"
+        className="custom-input major-search-input"
+        placeholder="دوّري عن تخصصك..."
+        value={searchTerm}
+        onChange={(e) => onSearchChange(e.target.value)}
+      />
+
+      <div className="majors-list-box">
+        {filtered.length > 0 ? (
+          filtered.map((cat) => (
+            <button
+              key={cat.id}
+              type="button"
+              className={`major-list-item ${
+                selectedCategory === cat.id && !isUndecided ? 'selected' : ''
+              }`}
+              onClick={() => onSelectCategory(cat.id)}
+            >
+              {cat.name}
+            </button>
+          ))
+        ) : (
+          <p className="major-no-results">ما لقينا تخصص مطابق</p>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // --- Main Page Component ---
 const RegisterStep2Page = () => {
   const navigate = useNavigate();
 
-  const [selectedCategory, setSelectedCategory] = useState('informatics');
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [isUndecided, setIsUndecided] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const categories = [
     { id: 'medicine', name: 'الطب البشري' },
@@ -63,9 +82,10 @@ const RegisterStep2Page = () => {
     e.preventDefault();
 
     // القيم (medicine, informatics...) مطابقة بالحرف لـ InterestCluster بالباك،
-    // بلا حاجة لأي تحويل. "لسّا ما قرّرت" بترسل القيمة الخاصة not_chosen_yet
+    // بلا حاجة لأي تحويل. الاختيار مش إلزامي — لو ما اختارت شي أصلاً (ولا "لسّا ما قرّرت")،
+    // بترسل نفس قيمة "لسّا ما قرّرت" افتراضياً
     updateRegistrationData({
-      initialPreferredMajor: isUndecided ? 'not_chosen_yet' : selectedCategory,
+      initialPreferredMajor: isUndecided || !selectedCategory ? 'not_chosen_yet' : selectedCategory,
     });
 
     navigate('/register-step3');
@@ -86,13 +106,22 @@ const RegisterStep2Page = () => {
         <main className="card-body">
           <form onSubmit={handleSubmit} className="form-container">
 
-            <InterestChips
+            <MajorSearchList
               categories={categories}
+              searchTerm={searchTerm}
+              onSearchChange={setSearchTerm}
               selectedCategory={selectedCategory}
               onSelectCategory={handleSelectCategory}
               isUndecided={isUndecided}
-              onToggleUndecided={handleToggleUndecided}
             />
+
+            <div
+              className={`undecided-box ${isUndecided ? 'active' : ''}`}
+              onClick={handleToggleUndecided}
+            >
+              <span className="undecided-title">لسّا ما قرّرت</span>
+              <span className="undecided-subtitle">منرتّبلك جولة عامة على كل التجمّعات</span>
+            </div>
 
             <div className="actions">
               <button type="submit" className="btn btn-primary">
