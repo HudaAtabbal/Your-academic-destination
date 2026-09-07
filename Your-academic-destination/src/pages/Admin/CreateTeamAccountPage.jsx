@@ -1,182 +1,211 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AdminHeader from '../../components/AdminHeader';
-import { apiGet } from '../../api/api';
-import '../../style/GeneralDirectorDashboard.css';
+import { apiPost, apiPatch, ApiError } from '../../api/api';
+import '../../style/CreateTeamAccountPage.css';
 
-// أسماء الأدوار بالعربي — الباك بيرجّع القيمة enum بس (زي college_staff)، مش النص العربي
-const ROLE_LABELS = {
-  super_admin: 'المدير العام',
-  students_admin: 'مدير بيانات الطلاب',
-  gate_scanner: 'مسؤول المسح',
-  college_staff: 'مسؤول الكلية',
-};
+// ⚠️ الباك لسا عنده بس قيمتين placeholder لـ college enum (مش الـ42 كلية الحقيقية).
+// لما تتوفر القائمة الكاملة، بنستبدل هالمصفوفة بالقيم الحقيقية القادمة من الباك.
+const KNOWN_COLLEGES = [
+  { value: 'college_placeholder_1', label: 'كلية تجريبية 1 (placeholder)' },
+  { value: 'college_placeholder_2', label: 'كلية تجريبية 2 (placeholder)' },
+];
 
-const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
+const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit }) => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [teamMembers, setTeamMembers] = useState([]);
-  const [stats, setStats] = useState([
-    { id: 'registered', label: 'مسجّلون إلكترونياً', value: '—' },
-    { id: 'inside', label: 'داخل الحرم الآن', value: '—' },
-    { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: '—' },
-    { id: 'survey', label: 'أكملوا الاستبيان', value: '—' },
-  ]);
-  const [hallOccupancy, setHallOccupancy] = useState(null); // null = ما في بيانات قاعات لسا
+  // إذا الصفحة انفتحت بوضع تعديل (جاي من لوحة التحكم عبر زر "تعديل")،
+  // منعبّي الفورم ببيانات العضو الحالية بدل ما تضل فاضية
+  const editMember = location.state?.editMember || null;
 
-  useEffect(() => {
-    // حسابات فريق العمل
-    apiGet('/admin/accounts?page=1&limit=50')
-      .then((res) => {
-        setTeamMembers(
-          res.items.map((account) => ({
-            username: account.username,
-            role: ROLE_LABELS[account.role] || account.role,
-            roleType: account.role,
-            faculty: account.college || '—',
-          }))
-        );
-      })
-      .catch(() => {});
+  const [username, setUsername] = useState(editMember?.username || '');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState(editMember?.roleType || 'gate_scanner'); // 'super_admin', 'students_admin', 'gate_scanner', 'college_staff'
+  const [faculty, setFaculty] = useState(
+    editMember?.roleType === 'college_staff' ? editMember.faculty : ''
+  );
+  const [error, setError] = useState('');
+  const [successInfo, setSuccessInfo] = useState(''); // بيعرض كلمة السر المتولّدة بعد الإنشاء
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // الإحصاءات الأربع — endpoint جديد مخصص للداشبورد صار متوفر
-    apiGet('/admin/dashboard/stats')
-      .then((res) => {
-        setStats([
-          { id: 'registered', label: 'مسجّلون إلكترونياً', value: res.registered_online_count },
-          { id: 'inside', label: 'داخل الحرم الآن', value: res.campus_entries_count },
-          { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: res.activities_today_cumulative },
-          { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
-        ]);
-      })
-      .catch(() => {});
+  const rolesList = [
+    { id: 'super_admin', label: 'المدير العام' },
+    { id: 'students_admin', label: 'مدير بيانات الطلاب' },
+    { id: 'gate_scanner', label: 'مسؤول المسح' },
+    { id: 'college_staff', label: 'مسؤول الكلية' },
+  ];
 
-    // إشغال القاعات — بناخد أول قاعة نشطة بالقائمة للعرض (الكرت مصمم لقاعة وحدة حالياً)
-    apiGet('/admin/dashboard/rooms-occupancy')
-      .then((res) => {
-        if (res.rooms && res.rooms.length > 0) {
-          const room = res.rooms[0];
-          setHallOccupancy({
-            title: room.hall_label,
-            time: new Date(room.last_updated).toLocaleTimeString('ar', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            current: room.current_count,
-            // ⚠️ الباك ما بيرجّع السعة القصوى للقاعة، فمؤقتاً حاطة رقم ثابت لحد ما تنضاف
-            total: 300,
-          });
-        }
-      })
-      .catch(() => {});
-  }, []);
-
-  const percentage = hallOccupancy
-    ? Math.round((hallOccupancy.current / hallOccupancy.total) * 100)
-    : 0;
-
-  const handleCreateAccount = () => {
-    navigate('/create-team-account');
+  const handleBack = () => {
+    navigate('/dashboard');
   };
 
-  const handleEditMember = (member) => {
-    // بنمرر بيانات العضو الحالية حتى فورم الإنشاء يفتح بوضع "تعديل" ومعبّى مسبقاً
-    navigate('/create-team-account', { state: { editMember: member } });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!username.trim()) {
+      setError('يرجى إدخال اسم المستخدم');
+      return;
+    }
+    if (role === 'college_staff' && !faculty) {
+      setError('يرجى اختيار الكلية لدور مسؤول الكلية');
+      return;
+    }
+
+    setError('');
+    setSuccessInfo('');
+    setIsSubmitting(true);
+
+    try {
+      if (editMember) {
+        const payload = {
+          role,
+          college: role === 'college_staff' ? faculty : null,
+        };
+        if (password.trim()) {
+          payload.password = password;
+        }
+        await apiPatch(`/admin/accounts/${editMember.username}`, payload);
+      } else {
+        const payload = {
+          username: username.trim(),
+          password: password.trim() || null,
+          role,
+          college: role === 'college_staff' ? faculty : null,
+        };
+        const response = await apiPost('/admin/accounts', payload);
+
+        if (response.generated_password) {
+          // كلمة السر بترجع مرة وحدة بس — لازم نعرضها فوراً حتى تنكتب/تتسلّم لصاحب الحساب
+          setSuccessInfo(
+            `تم إنشاء الحساب. كلمة السر: ${response.generated_password} — احفظيها الآن، ما رح ترجع تظهر تاني`
+          );
+          setIsSubmitting(false);
+          return; // ما بننقل تلقائياً حتى تضمن إنها شافت/نسخت كلمة السر
+        }
+      }
+
+      if (onSubmit) onSubmit();
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="gd-dash-viewport">
+    <div className="cta-page-viewport">
 
       <AdminHeader userRole={userRole} />
 
-      {/* Desktop Main Content Container */}
-      <main className="gd-dash-main-container">
+      {/* Main Form Area */}
+      <main className="cta-main-container">
         
-        {/* Metric Cards Row */}
-        <section className="gd-dash-metrics-grid">
-          {stats.map((stat) => (
-            <div key={stat.id} className="gd-dash-metric-card">
-              <span className="gd-dash-metric-label">{stat.label}</span>
-              <span className="gd-dash-metric-number">{stat.value}</span>
-            </div>
-          ))}
-        </section>
+        {/* Back Link */}
+        <div className="cta-back-wrapper">
+          <button type="button" className="cta-back-btn" onClick={handleBack}>
+            <span className="cta-back-arrow">←</span> رجوع لقائمة الحسابات
+          </button>
+        </div>
 
-        {/* Team Accounts Section */}
-        <section className="gd-dash-section-wrapper">
-          <div className="gd-dash-section-heading-row">
-            <h2 className="gd-dash-section-heading">حسابات فريق العمل</h2>
-            <button type="button" className="gd-dash-create-btn" onClick={handleCreateAccount}>
-              + إنشاء حساب جديد
-            </button>
-          </div>
-          
-          <div className="gd-dash-table-card">
-            <table className="gd-dash-team-table">
-              <thead>
-                <tr>
-                  <th className="gd-dash-th-action"></th>
-                  <th className="gd-dash-th-faculty">الكلية المرتبطة</th>
-                  <th className="gd-dash-th-role">الدور</th>
-                  <th className="gd-dash-th-user">اسم المستخدم</th>
-                </tr>
-              </thead>
-              <tbody>
-                {teamMembers.map((member, idx) => (
-                  <tr key={idx} className="gd-dash-table-row">
-                    <td className="gd-dash-td-action">
-                      <button
-                        type="button"
-                        className="gd-dash-edit-btn"
-                        onClick={() => handleEditMember(member)}
-                      >
-                        تعديل
-                      </button>
-                    </td>
-                    <td className="gd-dash-td-faculty">{member.faculty}</td>
-                    <td className="gd-dash-td-role">
-                      <span className={`gd-dash-role-chip gd-dash-role-${member.roleType}`}>
-                        {member.role}
-                      </span>
-                    </td>
-                    <td className="gd-dash-td-user">{member.username}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
+        {/* Card Form */}
+        <div className="cta-form-card">
+          <h1 className="cta-form-title">
+            {editMember ? `تعديل حساب — ${editMember.username}` : 'إنشاء حساب فريق عمل جديد'}
+          </h1>
 
-        {/* Hall Occupancy Section */}
-        <section className="gd-dash-section-wrapper">
-          <h2 className="gd-dash-section-heading">إشغال القاعات الآن</h2>
-          
-          {hallOccupancy ? (
-            <div className="gd-dash-occupancy-card">
-              <div className="gd-dash-occupancy-info">
-                <span className="gd-dash-occupancy-count">
-                  {hallOccupancy.current} / {hallOccupancy.total}
-                </span>
-                <span className="gd-dash-occupancy-location">
-                  {hallOccupancy.title} • {hallOccupancy.time}
-                </span>
-              </div>
+          <form onSubmit={handleSubmit} className="cta-form-body">
+            
+            {/* Inputs Row 1: Username & Password */}
+            <div className="cta-form-row cta-grid-2col">
               
-              <div className="gd-dash-progress-track">
-                <div 
-                  className="gd-dash-progress-fill" 
-                  style={{ width: `${percentage}%` }}
-                ></div>
+              <div className="cta-field-group">
+                <label className="cta-field-label" htmlFor="cta-username">
+                  اسم المستخدم
+                </label>
+                <input
+                  id="cta-username"
+                  type="text"
+                  className="cta-input-field"
+                  placeholder="مثال: sara_staff"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  dir="rtl"
+                />
+              </div>
+
+              <div className="cta-field-group">
+                <label className="cta-field-label" htmlFor="cta-password">
+                  {editMember ? 'كلمة سر جديدة' : 'كلمة السر المبدئية'}
+                </label>
+                <input
+                  id="cta-password"
+                  type="text"
+                  className="cta-input-field"
+                  placeholder={editMember ? 'اتركها فارغة لعدم التغيير' : 'تُنشأ تلقائياً'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+
+            </div>
+
+            {/* Inputs Row 2: Role Selector */}
+            <div className="cta-field-group">
+              <label className="cta-field-label">الدور</label>
+              <div className="cta-roles-selector">
+                {rolesList.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={`cta-role-btn ${role === item.id ? 'active' : ''}`}
+                    onClick={() => setRole(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
             </div>
-          ) : (
-            <p className="gd-dash-empty-note">ما في قاعات فيها نشاط حالياً</p>
-          )}
-        </section>
+
+            {/* Inputs Row 3: Faculty Selection (Active only for 'college_staff' role) */}
+            <div className="cta-field-group">
+              <label className="cta-field-label">
+                الكلية المرتبطة <span className="cta-label-hint">(يظهر فقط لدور "مسؤول الكلية")</span>
+              </label>
+              <select
+                className={`cta-input-field cta-select-field ${role !== 'college_staff' ? 'disabled' : ''}`}
+                value={role === 'college_staff' ? faculty : ''}
+                onChange={(e) => setFaculty(e.target.value)}
+                disabled={role !== 'college_staff'}
+              >
+                <option value="" disabled>
+                  {role === 'college_staff' ? 'اختر الكلية...' : '— غير مطلوب لهذا الدور —'}
+                </option>
+                {KNOWN_COLLEGES.map((college) => (
+                  <option key={college.value} value={college.value}>
+                    {college.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {error && <p className="cta-error-message">{error}</p>}
+            {successInfo && <p className="cta-success-message">{successInfo}</p>}
+
+            {/* Action Submit Button */}
+            <div className="cta-form-actions">
+              <button type="submit" className="cta-submit-btn" disabled={isSubmitting}>
+                {isSubmitting ? 'جاري الحفظ...' : editMember ? 'حفظ التعديلات' : 'إنشاء الحساب'}
+              </button>
+            </div>
+
+          </form>
+        </div>
 
       </main>
     </div>
   );
 };
 
-export default GeneralDirectorDashboard;
+export default CreateTeamAccountPage;

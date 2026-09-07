@@ -1,10 +1,9 @@
-import React from 'react';
-
+// ScannerFooter.jsx
 const ScannerFooter = ({ count, countLabel, isConnected = true }) => {
   return (
-    <footer className="ss-footer">
+    <footer className="scanner-footer">
       <span>{count} {countLabel}</span>
-      <span className={`ss-connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
+      <span className={`connection-status ${isConnected ? 'connected' : 'disconnected'}`}>
         {isConnected ? 'متصل' : 'غير متصل'}
       </span>
     </footer>

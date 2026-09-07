@@ -8,10 +8,10 @@ import '../../style/TeamLoginPage.css';
 const ROLE_LANDING_PAGES = {
   super_admin: '/dashboard',
   students_admin: '/gate',
-  gate_scanner: '/scan/stadium',
+  gate_scanner: '/team-stadium',
   // مسؤول الكلية بيغطي 3 شاشات مختلفة (جولة/توجيه/استشارة) —
   // مؤقتاً بنوجّهه لشاشة التوجيه كافتراضي، لحد ما يصير في شاشة اختيار حقيقية
-  college_staff: '/scan/college',
+  college_staff: '/team-college',
 };
 
 const TeamLoginPage = () => {

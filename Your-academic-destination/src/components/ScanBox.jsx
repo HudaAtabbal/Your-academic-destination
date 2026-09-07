@@ -6,11 +6,11 @@ import React from 'react';
  */
 const ScanBox = ({ caption = 'وجّه الكاميرا نحو رمز QR تبع الطالب', onScan }) => {
   return (
-    <div className="ss-scanbox-wrapper">
-      <button type="button" className="ss-scanbox" onClick={onScan} aria-label="مسح رمز QR">
-        <span className="ss-scanbox-frame" />
+    <div className="scan-box-wrapper">
+      <button type="button" className="scan-box" onClick={onScan} aria-label="مسح رمز QR">
+        <span className="scan-box-frame" />
       </button>
-      <p className="ss-scan-caption">{caption}</p>
+      <p className="scan-caption">{caption}</p>
     </div>
   );
 };

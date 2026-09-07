@@ -37,7 +37,9 @@ const AcademicGuide = () => {
           onBack={() => window.history.back()} 
         />
 
-        {/* Search Bar */}
+        
+
+        {/* Search Bar
         <div className="ag-search-wrapper">
           <svg
             className="ag-search-icon"
@@ -83,7 +85,7 @@ const AcademicGuide = () => {
           {!searchTerm && (
             <p className="ag-scroll-hint">و 35 فرعاً إضافياً... اسحب للأسفل</p>
           )}
-        </main>
+        </main> */}
 
         <BottomNav />
 

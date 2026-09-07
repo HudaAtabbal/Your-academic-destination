@@ -10,17 +10,16 @@ import '../../style/Survey.css';
 const Survey = () => {
   const navigate = useNavigate();
   const [q1Option, setQ1Option] = useState('decided');
-  const [q2Major, setQ2Major] = useState('الطب البشري');
+  const [q2Major, setQ2Major] = useState('college_placeholder_1');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // ⚠️ مؤقت للتجربة فقط — القيم مطابقة لـ enum College بالباك (placeholders حالياً).
+  // لما يجهز enum الـ42 كلية الفعلي، بدّلي هون بس (name = القيمة الفعلية بالـ enum الجديد،
+  // ومنيح تضيفي حقل منفصل للعرض بالعربي إذا بدك تعرضي اسم الكلية الحقيقي بالواجهة).
   const majors = [
-    { id: 1, name: 'الطب البشري' },
-    { id: 2, name: 'المعلوماتية' },
-    { id: 3, name: 'الهندسة المعمارية' },
-    { id: 4, name: 'الحقوق' },
-    { id: 5, name: 'الصيدلة' },
-    { id: 6, name: 'الهندسة المدنية' },
+    { id: 1, name: 'college_placeholder_1' },
+    { id: 2, name: 'college_placeholder_2' },
   ];
 
   const handleSubmit = async (e) => {
@@ -36,8 +35,6 @@ const Survey = () => {
     setIsSubmitting(true);
 
     try {
-      // ⚠️ preferred_major بالباك لسا enum فيه بس قيمتين placeholder (مش الـ42 كلية الحقيقية)،
-      // يعني إرسال اسم الكلية العربي (زي "الطب البشري") رح يفشل بـ 422 لحد ما يجهز enum الكليات الفعلي
       await apiPost(`/survey/${studentCode}`, {
         opinion_change: q1Option,
         preferred_major: q2Major,
@@ -58,25 +55,25 @@ const Survey = () => {
   return (
     <div className="card-wrapper">
       <div className="card-container">
-        
-        <HeaderStep 
-          title="سؤالان قبل ما تروح" 
-          stepText="هاد كل شي محتاجينه منك" 
-          onBack={() => window.history.back()} 
+
+        <HeaderStep
+          title="سؤالان قبل ما تروح"
+          stepText="هاد كل شي محتاجينه منك"
+          onBack={() => window.history.back()}
         />
 
         <main className="card-body">
           <form onSubmit={handleSubmit} className="form-container">
-            
-            <SurveyQuestionOne 
-              selectedOption={q1Option} 
-              onSelect={setQ1Option} 
+
+            <SurveyQuestionOne
+              selectedOption={q1Option}
+              onSelect={setQ1Option}
             />
 
-            <SurveyQuestionTwo 
-              selectedMajor={q2Major} 
-              onChange={setQ2Major} 
-              majorsList={majors} 
+            <SurveyQuestionTwo
+              selectedMajor={q2Major}
+              onChange={setQ2Major}
+              majorsList={majors}
             />
 
             <div className="actions">

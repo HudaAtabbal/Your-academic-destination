@@ -116,9 +116,7 @@ const StadiumPage = () => {
             studentCode={result?.studentCode}
           />
 
-          <button type="button" className="quick-register-btn" onClick={handleQuickRegister}>
-            تسجيل الخط السريع (بدون بطاقة)
-          </button>
+          
         </main>
 
         <ScannerFooter count={scanCount ?? '—'} countLabel="مسحة مرفوعة" />
