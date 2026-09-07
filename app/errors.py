@@ -131,3 +131,7 @@ def account_not_found() -> AppError:
         error_code="account_not_found",
         message="الحساب مش موجود",
     )
+
+
+def validation_error(message: str) -> AppError:
+    return AppError(status_code=400, error_code="validation_error", message=message)

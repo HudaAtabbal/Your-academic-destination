@@ -12,6 +12,8 @@ from app.routers.accounts import account_router
 from app.routers.auth import auth_router
 from app.routers.bookings import booking_router
 from app.routers.checkins import checkin_router
+from app.routers.admin.dashboard.dashboard_router import router as dashboard_router
+from app.routers.admin.student.student_router import router as student_router
 from app.routers.survey import survey_router
 from app.routers.walkin import walkin_router
 
@@ -62,6 +64,8 @@ app.include_router(checkin_router.router)
 app.include_router(booking_router.router)
 app.include_router(survey_router.router)
 app.include_router(account_router.router)
+app.include_router(student_router)
+app.include_router(dashboard_router)
 
 
 @app.get("/health", tags=["health"])
