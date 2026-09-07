@@ -6,7 +6,14 @@ from datetime import date, datetime
 
 from pydantic import BaseModel
 
-from app.models.enums import College, ContactPlatform, RegistrationType, StudentStatus, VerificationStatus
+from app.models.enums import (
+    CertificateType,
+    ContactPlatform,
+    InterestCluster,
+    RegistrationType,
+    StudentStatus,
+    VerificationStatus,
+)
 
 
 class StudentDetail(BaseModel):
@@ -18,7 +25,8 @@ class StudentDetail(BaseModel):
     contact_id: str | None = None
     bacc_year: int | None = None
     bacc_average: float | None = None
-    initial_preferred_major: College | None = None
+    certificate_type: CertificateType | None = None
+    initial_preferred_major: InterestCluster | None = None
     verification_status: VerificationStatus
     registration_type: RegistrationType
     status: StudentStatus
@@ -40,7 +48,8 @@ class StudentUpdateRequest(BaseModel):
     contact_id: str | None = None
     bacc_year: int | None = None
     bacc_average: float | None = None
-    initial_preferred_major: College | None = None
+    certificate_type: CertificateType | None = None
+    initial_preferred_major: InterestCluster | None = None
     verification_status: VerificationStatus | None = None
     status: StudentStatus | None = None
 
