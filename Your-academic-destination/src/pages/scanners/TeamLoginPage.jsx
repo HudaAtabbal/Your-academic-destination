@@ -11,7 +11,7 @@ const ROLE_LANDING_PAGES = {
   gate_scanner: '/team-stadium',
   // مسؤول الكلية بيغطي 3 شاشات مختلفة (جولة/توجيه/استشارة) —
   // فبنوجّهه لصفحة اختيار المحطة، وهي يلي بتقرر أي شاشة يفتح
-  college_staff: '/select-station',
+  college_staff: '/select-staff',
 };
 
 const TeamLoginPage = () => {

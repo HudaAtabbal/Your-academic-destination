@@ -1,29 +1,61 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderStep from '../../components/HeaderStep';
 import StepProgress from '../../components/StepProgress';
 import InfoBox from '../../components/InfoBox';
-import { updateRegistrationData } from '../../api/RegistrationStorage';
+import { updateRegistrationData, getRegistrationData } from '../../api/RegistrationStorage';
 import '../../style/RegisterStep1Page.css';
+
+// بنبني القيمة الابتدائية من السلة المحفوظة (لو موجودة) بدل ما تبلش فاضية كل مرة
+const buildInitialFormData = () => {
+  const saved = getRegistrationData();
+  let birthDay = '', birthMonth = '', birthYear = '';
+
+  if (saved.birthDate) {
+    const [y, m, d] = saved.birthDate.split('-');
+    birthYear = y || '';
+    birthMonth = m || '';
+    birthDay = d || '';
+  }
+
+  return {
+    fullName: saved.fullName || '',
+    birthDay,
+    birthMonth,
+    birthYear,
+    certificateYear: saved.certificateYear || '',
+    certificateType: saved.certificateType || '',
+    averageScore: saved.averageScore || '',
+  };
+};
 
 const RegisterStep1Page = () => {
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
-    fullName: '',
-    birthDay: '',
-    birthMonth: '',
-    birthYear: '',
-    certificateYear: '', // bacc_year بالباك — حقل منفصل عن تاريخ الميلاد
-    certificateType: '',
-    averageScore: ''
-  });
-
+  const [formData, setFormData] = useState(buildInitialFormData);
   const [errors, setErrors] = useState({});
 
   const dayRef = useRef(null);
   const monthRef = useRef(null);
   const yearRef = useRef(null);
+
+  // حفظ تلقائي بكل تغيير — هيك لو الطالب عمل ريفريش أو سكّر المتصفح بالغلط
+  // بنص الفورم، بيرجع يلاقي كل شي كتبه بالضبط
+  useEffect(() => {
+    const fields = {
+      fullName: formData.fullName,
+      certificateYear: formData.certificateYear,
+      certificateType: formData.certificateType,
+      averageScore: formData.averageScore,
+    };
+
+    // ما منحفظ birthDate إلا لما تكون الثلاث خانات معبّية، حتى ما تنخزن قيمة ناقصة/غير صالحة
+    if (formData.birthDay && formData.birthMonth && formData.birthYear.length === 4) {
+      fields.birthDate = `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`;
+    }
+
+    updateRegistrationData(fields);
+  }, [formData]);
 
   const handleNameChange = (e) => {
     const value = e.target.value;
@@ -94,7 +126,6 @@ const RegisterStep1Page = () => {
 
     const currentYear = new Date().getFullYear();
 
-    // تاريخ الميلاد الحقيقي (birth_date بالباك)
     const day = Number(formData.birthDay);
     const month = Number(formData.birthMonth);
     const year = Number(formData.birthYear);
@@ -115,7 +146,6 @@ const RegisterStep1Page = () => {
       }
     }
 
-    // سنة الشهادة (bacc_year بالباك) — حقل منفصل تماماً عن تاريخ الميلاد
     const certYear = Number(formData.certificateYear);
     if (!formData.certificateYear.trim()) {
       newErrors.certificateYear = 'سنة الشهادة مطلوبة';
@@ -143,18 +173,7 @@ const RegisterStep1Page = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-
-    // بنركّب تاريخ الميلاد بصيغة ISO (YYYY-MM-DD) — هيك الباك بينتظرها بالضبط
-    const isoBirthDate = `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`;
-
-    updateRegistrationData({
-      fullName: formData.fullName,
-      birthDate: isoBirthDate,
-      certificateYear: formData.certificateYear,
-      certificateType: formData.certificateType, // 'scientific' | 'literary' — مطابق للباك مباشرة
-      averageScore: formData.averageScore,
-    });
-
+    // البيانات أصلاً محفوظة أول بأول عبر الحفظ التلقائي (useEffect فوق)
     navigate('/register-step2'); // الانتقال للخطوة التالية
   };
 

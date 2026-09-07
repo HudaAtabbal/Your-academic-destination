@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderStep from '../../components/HeaderStep';
 import StepProgress from '../../components/StepProgress';
-import { updateRegistrationData } from '../../api/RegistrationStorage';
+import { updateRegistrationData, getRegistrationData } from '../../api/RegistrationStorage';
 import '../../style/RegisterStep2Page.css';
 
 // --- Sub-Component: قائمة تخصصات قابلة للبحث ---
@@ -53,8 +53,14 @@ const MajorSearchList = ({
 const RegisterStep2Page = () => {
   const navigate = useNavigate();
 
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [isUndecided, setIsUndecided] = useState(false);
+  // بنحمّل الاختيار المحفوظ من قبل (لو الطالب رجع لهالخطوة بعد ريفريش أو من خطوة تانية)
+  const saved = getRegistrationData();
+  const savedIsUndecided = saved.initialPreferredMajor === 'not_chosen_yet';
+
+  const [selectedCategory, setSelectedCategory] = useState(
+    savedIsUndecided || !saved.initialPreferredMajor ? null : saved.initialPreferredMajor
+  );
+  const [isUndecided, setIsUndecided] = useState(savedIsUndecided);
   const [searchTerm, setSearchTerm] = useState('');
 
   const categories = [
@@ -68,6 +74,13 @@ const RegisterStep2Page = () => {
     { id: 'civil', name: 'الهندسة المدنية' },
   ];
 
+  // حفظ تلقائي بكل تغيير بالاختيار — بلا ما ننتظر ضغطة "تابع"
+  useEffect(() => {
+    updateRegistrationData({
+      initialPreferredMajor: isUndecided || !selectedCategory ? 'not_chosen_yet' : selectedCategory,
+    });
+  }, [selectedCategory, isUndecided]);
+
   const handleSelectCategory = (id) => {
     setSelectedCategory(id);
     setIsUndecided(false);
@@ -80,14 +93,7 @@ const RegisterStep2Page = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // القيم (medicine, informatics...) مطابقة بالحرف لـ InterestCluster بالباك،
-    // بلا حاجة لأي تحويل. الاختيار مش إلزامي — لو ما اختارت شي أصلاً (ولا "لسّا ما قرّرت")،
-    // بترسل نفس قيمة "لسّا ما قرّرت" افتراضياً
-    updateRegistrationData({
-      initialPreferredMajor: isUndecided || !selectedCategory ? 'not_chosen_yet' : selectedCategory,
-    });
-
+    // البيانات أصلاً محفوظة أول بأول عبر الحفظ التلقائي (useEffect فوق)
     navigate('/register-step3');
   };
 

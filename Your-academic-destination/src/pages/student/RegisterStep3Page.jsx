@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import HeaderStep from "../../components/HeaderStep";
 import StepProgress from '../../components/StepProgress';
@@ -9,9 +9,17 @@ import "../../style/RegisterStep3Page.css";
 const RegisterStep3Page = () => {
   const navigate = useNavigate();
 
-  const [phoneNumber, setPhoneNumber] = useState("");
+  // بنحمّل رقم الهاتف المحفوظ لو الطالب رجع لهالخطوة بعد ريفريش
+  const [phoneNumber, setPhoneNumber] = useState(() => getRegistrationData().contactId || "");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // حفظ تلقائي بكل تغيير بالرقم — بلا ما ننتظر ضغطة الإرسال
+  useEffect(() => {
+    if (phoneNumber) {
+      updateRegistrationData({ contactPlatform: "whatsapp", contactId: phoneNumber });
+    }
+  }, [phoneNumber]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,9 +42,8 @@ const RegisterStep3Page = () => {
     setError("");
     setIsSubmitting(true);
 
-    // بنجمّع بيانات الخطوتين السابقتين من السلة، ونضيفلها وسيلة التواصل
+    // بنجمّع بيانات الخطوات السابقة من السلة (رقم الهاتف أصلاً محفوظ فيها عبر الحفظ التلقائي فوق)
     const previousSteps = getRegistrationData();
-    updateRegistrationData({ contactPlatform: "whatsapp", contactId: value });
 
     const payload = {
       full_name: previousSteps.fullName,

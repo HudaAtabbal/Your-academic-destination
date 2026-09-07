@@ -1,25 +1,26 @@
 /**
- * registrationStorage.js — "السلة" المشتركة لتجميع بيانات التسجيل
+ * RegistrationStorage.js — "السلة" المشتركة لتجميع بيانات التسجيل
  * عبر خطوات RegisterStep1 → RegisterStep2 → RegisterStep3.
  *
- * ليش sessionStorage مش useState عادي؟
+ * ليش localStorage مش useState عادي؟
  * لأنو كل صفحة (Step1, Step2, Step3) هي component منفصل تماماً، وبينهن
  * تنقّل فعلي (navigate) — يعني أي useState محلي بينمسح لما تتغير الصفحة.
- * sessionStorage بيضل موجود طول ما التاب مفتوح، وبيتصفّر لحاله لما يسكّر
- * (بعكس localStorage يلي مستخدم لـ unique_code، هدفه يدوم لفترة أطول).
+ * localStorage بيضل موجود حتى لو الطالب سكّر المتصفح كامل وفتحه من جديد
+ * (بعكس sessionStorage يلي كان مستخدم قبل، وبيتصفّر لحاله لما يسكّر التاب فقط) —
+ * هيك لو الطالب عمل ريفريش أو سكّر المتصفح بالغلط بنص التسجيل، بيرجع يلاقي كل شي زي ما تركه.
  *
  * الاستخدام:
- *   import { updateRegistrationData, getRegistrationData, clearRegistrationData } from '.../registrationStorage';
- *   updateRegistrationData({ fullName: '...' }); // بكل خطوة، بس عند النجاح
- *   const data = getRegistrationData(); // بآخر خطوة، لتجميع كل شي قبل الإرسال
- *   clearRegistrationData(); // بعد نجاح الإرسال للباك، حتى ما تضل بيانات قديمة لو رجع الطالب يسجّل من جديد
+ *   import { updateRegistrationData, getRegistrationData, clearRegistrationData } from '.../RegistrationStorage';
+ *   updateRegistrationData({ fullName: '...' }); // بكل تغيير بالفورم (مش بس عند الضغط على "تابع")
+ *   const data = getRegistrationData(); // لتحميل البيانات المحفوظة عند فتح/إعادة فتح أي خطوة
+ *   clearRegistrationData(); // بعد نجاح الإرسال الفعلي للباك، حتى ما تضل بيانات قديمة لو رجع الطالب يسجّل من جديد
  */
 
 const STORAGE_KEY = 'registrationData';
 
 export function getRegistrationData() {
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw = localStorage.getItem(STORAGE_KEY);
     return raw ? JSON.parse(raw) : {};
   } catch {
     return {};
@@ -29,10 +30,10 @@ export function getRegistrationData() {
 export function updateRegistrationData(fields) {
   const current = getRegistrationData();
   const updated = { ...current, ...fields };
-  sessionStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
   return updated;
 }
 
 export function clearRegistrationData() {
-  sessionStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(STORAGE_KEY);
 }
