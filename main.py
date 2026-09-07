@@ -5,6 +5,7 @@
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException as FastAPIHTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from app.errors import AppError
@@ -12,6 +13,9 @@ from app.routers.accounts import account_router
 from app.routers.auth import auth_router
 from app.routers.bookings import booking_router
 from app.routers.checkins import checkin_router
+#from app.routers.dashboard import dashboard_router
+from app.routers.registration import registration_router
+from app.routers.students import student_router
 from app.routers.survey import survey_router
 from app.routers.walkin import walkin_router
 
@@ -19,6 +23,17 @@ app = FastAPI(
     title="Wijhatak Al-Akademia API",
     description="Backend لمنصة وجهتك الأكاديمية — فعالية الاتحاد الطالبي",
     version="0.1.0",
+)
+
+# ⚠️ مؤقت للتطوير — بيسمح لأي origin يوصل للـ API (مشان تجربة الفرونت محلياً
+# من vite:5173 وأمثاله بدون ما يرفض المتصفح الطلب). لازم يتقيّد بدومين
+# الفرونت الحقيقي بس قبل أي نشر فعلي.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -62,6 +77,9 @@ app.include_router(checkin_router.router)
 app.include_router(booking_router.router)
 app.include_router(survey_router.router)
 app.include_router(account_router.router)
+app.include_router(student_router.router)
+#app.include_router(dashboard_router.router)
+app.include_router(registration_router.router)
 
 
 @app.get("/health", tags=["health"])

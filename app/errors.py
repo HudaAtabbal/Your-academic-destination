@@ -131,3 +131,18 @@ def account_not_found() -> AppError:
         error_code="account_not_found",
         message="الحساب مش موجود",
     )
+
+def duplicate_contact() -> AppError:
+    return AppError(
+        status_code=409,
+        error_code="duplicate_contact",
+        message="رقم التواصل هاد مسجّل مسبقاً",
+    )
+
+
+def otp_invalid() -> AppError:
+    return AppError(
+        status_code=400,
+        error_code="otp_invalid",
+        message="الرمز غلط أو منتهي الصلاحية",
+    )
