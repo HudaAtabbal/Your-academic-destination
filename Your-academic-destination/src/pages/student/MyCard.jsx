@@ -10,9 +10,10 @@ const MyCard = () => {
   // بنقرأ الكود من localStorage (اتخزن هناك بصفحة OTP بعد نجاح التحقق)
   // بدل ما يكون ثابت بالكود؛ الاسم لسا موك لحد ما نربط API فعلي يرجّعه
   const studentCode = localStorage.getItem('studentCode') || 'R-0248';
+  const studentName = localStorage.getItem('studentName') || 'عمر أحمد العسورة';
 
   const cardData = {
-    name: 'عمر أحمد العسورة',
+    name: studentName,
     code: studentCode,
     status: 'بانتظار التفعيل',
   };

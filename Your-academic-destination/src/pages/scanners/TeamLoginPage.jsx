@@ -1,12 +1,28 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/English logo colored-02.png';
+import { apiPost, setAuthToken, ApiError } from '../../api/api';
 import '../../style/TeamLoginPage.css';
 
+// كل دور بيروح على شاشته الافتراضية بعد الدخول
+const ROLE_LANDING_PAGES = {
+  super_admin: '/dashboard',
+  students_admin: '/gate',
+  gate_scanner: '/scan/stadium',
+  // مسؤول الكلية بيغطي 3 شاشات مختلفة (جولة/توجيه/استشارة) —
+  // مؤقتاً بنوجّهه لشاشة التوجيه كافتراضي، لحد ما يصير في شاشة اختيار حقيقية
+  college_staff: '/scan/college',
+};
+
 const TeamLoginPage = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -14,11 +30,41 @@ const TeamLoginPage = () => {
       ...prev,
       [name]: value,
     }));
+    setError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Login attempt:', formData);
+
+    if (!formData.username.trim() || !formData.password.trim()) {
+      setError('يرجى تعبئة اسم المستخدم وكلمة السر');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
+
+    try {
+      const response = await apiPost('/auth/login', {
+        username: formData.username.trim(),
+        password: formData.password,
+      });
+
+      setAuthToken(response.access_token);
+      localStorage.setItem('accountRole', response.role);
+      if (response.college) {
+        localStorage.setItem('accountCollege', response.college);
+      } else {
+        localStorage.removeItem('accountCollege');
+      }
+
+      const landingPage = ROLE_LANDING_PAGES[response.role] || '/dashboard';
+      navigate(landingPage);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -68,8 +114,10 @@ const TeamLoginPage = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-primary">
-              دخول
+            {error && <p className="login-error-message">{error}</p>}
+
+            <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? 'جاري الدخول...' : 'دخول'}
             </button>
           </form>
 

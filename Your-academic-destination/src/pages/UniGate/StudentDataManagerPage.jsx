@@ -1,6 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { apiGet, apiPatch, ApiError } from '../../api/api';
 import '../../style/StudentDataManagerPage.css';
+
+// تحويل استجابة الباك (snake_case) لشكل formData الداخلي تبع الصفحة
+const mapStudentDetailToFormData = (detail) => ({
+  fullName: detail.full_name || '',
+  birthDate: detail.birth_date || '',
+  certificateYear: detail.bacc_year != null ? String(detail.bacc_year) : '',
+  handle: detail.contact_id || '',
+  contactMethod: detail.contact_platform || 'whatsapp',
+  verificationStatus: detail.verification_status || 'pending',
+  baccalaureateScore: detail.bacc_average != null ? String(detail.bacc_average) : '',
+});
 
 const StudentDataManagerPage = () => {
   const navigate = useNavigate();
@@ -8,18 +20,23 @@ const StudentDataManagerPage = () => {
 
   // searchInput: قيمة خانة الكتابة نفسها (بتتحدث بكل حرف)
   // activeId: الرقم يلي فعلياً منعرض بياناته/عنوانه، ما بيتغير إلا بعد ضغط "بحث"
-  const [searchInput, setSearchInput] = useState(location.state?.presetId || 'R-0248');
-  const [activeId, setActiveId] = useState(location.state?.presetId || 'R-0248');
+  const [searchInput, setSearchInput] = useState(location.state?.presetId || '');
+  const [activeId, setActiveId] = useState('');
+  const [studentDbId, setStudentDbId] = useState(null); // id الداخلي بقاعدة البيانات، لازم للـ PATCH لاحقاً
+  const [formData, setFormData] = useState(null); // null = ما في طالب محمّل لسا
+  const [searchError, setSearchError] = useState('');
+  const [saveMessage, setSaveMessage] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [stats, setStats] = useState({ total_registered: null, walkin_pending_count: null });
 
-  const [formData, setFormData] = useState({
-    fullName: 'عمر أحمد العسورة',
-    birthDate: '2008-03-14', // birth_date بالباك — تاريخ ميلاد حقيقي، منفصل تماماً عن سنة الشهادة
-    certificateYear: '2024',
-    handle: '0991234567',
-    contactMethod: 'whatsapp', // enum: 'whatsapp' | 'telegram' — القيمة يلي بتتبعت فعلياً للباك
-    verificationStatus: 'verified', // enum: 'pending' | 'verified' — القيمة يلي بتتبعت فعلياً للباك
-    baccalaureateScore: '90',
-  });
+  useEffect(() => {
+    apiGet('/admin/students/stats')
+      .then(setStats)
+      .catch(() => {
+        // فشل تحميل الإحصائيات مش خطأ حرج يوقف الصفحة، بنسيبها "—" وبس
+      });
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -34,16 +51,72 @@ const StudentDataManagerPage = () => {
     setFormData((prev) => ({ ...prev, certificateYear: value }));
   };
 
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    console.log('Searching for ID:', searchInput);
-    setActiveId(searchInput);
-    // هون بعدين بيتحط طلب API فعلي لجلب بيانات الطالب صاحب هالرقم وتعبئة formData فيها
+  const runSearch = async (code) => {
+    const trimmed = code.trim();
+    if (!trimmed) {
+      setSearchError('يرجى إدخال رقم الطالب');
+      return;
+    }
+
+    setIsSearching(true);
+    setSearchError('');
+    setSaveMessage('');
+
+    try {
+      const detail = await apiGet(`/admin/students/search?code=${encodeURIComponent(trimmed)}`);
+      setStudentDbId(detail.id);
+      setActiveId(detail.unique_code);
+      setFormData(mapStudentDetailToFormData(detail));
+    } catch (err) {
+      setFormData(null);
+      setStudentDbId(null);
+      setActiveId('');
+      setSearchError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+    } finally {
+      setIsSearching(false);
+    }
   };
 
-  const handleSave = (e) => {
+  const handleSearchSubmit = (e) => {
     e.preventDefault();
-    console.log('Saving student data:', formData);
+    runSearch(searchInput);
+  };
+
+  // لو الصفحة انفتحت جايّة من صفحة تانية (مثلاً "أكمل البيانات") ومعها presetId جاهز،
+  // بنبحث عنه تلقائياً بدون ما ننتظر ضغطة زر
+  React.useEffect(() => {
+    if (location.state?.presetId) {
+      runSearch(location.state.presetId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleSave = async (e) => {
+    e.preventDefault();
+    if (!studentDbId) return;
+
+    setIsSaving(true);
+    setSaveMessage('');
+
+    const payload = {
+      full_name: formData.fullName,
+      birth_date: formData.birthDate,
+      contact_platform: formData.contactMethod,
+      contact_id: formData.handle,
+      bacc_year: Number(formData.certificateYear),
+      bacc_average: Number(formData.baccalaureateScore),
+      verification_status: formData.verificationStatus,
+    };
+
+    try {
+      const updated = await apiPatch(`/admin/students/${studentDbId}`, payload);
+      setFormData(mapStudentDetailToFormData(updated));
+      setSaveMessage('تم حفظ التعديلات بنجاح');
+    } catch (err) {
+      setSaveMessage(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -74,11 +147,11 @@ const StudentDataManagerPage = () => {
               onClick={() => navigate('/gate-incomplete')}
             >
               <span className="stat-label">سجلات in-walk تنتظر الإكمال</span>
-              <span className="stat-value orange-text">٣٧</span>
+              <span className="stat-value orange-text">{stats.walkin_pending_count ?? '—'}</span>
             </button>
             <div className="stat-card">
               <span className="stat-label">إجمالي الطلاب المسجّلين</span>
-              <span className="stat-value primary-text">١٤,٢0٨</span>
+              <span className="stat-value primary-text">{stats.total_registered ?? '—'}</span>
             </div>
           </div>
 
@@ -94,135 +167,140 @@ const StudentDataManagerPage = () => {
                 placeholder="R-0248"
                 dir="rtl"
               />
-              <button type="submit" className="btn-search">
-                بحث
+              <button type="submit" className="btn-search" disabled={isSearching}>
+                {isSearching ? '...' : 'بحث'}
               </button>
             </form>
+            {searchError && <p className="search-error-message">{searchError}</p>}
           </section>
 
-          {/* Edit Form Card */}
-          <section className="edit-card">
-            <div className="card-header-row">
-              <span className="status-chip success">سجل مكتمل</span>
-              <h2 className="edit-title">تعديل سجل الطالب — {activeId}</h2>
-            </div>
-
-            <form onSubmit={handleSave} className="edit-form">
-              {/* Row 1 */}
-              <div className="form-row">
-                <div className="input-group">
-                  <label htmlFor="fullName">الاسم الثلاثي</label>
-                  <input
-                    type="text"
-                    id="fullName"
-                    name="fullName"
-                    value={formData.fullName}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="birthDate">تاريخ الميلاد</label>
-                  <input
-                    type="date"
-                    id="birthDate"
-                    name="birthDate"
-                    value={formData.birthDate}
-                    onChange={handleInputChange}
-                    dir="ltr"
-                  />
-                </div>
-                
+          {/* Edit Form Card — ما بيظهر إلا بعد ما نلاقي طالب فعلي */}
+          {formData && (
+            <section className="edit-card">
+              <div className="card-header-row">
+                <span className="status-chip success">سجل مكتمل</span>
+                <h2 className="edit-title">تعديل سجل الطالب — {activeId}</h2>
               </div>
 
-              {/* Row 2 */}
-              <div className="form-row">
-                <div className="input-group">
-                  <label htmlFor="certificateYear">سنة الشهادة</label>
-                  <input
-                    type="text"
-                    id="certificateYear"
-                    name="certificateYear"
-                    inputMode="numeric"
-                    maxLength={4}
-                    value={formData.certificateYear}
-                    onChange={handleCertificateYearChange}
-                    dir="ltr"
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="contactMethod">وسيلة التواصل</label>
-                  <select
-                    id="contactMethod"
-                    name="contactMethod"
-                    value={formData.contactMethod}
-                    onChange={handleInputChange}
-                    className="select-field"
-                  >
-                    <option value="whatsapp">واتساب</option>
-                    <option value="telegram">تيليغرام</option>
-                  </select>
-                </div>
-                
-              </div>
-
-              {/* Row 3 */}
-              <div className="form-row">
-                <div className="input-group">
-                  <label htmlFor="handle">المعرّف</label>
-                  <input
-                    type="text"
-                    id="handle"
-                    name="handle"
-                    value={formData.handle}
-                    onChange={handleInputChange}
-                    dir="ltr"
-                  />
-                </div>
-                <div className="input-group">
-                  <label htmlFor="baccalaureateScore">المعدل </label>
-                  <input
-                    type="text"
-                    id="baccalaureateScore"
-                    name="baccalaureateScore"
-                    value={formData.baccalaureateScore}
-                    onChange={handleInputChange}
-                    dir="rtl"
-                  />
-                </div>
-                
-              </div>
-
-              {/* Row 4 */}
-              <div className="form-row">
-                <div className="input-group">
-                  <label htmlFor="verificationStatus">حالة التحقق</label>
-                  <div className="verified-input-wrapper">
-                    {formData.verificationStatus === 'verified' && (
-                      <span className="check-mark">✓</span>
-                    )}
-                    <select
-                      id="verificationStatus"
-                      name="verificationStatus"
-                      value={formData.verificationStatus}
+              <form onSubmit={handleSave} className="edit-form">
+                {/* Row 1 */}
+                <div className="form-row">
+                  <div className="input-group">
+                    <label htmlFor="fullName">الاسم الثلاثي</label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      name="fullName"
+                      value={formData.fullName}
                       onChange={handleInputChange}
-                      className={`select-field verified-text ${
-                        formData.verificationStatus === 'verified' ? 'is-verified' : ''
-                      }`}
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="birthDate">تاريخ الميلاد</label>
+                    <input
+                      type="date"
+                      id="birthDate"
+                      name="birthDate"
+                      value={formData.birthDate}
+                      onChange={handleInputChange}
+                      dir="ltr"
+                    />
+                  </div>
+                  
+                </div>
+
+                {/* Row 2 */}
+                <div className="form-row">
+                  <div className="input-group">
+                    <label htmlFor="certificateYear">سنة الشهادة</label>
+                    <input
+                      type="text"
+                      id="certificateYear"
+                      name="certificateYear"
+                      inputMode="numeric"
+                      maxLength={4}
+                      value={formData.certificateYear}
+                      onChange={handleCertificateYearChange}
+                      dir="ltr"
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="contactMethod">وسيلة التواصل</label>
+                    <select
+                      id="contactMethod"
+                      name="contactMethod"
+                      value={formData.contactMethod}
+                      onChange={handleInputChange}
+                      className="select-field"
                     >
-                      <option value="pending">بانتظار التفعيل</option>
-                      <option value="verified">مفعّل</option>
+                      <option value="whatsapp">واتساب</option>
+                      <option value="telegram">تيليغرام</option>
                     </select>
                   </div>
+                  
                 </div>
-                
-              </div>
 
-              {/* Submit Button */}
-              <button type="submit" className="btn-save">
-                حفظ التعديلات
-              </button>
-            </form>
-          </section>
+                {/* Row 3 */}
+                <div className="form-row">
+                  <div className="input-group">
+                    <label htmlFor="handle">المعرّف</label>
+                    <input
+                      type="text"
+                      id="handle"
+                      name="handle"
+                      value={formData.handle}
+                      onChange={handleInputChange}
+                      dir="ltr"
+                    />
+                  </div>
+                  <div className="input-group">
+                    <label htmlFor="baccalaureateScore">المعدل </label>
+                    <input
+                      type="text"
+                      id="baccalaureateScore"
+                      name="baccalaureateScore"
+                      value={formData.baccalaureateScore}
+                      onChange={handleInputChange}
+                      dir="rtl"
+                    />
+                  </div>
+                  
+                </div>
+
+                {/* Row 4 */}
+                <div className="form-row">
+                  <div className="input-group">
+                    <label htmlFor="verificationStatus">حالة التحقق</label>
+                    <div className="verified-input-wrapper">
+                      {formData.verificationStatus === 'verified' && (
+                        <span className="check-mark">✓</span>
+                      )}
+                      <select
+                        id="verificationStatus"
+                        name="verificationStatus"
+                        value={formData.verificationStatus}
+                        onChange={handleInputChange}
+                        className={`select-field verified-text ${
+                          formData.verificationStatus === 'verified' ? 'is-verified' : ''
+                        }`}
+                      >
+                        <option value="pending">بانتظار التفعيل</option>
+                        <option value="verified">مفعّل</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                </div>
+
+                {saveMessage && <p className="save-feedback-message">{saveMessage}</p>}
+
+                {/* Submit Button */}
+                <button type="submit" className="btn-save" disabled={isSaving}>
+                  {isSaving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+                </button>
+              </form>
+            </section>
+          )}
 
         </main>
       </div>

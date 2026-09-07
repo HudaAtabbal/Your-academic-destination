@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import HeaderStep from "../../components/HeaderStep";
 import StepProgress from '../../components/StepProgress';
+import { apiPost, ApiError } from '../../api/api';
+import { getRegistrationData, updateRegistrationData, clearRegistrationData } from '../../api/RegistrationStorage';
 import "../../style/RegisterStep3Page.css";
 
 const RegisterStep3Page = () => {
@@ -9,8 +11,9 @@ const RegisterStep3Page = () => {
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const value = phoneNumber.trim();
@@ -28,14 +31,43 @@ const RegisterStep3Page = () => {
       return;
     }
 
-    // إذا وصلنا لهون فالبيانات صحيحة
     setError("");
+    setIsSubmitting(true);
 
-    // إرسال رمز التحقق (channel ثابتة دايماً whatsapp — مطابقة لـ enum الباك)
-    console.log("إرسال رمز التحقق عبر:", "whatsapp");
-    console.log("الرقم:", value);
+    // بنجمّع بيانات الخطوتين السابقتين من السلة، ونضيفلها وسيلة التواصل
+    const previousSteps = getRegistrationData();
+    updateRegistrationData({ contactPlatform: "whatsapp", contactId: value });
 
-    navigate("/otp");
+    const payload = {
+      full_name: previousSteps.fullName,
+      birth_date: previousSteps.birthDate,
+      certificate_year: Number(previousSteps.certificateYear),
+      certificate_type: previousSteps.certificateType,
+      average_score: Number(previousSteps.averageScore),
+      initial_preferred_major: previousSteps.initialPreferredMajor,
+      contact_platform: "whatsapp",
+      contact_id: value,
+    };
+
+    try {
+      const response = await apiPost("/students/register", payload);
+
+      // بنخزّن الكود الفريد حتى صفحة OTP تقدر تتحقق منه، وMyCard تعرضه بعدين
+      localStorage.setItem("studentCode", response.unique_code);
+
+      // خلصت مهمة السلة المؤقتة — منضفيها حتى ما تضل بيانات قديمة لو حدا رجع يسجّل من جديد
+      clearRegistrationData();
+
+      navigate("/otp");
+    } catch (err) {
+      if (err instanceof ApiError) {
+        setError(err.message);
+      } else {
+        setError("صار خطأ غير متوقع، حاولي مرة تانية");
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -89,8 +121,8 @@ const RegisterStep3Page = () => {
 
             {/* Action Button */}
             <div className="rs3-actions">
-              <button type="submit" className="rs3-btn rs3-btn-primary">
-                أرسل رمز التحقق
+              <button type="submit" className="rs3-btn rs3-btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? "جاري الإرسال..." : "أرسل رمز التحقق"}
               </button>
             </div>
           </form>

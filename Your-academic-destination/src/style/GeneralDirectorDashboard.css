@@ -1,4 +1,16 @@
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
 
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-display: swap;
+}
 
 /* Base Viewport Setup for Desktop */
 .gd-dash-viewport {
@@ -184,6 +196,14 @@
 }
 
 /* Hall Occupancy Component */
+.gd-dash-empty-note {
+  color: #7A6855;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 16px;
+}
+
 .gd-dash-occupancy-card {
   background-color: #FFFFFF;
   border-radius: 18px;

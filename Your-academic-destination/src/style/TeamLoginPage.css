@@ -135,6 +135,15 @@
   background-color: #082924;
 }
 
+/* رسالة خطأ الدخول */
+.login-error-message {
+  color: #C0392B;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-align: center;
+  margin: -4px 0 0 0;
+}
+
 /* Footer Text */
 .footer-notice {
   margin-top: auto;

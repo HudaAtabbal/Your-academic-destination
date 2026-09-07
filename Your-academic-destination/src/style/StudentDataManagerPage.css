@@ -1,5 +1,3 @@
-
-
 .card-wrapper {
   display: flex;
   justify-content: center;
@@ -170,6 +168,22 @@
   font-size: 1rem;
   outline: none;
   box-sizing: border-box;
+}
+
+.search-error-message {
+  color: #B71C1C;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 4px 0 0 0;
+  text-align: right;
+}
+
+.save-feedback-message {
+  color: #2E7D32;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: -6px 0 4px 0;
+  text-align: center;
 }
 
 .btn-search {

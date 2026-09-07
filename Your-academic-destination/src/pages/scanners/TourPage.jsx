@@ -1,43 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import StaffScanHeader from '../../components/StaffScanHeader';
 import ScanBox from '../../components/ScanBox';
 import ScanResultCard from '../../components/ScanResultCard';
 import ScannerFooter from '../../components/ScannerFooter';
+import { apiGet, apiPost, ApiError } from '../../api/api';
 import '../../style/StaffScan.css';
 
-const MOCK_STUDENTS = [
-  { name: 'ليان حاج علي', code: 'R-1190' },
-  { name: 'سارة يوسف', code: 'R-0387' },
-  { name: 'عمر أحمد العسورة', code: 'R-0248' },
-];
-
 const TourPage = () => {
+  const [manualCode, setManualCode] = useState('');
   const [result, setResult] = useState(null);
-  const [scanCount, setScanCount] = useState(42);
+  const [scanCount, setScanCount] = useState(null);
 
-  const handleScan = () => {
-    const student = MOCK_STUDENTS[Math.floor(Math.random() * MOCK_STUDENTS.length)];
-    setResult({
-      status: 'success',
-      title: 'جولة — جولة الطب البشري',
-      studentName: student.name,
-      studentCode: student.code,
-    });
-    setScanCount((prev) => prev + 1);
+  useEffect(() => {
+    apiGet('/checkins/count/today?activity_type=tour')
+      .then((res) => setScanCount(res.count))
+      .catch(() => {});
+  }, []);
+
+  const handleScan = async () => {
+    const code = manualCode.trim();
+    if (!code) return;
+
+    try {
+      const response = await apiPost('/checkins/tour', { unique_code: code });
+      setResult({
+        status: 'success',
+        title: `جولة — كلية ${response.college || ''}`,
+        studentName: response.student_name,
+        studentCode: code,
+      });
+      setScanCount((prev) => (prev != null ? prev + 1 : prev));
+      setManualCode('');
+    } catch (err) {
+      setResult({
+        status: 'error',
+        title: err instanceof ApiError ? err.message : 'صار خطأ غير متوقع',
+        studentName: '',
+        studentCode: code,
+      });
+    }
   };
 
   return (
     <div className="card-wrapper">
       <div className="card-container">
         <StaffScanHeader
-          title="جولة تعريفية — الطب البشري"
+          title="جولة تعريفية"
           username="yousef_tour"
           role="مسؤول الجولة"
           location="باب الكلية"
         />
 
         <main className="card-body">
-          <ScanBox onScan={handleScan} />
+          {/* ⚠️ الكاميرا الفعلية لسا مش مربوطة — إدخال يدوي مؤقت للاختبار */}
+          <ScanBox caption="اكتبي رمز الطالب تحت واضغطي مسح (مؤقتاً لحد ما تجهز الكاميرا)" onScan={handleScan} />
+
+          <div className="manual-code-row">
+            <input
+              type="text"
+              className="manual-code-input"
+              placeholder="R-0248"
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value)}
+              dir="ltr"
+            />
+            <button type="button" className="manual-code-btn" onClick={handleScan}>
+              تحقق
+            </button>
+          </div>
 
           <ScanResultCard
             status={result?.status}
@@ -51,7 +81,7 @@ const TourPage = () => {
           </p>
         </main>
 
-        <ScannerFooter count={scanCount} countLabel="مسحة مرفوعة" />
+        <ScannerFooter count={scanCount ?? '—'} countLabel="مسحة مرفوعة" />
       </div>
     </div>
   );

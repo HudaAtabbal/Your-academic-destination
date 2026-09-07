@@ -1,31 +1,79 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from '../../components/AdminHeader';
+import { apiGet } from '../../api/api';
 import '../../style/GeneralDirectorDashboard.css';
 
-const GeneralDirectorDashboard = ({
-  userRole = 'المدير العام',
-  stats = [
-    { id: 'registered', label: 'مسجّلون إلكترونياً', value: '14,208' },
-    { id: 'inside', label: 'داخل الحرم الآن', value: '3,946' },
-    { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: '5,117' },
-    { id: 'survey', label: 'أكملوا الاستبيان', value: '1,204' },
-  ],
-  teamMembers = [
-    { username: 'rima_staff', role: 'مسؤول الكلية', roleType: 'college_staff', faculty: 'الطب البشري' },
-    { username: 'hadi_gate', role: 'مسؤول المسح', roleType: 'gate_scanner', faculty: '—' },
-    { username: 'sedra_admin', role: 'مدير بيانات الطلاب', roleType: 'students_admin', faculty: '—' },
-    { username: 'taher_super', role: 'المدير العام', roleType: 'super_admin', faculty: '—' },
-  ],
-  hallOccupancy = {
-    title: 'مدرج 3 • الطب البشري',
-    time: '11:20',
-    current: 296,
-    total: 300,
-  },
-}) => {
+// أسماء الأدوار بالعربي — الباك بيرجّع القيمة enum بس (زي college_staff)، مش النص العربي
+const ROLE_LABELS = {
+  super_admin: 'المدير العام',
+  students_admin: 'مدير بيانات الطلاب',
+  gate_scanner: 'مسؤول المسح',
+  college_staff: 'مسؤول الكلية',
+};
+
+const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
   const navigate = useNavigate();
-  const percentage = Math.round((hallOccupancy.current / hallOccupancy.total) * 100);
+
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [stats, setStats] = useState([
+    { id: 'registered', label: 'مسجّلون إلكترونياً', value: '—' },
+    { id: 'inside', label: 'داخل الحرم الآن', value: '—' },
+    { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: '—' },
+    { id: 'survey', label: 'أكملوا الاستبيان', value: '—' },
+  ]);
+  const [hallOccupancy, setHallOccupancy] = useState(null); // null = ما في بيانات قاعات لسا
+
+  useEffect(() => {
+    // حسابات فريق العمل
+    apiGet('/admin/accounts?page=1&limit=50')
+      .then((res) => {
+        setTeamMembers(
+          res.items.map((account) => ({
+            username: account.username,
+            role: ROLE_LABELS[account.role] || account.role,
+            roleType: account.role,
+            faculty: account.college || '—',
+          }))
+        );
+      })
+      .catch(() => {});
+
+    // الإحصاءات الأربع — endpoint جديد مخصص للداشبورد صار متوفر
+    apiGet('/admin/dashboard/stats')
+      .then((res) => {
+        setStats([
+          { id: 'registered', label: 'مسجّلون إلكترونياً', value: res.registered_online_count },
+          { id: 'inside', label: 'داخل الحرم الآن', value: res.campus_entries_count },
+          { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: res.activities_today_cumulative },
+          { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
+        ]);
+      })
+      .catch(() => {});
+
+    // إشغال القاعات — بناخد أول قاعة نشطة بالقائمة للعرض (الكرت مصمم لقاعة وحدة حالياً)
+    apiGet('/admin/dashboard/rooms-occupancy')
+      .then((res) => {
+        if (res.rooms && res.rooms.length > 0) {
+          const room = res.rooms[0];
+          setHallOccupancy({
+            title: room.hall_label,
+            time: new Date(room.last_updated).toLocaleTimeString('ar', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            current: room.current_count,
+            // ⚠️ الباك ما بيرجّع السعة القصوى للقاعة، فمؤقتاً حاطة رقم ثابت لحد ما تنضاف
+            total: 300,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const percentage = hallOccupancy
+    ? Math.round((hallOccupancy.current / hallOccupancy.total) * 100)
+    : 0;
 
   const handleCreateAccount = () => {
     navigate('/create-team-account');
@@ -103,23 +151,27 @@ const GeneralDirectorDashboard = ({
         <section className="gd-dash-section-wrapper">
           <h2 className="gd-dash-section-heading">إشغال القاعات الآن</h2>
           
-          <div className="gd-dash-occupancy-card">
-            <div className="gd-dash-occupancy-info">
-              <span className="gd-dash-occupancy-count">
-                {hallOccupancy.current} / {hallOccupancy.total}
-              </span>
-              <span className="gd-dash-occupancy-location">
-                {hallOccupancy.title} • {hallOccupancy.time}
-              </span>
+          {hallOccupancy ? (
+            <div className="gd-dash-occupancy-card">
+              <div className="gd-dash-occupancy-info">
+                <span className="gd-dash-occupancy-count">
+                  {hallOccupancy.current} / {hallOccupancy.total}
+                </span>
+                <span className="gd-dash-occupancy-location">
+                  {hallOccupancy.title} • {hallOccupancy.time}
+                </span>
+              </div>
+              
+              <div className="gd-dash-progress-track">
+                <div 
+                  className="gd-dash-progress-fill" 
+                  style={{ width: `${percentage}%` }}
+                ></div>
+              </div>
             </div>
-            
-            <div className="gd-dash-progress-track">
-              <div 
-                className="gd-dash-progress-fill" 
-                style={{ width: `${percentage}%` }}
-              ></div>
-            </div>
-          </div>
+          ) : (
+            <p className="gd-dash-empty-note">ما في قاعات فيها نشاط حالياً</p>
+          )}
         </section>
 
       </main>

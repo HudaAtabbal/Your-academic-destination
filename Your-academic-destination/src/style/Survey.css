@@ -1,38 +1,3 @@
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-Light.otf') format('opentype');
-  font-weight: 300;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-Regular.otf') format('opentype');
-  font-weight: 400;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-Medium.otf') format('opentype');
-  font-weight: 500;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
-  font-weight: 800;
-  font-display: swap;
-}
-
 .card-wrapper {
   display: flex;
   justify-content: center;
@@ -164,6 +129,14 @@
   align-items: center; /* حتى الأزرار تضل بالنص لما نصغّر عرضها */
   gap: 10px;
   padding-top: 12px;
+}
+
+.survey-error-message {
+  color: #C0392B;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  margin: 4px 0 0 0;
 }
 
 .btn {

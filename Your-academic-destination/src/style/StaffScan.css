@@ -1,10 +1,15 @@
 /* ============================================
    ستايل مشترك لكل شاشات المسح تبع فريق العمل
    (استشارة، جولة الكلية، ركن التوجيه، مسؤول المدرج)
+   ============================================ */
+
+/* ============================================
+   ستايل مشترك لكل شاشات المسح تبع فريق العمل
+   (استشارة، جولة الكلية، ركن التوجيه، مسؤول المدرج)
    نفس مقاسات الكرت المستخدمة بباقي الشاشات (موبايل)
    ============================================ */
 
-.ss-card-wrapper {
+.card-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -16,7 +21,7 @@
   box-sizing: border-box;
 }
 
-.ss-card-container {
+.card-container {
   width: 100%;
   max-width: 380px;
   height: 680px;
@@ -29,21 +34,22 @@
   flex-direction: column;
 }
 
-.ss-header {
+/* Header */
+.staff-scan-header {
   background-color: #134F47;
   color: #FFFFFF;
   padding: 24px;
   flex-shrink: 0;
 }
 
-.ss-title {
+.staff-scan-title {
   font-size: 1.5rem;
   font-weight: 800;
   margin: 0 0 6px 0;
   text-align: right;
 }
 
-.ss-meta {
+.staff-scan-meta {
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -55,11 +61,12 @@
   direction: ltr;
 }
 
-.ss-meta-dot {
+.staff-scan-dot {
   opacity: 0.6;
 }
 
-.ss-body {
+/* Body */
+.card-body {
   flex: 1;
   padding: 20px 24px;
   display: flex;
@@ -69,15 +76,16 @@
   min-height: 0;
 }
 
-.ss-body::-webkit-scrollbar {
+.card-body::-webkit-scrollbar {
   display: none;
 }
-.ss-body {
+.card-body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
-.ss-scanbox-wrapper {
+/* Scan Box */
+.scan-box-wrapper {
   background-color: #FFFFFF;
   border-radius: 28px;
   padding: 32px 24px;
@@ -87,7 +95,7 @@
   gap: 20px;
 }
 
-.ss-scanbox {
+.scan-box {
   width: 220px;
   height: 220px;
   border-radius: 28px;
@@ -100,22 +108,22 @@
   transition: transform 0.15s ease;
 }
 
-.ss-scanbox:hover {
+.scan-box:hover {
   transform: scale(1.02);
 }
 
-.ss-scanbox:active {
+.scan-box:active {
   transform: scale(0.98);
 }
 
-.ss-scanbox-frame {
+.scan-box-frame {
   width: 130px;
   height: 130px;
   border: 3px solid #6FE3C4;
   border-radius: 20px;
 }
 
-.ss-scan-caption {
+.scan-caption {
   color: #71122B;
   font-size: 0.95rem;
   font-weight: 600;
@@ -123,7 +131,8 @@
   text-align: center;
 }
 
-.ss-result-card {
+/* Result Card */
+.scan-result-card {
   border-radius: 24px;
   padding: 20px;
   display: flex;
@@ -132,27 +141,27 @@
   gap: 16px;
 }
 
-.ss-result-success {
+.scan-result-success {
   background-color: #DCF1E9;
 }
 
-.ss-result-error {
+.scan-result-error {
   background-color: #FADADA;
 }
 
-.ss-result-text {
+.scan-result-text {
   text-align: right;
   flex: 1;
 }
 
-.ss-result-title {
+.scan-result-title {
   color: #71122B;
   font-size: 1.05rem;
   font-weight: 800;
   margin: 0 0 6px 0;
 }
 
-.ss-result-subtitle {
+.scan-result-subtitle {
   color: #134F47;
   font-size: 0.9rem;
   font-weight: 600;
@@ -160,12 +169,12 @@
   direction: rtl;
 }
 
-.ss-result-dot {
+.scan-result-dot {
   opacity: 0.5;
   margin: 0 4px;
 }
 
-.ss-result-icon {
+.scan-result-icon {
   flex-shrink: 0;
   width: 40px;
   height: 40px;
@@ -178,15 +187,16 @@
   color: #FFFFFF;
 }
 
-.ss-result-success .ss-result-icon {
+.scan-result-success .scan-result-icon {
   background-color: #1B9C6E;
 }
 
-.ss-result-error .ss-result-icon {
+.scan-result-error .scan-result-icon {
   background-color: #C0392B;
 }
 
-.ss-rule-text {
+/* Rule / helper text under the result card */
+.scan-rule-text {
   color: #7A6953;
   font-size: 0.9rem;
   font-weight: 500;
@@ -195,13 +205,57 @@
   margin: 0;
 }
 
-.ss-lecture-select-wrapper {
+/* إدخال الكود اليدوي — بديل مؤقت لحد ما تجهز الكاميرا */
+.manual-code-row {
+  display: flex;
+  gap: 8px;
+}
+
+.manual-code-input {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 16px;
+  border: 1.5px solid #E2D2B8;
+  background-color: #FFFFFF;
+  color: #134F47;
+  font-family: sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.manual-code-input:focus {
+  border-color: #134F47;
+}
+
+.manual-code-btn {
+  background-color: #134F47;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 16px;
+  padding: 0 20px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.scan-error-text {
+  color: #C0392B;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+  margin: -8px 0 0 0;
+}
+
+/* Lecture dropdown (مسؤول المسح عند المدرج) */
+.lecture-select-wrapper {
   background-color: #FFFFFF;
   border-radius: 20px;
   padding: 4px;
 }
 
-.ss-lecture-select {
+.lecture-select {
   width: 100%;
   padding: 16px;
   border: none;
@@ -219,26 +273,27 @@
   direction: rtl;
 }
 
-.ss-orientation-prompt {
+/* Orientation choice buttons (ركن التوجيه) */
+.orientation-prompt {
   background-color: #FFFFFF;
   border-radius: 24px;
   padding: 24px;
   text-align: center;
 }
 
-.ss-orientation-question {
+.orientation-question {
   color: #71122B;
   font-size: 1.1rem;
   font-weight: 800;
   margin: 0 0 16px 0;
 }
 
-.ss-orientation-options {
+.orientation-options {
   display: flex;
   gap: 12px;
 }
 
-.ss-orientation-btn {
+.orientation-btn {
   flex: 1;
   padding: 16px;
   border-radius: 18px;
@@ -252,13 +307,14 @@
   transition: all 0.2s ease;
 }
 
-.ss-orientation-btn.selected {
+.orientation-btn.selected {
   background-color: #DCF1E9;
   border-color: #134F47;
   color: #0d3832;
 }
 
-.ss-quick-register-btn {
+/* Quick registration link button (بدون بطاقة) */
+.quick-register-btn {
   width: 100%;
   padding: 16px;
   border-radius: 18px;
@@ -272,11 +328,12 @@
   transition: all 0.2s ease;
 }
 
-.ss-quick-register-btn:hover {
+.quick-register-btn:hover {
   background-color: #f7f7f7;
 }
 
-.ss-footer {
+/* Footer */
+.scanner-footer {
   background-color: #134F47;
   color: #FFFFFF;
   padding: 16px 24px;
@@ -288,10 +345,10 @@
   flex-shrink: 0;
 }
 
-.ss-connection-status.connected {
+.connection-status.connected {
   color: #6FE3C4;
 }
 
-.ss-connection-status.disconnected {
+.connection-status.disconnected {
   color: #E85B0D;
 }

@@ -1,10 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiGet } from '../../api/api';
 import '../../style/UniversityGatePage.css';
 
 const UniversityGatePage = () => {
   const navigate = useNavigate();
   const [studentId, setStudentId] = useState('');
+  const [todayCount, setTodayCount] = useState(null);
+
+  useEffect(() => {
+    apiGet('/checkins/count/today?activity_type=campus_entry')
+      .then((res) => setTodayCount(res.count))
+      .catch(() => {
+        // فشل تحميل العداد مش خطأ حرج، بيضل "—"
+      });
+  }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -13,7 +23,8 @@ const UniversityGatePage = () => {
   };
 
   const handleScan = () => {
-    // موك: محاكاة مسح ناجح لرمز QR (لاحقاً بيتبدل بطلب فعلي للـ backend)
+    // ⚠️ موك لسا — محتاج مكتبة قراءة QR فعلية عبر الكاميرا (زي html5-qrcode)
+    // قبل ما نقدر نستدعي POST /checkins/campus-entry برمز حقيقي
     navigate('/gate-entry-success');
   };
 
@@ -39,7 +50,7 @@ const UniversityGatePage = () => {
            
             <div className="stat-card">
               <span className="stat-label">دخلوا اليوم</span>
-              <span className="stat-value">5,117</span>
+              <span className="stat-value">{todayCount ?? '—'}</span>
             </div>
           </div>
 
@@ -76,7 +87,7 @@ const UniversityGatePage = () => {
           {/* Bottom Status Bar */}
           <div className="status-bar">
             <span className="status-text">متصل</span>
-            <span className="status-count">٦١٢ دخول اليوم</span>
+            <span className="status-count">{todayCount ?? '—'} دخول اليوم</span>
           </div>
 
         </main>

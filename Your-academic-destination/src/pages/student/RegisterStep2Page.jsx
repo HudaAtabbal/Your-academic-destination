@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderStep from '../../components/HeaderStep';
-import StepProgress from '../../components/Stepprogress';
+import StepProgress from '../../components/StepProgress';
+import { updateRegistrationData } from '../../api/RegistrationStorage';
 import '../../style/RegisterStep2Page.css';
 
 // --- Sub-Component: InterestChips ---
@@ -60,7 +61,13 @@ const RegisterStep2Page = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Selected:', { selectedCategory, isUndecided });
+
+    // القيم (medicine, informatics...) مطابقة بالحرف لـ InterestCluster بالباك،
+    // بلا حاجة لأي تحويل. "لسّا ما قرّرت" بترسل القيمة الخاصة not_chosen_yet
+    updateRegistrationData({
+      initialPreferredMajor: isUndecided ? 'not_chosen_yet' : selectedCategory,
+    });
+
     navigate('/register-step3');
   };
 

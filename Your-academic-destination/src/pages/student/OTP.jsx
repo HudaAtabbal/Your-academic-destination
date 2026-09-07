@@ -1,14 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderStep from '../../components/HeaderStep';
+import { apiPost, ApiError } from '../../api/api';
 import '../../style/OTP.css';
-
-// موك: الكود الصحيح للتجربة فقط، لازم يتبدل بطلب فعلي للباك اند لاحقاً
-const MOCK_CORRECT_OTP = '1234';
-
-// موك: هاد الكود المفروض يجي من استجابة الباك اند نفسها بعد نجاح التحقق
-// (حسب الـ SRS: "بعد إدخال رمز التحقق بنجاح، يُصدَر للطالب رمز QR فريد")
-const MOCK_ISSUED_CODE = 'R-0248';
 
 const OTP = () => {
   const navigate = useNavigate();
@@ -16,28 +10,48 @@ const OTP = () => {
   const [otp, setOtp] = useState(['', '', '', '']);
   const [status, setStatus] = useState('idle'); // idle | error | success
   const [error, setError] = useState('');
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [resendMessage, setResendMessage] = useState('');
   const inputRefs = useRef([]);
 
   // منطق التحقق نفسه، منفصل حتى يستخدم تلقائياً وبالزر كمان
-  const verifyCode = (fullCode) => {
-    // إرسال الكود للتحقق (حالياً موك، لاحقاً بيصير API call فعلي)
-    if (fullCode === MOCK_CORRECT_OTP) {
+  const verifyCode = async (fullCode) => {
+    const uniqueCode = localStorage.getItem('studentCode');
+
+    if (!uniqueCode) {
+      // ما في كود مخزّن أصلاً — يعني الطالب وصل لهون بدون ما يخلّص التسجيل
+      setStatus('error');
+      setError('في مشكلة بجلسة التسجيل، يرجى الرجوع والتسجيل من جديد');
+      return;
+    }
+
+    setIsVerifying(true);
+
+    try {
+      const response = await apiPost('/students/otp/verify', {
+        unique_code: uniqueCode,
+        otp: fullCode,
+      });
+
       setStatus('success');
       setError('');
 
-      // منخزّن unique_code بـ localStorage حتى صفحات تانية (البطاقة، الاستبيان)
-      // تقدر تقرأه بدون ما نمرره يدوياً بكل خطوة تنقّل
-      localStorage.setItem('studentCode', MOCK_ISSUED_CODE);
+      // بنخزّن اسم الطالب كمان حتى صفحة البطاقة (MyCard) تعرضه الحقيقي بدل الموك
+      if (response.full_name) {
+        localStorage.setItem('studentName', response.full_name);
+      }
 
       // نعطي فرصة يشوف اللون الأخضر قبل ما ننتقل
       setTimeout(() => {
         navigate('/my-card');
       }, 600);
-    } else {
+    } catch (err) {
       setStatus('error');
-      setError('الرمز يلي دخلتيه غير صحيح، حاولي مرة تانية');
+      setError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
       setOtp(['', '', '', '']);
       inputRefs.current[0]?.focus();
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -89,12 +103,25 @@ const OTP = () => {
     verifyCode(fullCode);
   };
 
-  const handleResend = () => {
+  const handleResend = async () => {
+    const uniqueCode = localStorage.getItem('studentCode');
+    if (!uniqueCode) {
+      setError('في مشكلة بجلسة التسجيل، يرجى الرجوع والتسجيل من جديد');
+      return;
+    }
+
     setStatus('idle');
     setError('');
+    setResendMessage('');
     setOtp(['', '', '', '']);
     inputRefs.current[0]?.focus();
-    // إعادة إرسال الرمز (لاحقاً API call فعلي)
+
+    try {
+      await apiPost('/students/otp/resend', { unique_code: uniqueCode });
+      setResendMessage('تم إرسال رمز جديد لواتسابك');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'تعذّر إعادة الإرسال، حاولي مرة تانية');
+    }
   };
 
   return (
@@ -122,6 +149,7 @@ const OTP = () => {
                   value={digit}
                   onChange={(e) => handleChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
+                  disabled={isVerifying}
                   className={`otp-input ${digit ? 'filled' : ''} ${
                     status === 'error' ? 'otp-error' : ''
                   } ${status === 'success' ? 'otp-success' : ''}`}
@@ -131,6 +159,7 @@ const OTP = () => {
             </div>
 
             {error && <p className="error-message">{error}</p>}
+            {resendMessage && !error && <p className="resend-success-message">{resendMessage}</p>}
 
             {/* Resend Action */}
             <p className="resend-text">
@@ -145,8 +174,9 @@ const OTP = () => {
               <button
                 type="submit"
                 className={`btn btn-primary ${status === 'success' ? 'btn-success' : ''}`}
+                disabled={isVerifying}
               >
-                فعّل واستلم بطاقتي
+                {isVerifying ? 'جاري التحقق...' : 'فعّل واستلم بطاقتي'}
               </button>
             </div>
 

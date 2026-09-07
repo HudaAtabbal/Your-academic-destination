@@ -1,21 +1,43 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { apiGet, ApiError } from '../../api/api';
 import '../../style/InWalkIncompletePage.css';
+
+// تحويل status الراجعة من الباك ("no_data" | "partial") لشكل العرض العربي
+const STATUS_DISPLAY = {
+  no_data: { label: 'بلا بيانات', type: 'empty' },
+  partial: { label: 'جزئي', type: 'partial' },
+};
 
 const InWalkIncompletePage = () => {
   const navigate = useNavigate();
 
-  const records = [
-    { id: 'W-0014', name: 'لم يُدخل بعد', phone: '—', status: 'بلا بيانات', statusType: 'empty' },
-    { id: 'W-0027', name: 'أحمد فارس دياب', phone: '—', status: 'بلا بيانات', statusType: 'empty' },
-    { id: 'W-0035', name: 'لم يُدخل بعد', phone: '—', status: 'بلا بيانات', statusType: 'empty' },
-    { id: 'W-0041', name: 'غنى محمد سلوم', phone: '0991122334', status: 'جزئي', statusType: 'partial' },
-    { id: 'W-0052', name: 'لم يُدخل بعد', phone: '—', status: 'بلا بيانات', statusType: 'empty' },
-  ];
+  const [records, setRecords] = useState([]);
+  const [totalIncomplete, setTotalIncomplete] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const handleCompleteData = (id) => {
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      setError('');
+      try {
+        const response = await apiGet('/admin/students/walkin-incomplete?page=1&limit=20');
+        setRecords(response.items);
+        setTotalIncomplete(response.total);
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : 'صار خطأ بتحميل السجلات');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const handleCompleteData = (uniqueCode) => {
     // بننقل لصفحة إدارة بيانات الطالب مع تمرير رقم السجل حتى تنعبى خانة البحث فيه تلقائياً
-    navigate('/gate-manage', { state: { presetId: id } });
+    navigate('/gate-manage', { state: { presetId: uniqueCode } });
   };
 
   const handleBack = () => {
@@ -28,7 +50,7 @@ const InWalkIncompletePage = () => {
         
         {/* Top Header */}
         <header className="page-header">
-          
+          <div className="header-badge">مدير بيانات الطلاب</div>
           
           <div className="header-brand">
             <div className="brand-text">
@@ -36,7 +58,6 @@ const InWalkIncompletePage = () => {
               <p className="brand-subtitle">لوحة التحكم</p>
             </div>
           </div>
-          <div className="header-badge">مدير بيانات الطلاب</div>
         </header>
 
         {/* Scrollable Main Body */}
@@ -51,17 +72,19 @@ const InWalkIncompletePage = () => {
 
           {/* Top 3 Stat Cards */}
           <div className="stats-row">
+            {/* ⚠️ هالكرتين (حضرت نشاط واحد / بلا أي بيانات) ما عندهن endpoint مخصص بالباك لسا،
+                فضلين موك مؤقتاً — لازم نطلب من الباك إضافتهن لـ StudentStatsResponse */}
             <div className="stat-card">
               <span className="stat-label">حضرت نشاط واحد على الأقل</span>
-              <span className="stat-value dark-green-text">15</span>
+              <span className="stat-value dark-green-text">١٥</span>
             </div>
             <div className="stat-card">
-              <span className="stat-label"> بلا أي بيانات مدوّنة</span>
-              <span className="stat-value reddish-text">22</span>
+              <span className="stat-label">بلا أي بيانات مدوّنة</span>
+              <span className="stat-value reddish-text">٢٢</span>
             </div>
             <div className="stat-card">
-              <span className="stat-label">سجلات  غير مكتملة</span>
-              <span className="stat-value orange-text">37</span>
+              <span className="stat-label">سجلات in-walk غير مكتملة</span>
+              <span className="stat-value orange-text">{totalIncomplete ?? '—'}</span>
             </div>
           </div>
 
@@ -69,42 +92,53 @@ const InWalkIncompletePage = () => {
           <section className="table-section">
             <h2 className="section-title">السجلات بانتظار الإكمال</h2>
 
-            <div className="table-wrapper">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>الرمز</th>
-                    <th>الاسم الثلاثي</th>
-                    <th>رقم التواصل</th>
-                    <th>الحالة</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {records.map((item) => (
-                    <tr key={item.id}>
-                      <td className="code-cell" dir="ltr">{item.id}</td>
-                      <td className="name-cell">{item.name}</td>
-                      <td className="phone-cell" dir="ltr">{item.phone}</td>
-                      <td>
-                        <span className={`status-badge ${item.statusType}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="action-cell">
-                        <button
-                          type="button"
-                          className="btn-action"
-                          onClick={() => handleCompleteData(item.id)}
-                        >
-                          أكمل البيانات
-                        </button>
-                      </td>
+            {error && <p className="table-error-message">{error}</p>}
+            {isLoading && <p className="table-loading-message">جاري التحميل...</p>}
+
+            {!isLoading && !error && (
+              <div className="table-wrapper">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>الرمز</th>
+                      <th>الاسم الثلاثي</th>
+                      <th>رقم التواصل</th>
+                      <th>الحالة</th>
+                      <th></th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {records.map((item) => {
+                      const statusInfo = STATUS_DISPLAY[item.status] || {
+                        label: item.status,
+                        type: 'empty',
+                      };
+                      return (
+                        <tr key={item.unique_code}>
+                          <td className="code-cell" dir="ltr">{item.unique_code}</td>
+                          <td className="name-cell">{item.full_name || 'لم يُدخل بعد'}</td>
+                          <td className="phone-cell" dir="ltr">{item.contact_id || '—'}</td>
+                          <td>
+                            <span className={`status-badge ${statusInfo.type}`}>
+                              {statusInfo.label}
+                            </span>
+                          </td>
+                          <td className="action-cell">
+                            <button
+                              type="button"
+                              className="btn-action"
+                              onClick={() => handleCompleteData(item.unique_code)}
+                            >
+                              أكمل البيانات
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
 
           {/* Footer Warning Notice */}

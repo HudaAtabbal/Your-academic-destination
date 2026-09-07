@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QRCode from 'react-qr-code';
 import AdminHeader from '../../components/AdminHeader';
+import { apiPost, ApiError } from '../../api/api';
 import '../../style/GenerateWalkInCodesPage.css';
 
 const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint }) => {
@@ -10,8 +11,9 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
   const [error, setError] = useState('');
   const [generatedCodes, setGeneratedCodes] = useState([]);
   const [batchInfo, setBatchInfo] = useState(null); // { total, start, end }
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleGenerate = (e) => {
+  const handleGenerate = async (e) => {
     e.preventDefault();
 
     const parsedCount = parseInt(count, 10);
@@ -21,22 +23,24 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
     }
 
     setError('');
+    setIsGenerating(true);
 
-    // موك مؤقت بس — بالواقع الباك هو يلي بيحدد رقم البداية تلقائياً
-    // (آخر رقم متوقف عنده بالدفعة السابقة) ويرجّع الأكواد الفعلية بالـ response.
-    // هون منفترض إنو الرد رجع أكواد تبدأ من W-0001 لغرض العرض بس.
-    const codes = Array.from({ length: parsedCount }, (_, i) =>
-      `W-${(i + 1).toString().padStart(4, '0')}`
-    );
+    try {
+      // الباك هو يلي بيحدد رقم البداية تلقائياً (آخر رقم متوقف عنده بالدفعة السابقة)
+      const response = await apiPost('/admin/walkin-codes/generate', { count: parsedCount });
+      const codes = response.codes;
 
-    setGeneratedCodes(codes);
-    setBatchInfo({
-      total: parsedCount,
-      start: codes[0],
-      end: codes[codes.length - 1],
-    });
-
-    console.log('تم توليد الدفعة (موك — بانتظار API حقيقي):', codes);
+      setGeneratedCodes(codes);
+      setBatchInfo({
+        total: codes.length,
+        start: codes[0],
+        end: codes[codes.length - 1],
+      });
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleBack = () => {
@@ -94,8 +98,8 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
               </div>
 
               <div className="gwic-action-group">
-                <button type="submit" className="gwic-submit-btn">
-                  توليد
+                <button type="submit" className="gwic-submit-btn" disabled={isGenerating}>
+                  {isGenerating ? 'جاري التوليد...' : 'توليد'}
                 </button>
               </div>
 

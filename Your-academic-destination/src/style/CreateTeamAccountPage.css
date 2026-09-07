@@ -1,4 +1,16 @@
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-display: swap;
+}
 
+@font-face {
+  font-family: 'Ghroob';
+  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
+  font-weight: 800;
+  font-display: swap;
+}
 
 /* Viewport Setup for Desktop */
 .cta-page-viewport {
@@ -190,6 +202,26 @@
 }
 
 /* Actions & Buttons */
+.cta-error-message {
+  color: #B71C1C;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: right;
+  margin: -8px 0 0 0;
+}
+
+.cta-success-message {
+  color: #0F3B34;
+  background-color: #E2F4EE;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: right;
+  direction: ltr;
+  margin: -8px 0 0 0;
+}
+
 .cta-form-actions {
   display: flex;
   justify-content: flex-start;

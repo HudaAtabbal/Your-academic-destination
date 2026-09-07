@@ -14,7 +14,14 @@
  */
 
 // TODO: بدّليها لعنوان الباك اند الفعلي لما يجهز (من .env مثلاً)
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'https://unpiloted-flannels-recast.ngrok-free.dev';
+
+// مفتاح تخزين توكن تسجيل دخول فريق العمل (JWT) — نفس القيمة يلي بيرجّعها /auth/login
+const AUTH_TOKEN_KEY = 'authToken';
+
+export const getAuthToken = () => localStorage.getItem(AUTH_TOKEN_KEY);
+export const setAuthToken = (token) => localStorage.setItem(AUTH_TOKEN_KEY, token);
+export const clearAuthToken = () => localStorage.removeItem(AUTH_TOKEN_KEY);
 
 class ApiError extends Error {
   constructor(errorCode, message, details) {
@@ -32,14 +39,20 @@ class ApiError extends Error {
  *
  * بترجع الـ JSON body مباشرة عند النجاح.
  * بترمي ApiError عند أي فشل (شبكة، أو رد بصيغة {error_code, message, details}).
+ *
+ * لو في توكن مخزّن (بعد تسجيل دخول فريق عمل)، بينضاف تلقائياً كـ
+ * "Authorization: Bearer <token>" — ما محتاجة ترفقيه يدوياً بكل استدعاء.
  */
 export async function apiRequest(path, options = {}) {
   let response;
+  const token = getAuthToken();
 
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
       headers: {
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true', // يمنع صفحة التحذير الوسيطة تبع ngrok المجاني
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers || {}),
       },
       ...options,
@@ -61,6 +74,11 @@ export async function apiRequest(path, options = {}) {
   }
 
   if (!response.ok) {
+    // التوكن غلط/منتهي — منمسحه تلقائياً حتى ما تضل الصفحة تحاول فيه من جديد بلا فايدة
+    if (response.status === 401) {
+      clearAuthToken();
+    }
+
     throw new ApiError(
       body?.error_code || 'unknown_error',
       body?.message || 'صار خطأ غير متوقع، حاولي مرة تانية',
@@ -77,5 +95,7 @@ export const apiPost = (path, data) =>
   apiRequest(path, { method: 'POST', body: JSON.stringify(data) });
 export const apiPut = (path, data) =>
   apiRequest(path, { method: 'PUT', body: JSON.stringify(data) });
+export const apiPatch = (path, data) =>
+  apiRequest(path, { method: 'PATCH', body: JSON.stringify(data) });
 
 export { ApiError };

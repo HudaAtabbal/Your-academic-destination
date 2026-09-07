@@ -164,6 +164,20 @@
   margin: 0;
 }
 
+.table-error-message {
+  color: #B71C1C;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.table-loading-message {
+  color: #7A6953;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-align: center;
+}
+
 /* الجدول أعرض من الكرت (380px)، فبنسمح بسكرول أفقي داخلي بدل ما ينكسر التصميم */
 .table-wrapper {
   background-color: #FFFFFF;

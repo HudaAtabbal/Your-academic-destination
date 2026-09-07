@@ -1,56 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import StaffScanHeader from '../../components/StaffScanHeader';
 import ScanBox from '../../components/ScanBox';
 import ScanResultCard from '../../components/ScanResultCard';
 import ScannerFooter from '../../components/ScannerFooter';
+import { apiGet, apiPost, ApiError } from '../../api/api';
 import '../../style/StaffScan.css';
 
+// ⚠️ الباك لسا عنده بس قيمتين placeholder لـ Lecture enum (مش المحاضرات الحقيقية).
+// لما تتوفر القائمة الفعلية، بنستبدل هالمصفوفة بالقيم الحقيقية القادمة من الباك.
 const LECTURES = [
-  { id: 'jobs-market', name: 'سوق العمل والمهن الصاعدة', hall: 'مدرج رئيسي' },
-  { id: 'study-abroad', name: 'الدراسة بالخارج', hall: 'مدرج ب' },
-  { id: 'majors-101', name: 'مقدمة عن التخصصات الجامعية', hall: 'مدرج رئيسي' },
-];
-
-// موك: طلاب سبق ومسحوا لنفس المحاضرة، لمحاكاة كشف التكرار
-const ALREADY_SCANNED = ['R-0832'];
-
-const MOCK_STUDENTS = [
-  { name: 'محمد الخطيب', code: 'R-0832' }, // هاد مكرر (موجود فوق) — رح يطلع تحذير
-  { name: 'ليان حاج علي', code: 'R-1190' },
-  { name: 'سارة يوسف', code: 'R-0387' },
+  { id: 'lecture_placeholder_1', name: 'محاضرة تجريبية 1 (placeholder)', hall: 'مدرج رئيسي' },
+  { id: 'lecture_placeholder_2', name: 'محاضرة تجريبية 2 (placeholder)', hall: 'مدرج ب' },
 ];
 
 const StadiumPage = () => {
+  const [manualCode, setManualCode] = useState('');
   const [selectedLectureId, setSelectedLectureId] = useState(LECTURES[0].id);
   const [result, setResult] = useState(null);
-  const [scanCount, setScanCount] = useState(118);
+  const [scanCount, setScanCount] = useState(null);
 
   const selectedLecture = LECTURES.find((l) => l.id === selectedLectureId);
 
-  const handleScan = () => {
-    const student = MOCK_STUDENTS[Math.floor(Math.random() * MOCK_STUDENTS.length)];
-    const isDuplicate = ALREADY_SCANNED.includes(student.code);
+  useEffect(() => {
+    apiGet(`/checkins/count/today?activity_type=lecture&lecture_name=${selectedLectureId}`)
+      .then((res) => setScanCount(res.count))
+      .catch(() => {});
+  }, [selectedLectureId]);
 
-    if (isDuplicate) {
-      setResult({
-        status: 'error',
-        title: 'مسحت من قبل لنفس المحاضرة',
-        studentName: student.name,
-        studentCode: student.code,
+  const handleScan = async () => {
+    const code = manualCode.trim();
+    if (!code) return;
+
+    try {
+      const response = await apiPost('/checkins/lecture', {
+        unique_code: code,
+        lecture_name: selectedLectureId,
       });
-    } else {
       setResult({
         status: 'success',
         title: `حضور — ${selectedLecture.name}`,
-        studentName: student.name,
-        studentCode: student.code,
+        studentName: response.student_name,
+        studentCode: code,
       });
-      setScanCount((prev) => prev + 1);
+      setScanCount((prev) => (prev != null ? prev + 1 : prev));
+      setManualCode('');
+    } catch (err) {
+      setResult({
+        status: 'error',
+        title: err instanceof ApiError ? err.message : 'صار خطأ غير متوقع',
+        studentName: '',
+        studentCode: code,
+      });
     }
   };
 
   const handleQuickRegister = () => {
-    // موك: تسجيل الخط السريع لطالب بدون بطاقة/QR معه
+    // ⚠️ ما في endpoint مخصص لهاد الزر لسا — لازم نحدد مع الباك شو المفروض يصير هون بالضبط
     console.log('فتح تسجيل سريع بدون بطاقة للمحاضرة:', selectedLecture.name);
   };
 
@@ -87,7 +92,22 @@ const StadiumPage = () => {
             </div>
           </div>
 
-          <ScanBox onScan={handleScan} />
+          {/* ⚠️ الكاميرا الفعلية لسا مش مربوطة — إدخال يدوي مؤقت للاختبار */}
+          <ScanBox caption="اكتبي رمز الطالب تحت واضغطي مسح (مؤقتاً لحد ما تجهز الكاميرا)" onScan={handleScan} />
+
+          <div className="manual-code-row">
+            <input
+              type="text"
+              className="manual-code-input"
+              placeholder="R-0248"
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value)}
+              dir="ltr"
+            />
+            <button type="button" className="manual-code-btn" onClick={handleScan}>
+              تحقق
+            </button>
+          </div>
 
           <ScanResultCard
             status={result?.status}
@@ -101,7 +121,7 @@ const StadiumPage = () => {
           </button>
         </main>
 
-        <ScannerFooter count={scanCount} countLabel="مسحة مرفوعة" />
+        <ScannerFooter count={scanCount ?? '—'} countLabel="مسحة مرفوعة" />
       </div>
     </div>
   );

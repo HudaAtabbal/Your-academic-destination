@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import HeaderStep from '../../components/HeaderStep';
 import StepProgress from '../../components/StepProgress';
 import InfoBox from '../../components/InfoBox';
+import { updateRegistrationData } from '../../api/RegistrationStorage';
 import '../../style/RegisterStep1Page.css';
 
 const RegisterStep1Page = () => {
@@ -142,6 +143,18 @@ const RegisterStep1Page = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
+
+    // بنركّب تاريخ الميلاد بصيغة ISO (YYYY-MM-DD) — هيك الباك بينتظرها بالضبط
+    const isoBirthDate = `${formData.birthYear}-${formData.birthMonth.padStart(2, '0')}-${formData.birthDay.padStart(2, '0')}`;
+
+    updateRegistrationData({
+      fullName: formData.fullName,
+      birthDate: isoBirthDate,
+      certificateYear: formData.certificateYear,
+      certificateType: formData.certificateType, // 'scientific' | 'literary' — مطابق للباك مباشرة
+      averageScore: formData.averageScore,
+    });
+
     navigate('/register-step2'); // الانتقال للخطوة التالية
   };
 

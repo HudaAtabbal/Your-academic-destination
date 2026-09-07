@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeaderStep from '../../components/HeaderStep';
 import SurveyQuestionOne from '../../components/SurveyQuestionOne';
 import SurveyQuestionTwo from '../../components/SurveyQuestionTwo';
 import BottomNav from '../../components/BottomNav';
+import { apiPost, ApiError } from '../../api/api';
 import '../../style/Survey.css';
 
 const Survey = () => {
+  const navigate = useNavigate();
   const [q1Option, setQ1Option] = useState('decided');
   const [q2Major, setQ2Major] = useState('الطب البشري');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const majors = [
     { id: 1, name: 'الطب البشري' },
@@ -18,12 +23,32 @@ const Survey = () => {
     { id: 6, name: 'الهندسة المدنية' },
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // بنقرأ studentCode من localStorage (اتخزن هناك بعد نجاح OTP)
-    // وبنضيفه لبيانات الاستبيان — بدون هالكود، الباك ما رح يعرف مين الطالب المجاوب
+
     const studentCode = localStorage.getItem('studentCode');
-    console.log({ studentCode, q1Option, q2Major });
+    if (!studentCode) {
+      setError('في مشكلة بجلستك، يرجى الرجوع والتسجيل من جديد');
+      return;
+    }
+
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      // ⚠️ preferred_major بالباك لسا enum فيه بس قيمتين placeholder (مش الـ42 كلية الحقيقية)،
+      // يعني إرسال اسم الكلية العربي (زي "الطب البشري") رح يفشل بـ 422 لحد ما يجهز enum الكليات الفعلي
+      await apiPost(`/survey/${studentCode}`, {
+        opinion_change: q1Option,
+        preferred_major: q2Major,
+      });
+
+      navigate('/my-card');
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSkip = () => {
@@ -55,13 +80,15 @@ const Survey = () => {
             />
 
             <div className="actions">
-              <button type="submit" className="btn btn-primary">
-                أرسل
+              <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? 'جاري الإرسال...' : 'أرسل'}
               </button>
               <button type="button" onClick={handleSkip} className="btn btn-secondary">
                 لاحقاً
               </button>
             </div>
+
+            {error && <p className="survey-error-message">{error}</p>}
 
           </form>
         </main>
