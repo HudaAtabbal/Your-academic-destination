@@ -9,8 +9,14 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database import Base
-from app.models.enums import College, RegistrationType, StudentStatus, VerificationStatus
-from app.models.enums import ContactPlatform
+from app.models.enums import (
+    CertificateType,
+    ContactPlatform,
+    InterestCluster,
+    RegistrationType,
+    StudentStatus,
+    VerificationStatus,
+)
 
 
 class Student(Base):
@@ -24,13 +30,20 @@ class Student(Base):
     contact_id = Column(String(255), nullable=True)
     birth_date = Column(Date, nullable=True)
 
-    bacc_average = Column(Numeric(5, 2), nullable=True)  # اختياري
+    bacc_average = Column(Numeric(5, 2), nullable=True)  # اختياري — نطاق 0-100 (نسبة مئوية، مش مجموع)
     # سنة البكالوريا — nullable بالـ DB (لسجلات walk-in الفارغة)، إلزامي بمستوى
     # الـ API فقط لمسار registered
     bacc_year = Column(SmallInteger, nullable=True)
 
-    # nullable عمداً بالـ DB — إلزامي بمستوى الـ API فقط لمسار registered
-    initial_preferred_major = Column(SAEnum(College, name="college_enum"), nullable=True)
+    # الفرع الثانوي (علمي/أدبي) — حقل مكتشف من كود الفرونت الفعلي، nullable
+    # بالـ DB لنفس سبب bacc_year (لسجلات walk-in)
+    certificate_type = Column(SAEnum(CertificateType, name="certificate_type_enum"), nullable=True)
+
+    # التجمّع (المجال) يلي بيميل إله الطالب — enum بـ 8 قيم + not_chosen_yet،
+    # مختلف عن college_enum (راجع تعليق InterestCluster بـ enums.py)
+    initial_preferred_major = Column(
+        SAEnum(InterestCluster, name="interest_cluster_enum"), nullable=True
+    )
 
     verification_status = Column(
         SAEnum(VerificationStatus, name="verification_status_enum"),

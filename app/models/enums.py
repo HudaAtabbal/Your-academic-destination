@@ -64,3 +64,57 @@ class AccountRole(str, enum.Enum):
     students_admin = "students_admin"
     college_staff = "college_staff"
     gate_scanner = "gate_scanner"
+
+
+class CertificateType(str, enum.Enum):
+    """نوع الشهادة الثانوية — حقل مكتشف من كود الفرونت الفعلي، مش موجود بالسكيما الأصلية."""
+
+    scientific = "scientific"  # علمي
+    literary = "literary"  # أدبي
+
+
+class InterestCluster(str, enum.Enum):
+    """
+    التجمّع (المجال) يلي بيميل إله الطالب قبل الفعالية — مطابق تماماً لقيم الـ 8
+    "chips" الفعلية بشاشة RegisterStep2 بالفرونت (مش الـ 42 كلية المحددة).
+    منفصل تماماً عن college_enum لأنه ده مستوى تجمّع/تخمين مبدئي، مش اختيار كلية
+    محددة — الكليات المحددة (college_enum) بتُستخدم بس بـ bookings/checkins/accounts
+    يلي فعلاً محتاجة تحديد كلية بعينها.
+    """
+
+    medicine = "medicine"  # الطب البشري
+    informatics = "informatics"  # المعلوماتية
+    architecture = "architecture"  # الهندسة المعمارية
+    law = "law"  # الحقوق
+    pharmacy = "pharmacy"  # الصيدلة
+    agriculture = "agriculture"  # الهندسة الزراعية
+    education = "education"  # التربية
+    civil = "civil"  # الهندسة المدنية
+    not_chosen_yet = "not_chosen_yet"  # لسّا ما قرّرت
+
+
+class CertificateType(str, enum.Enum):
+    """نوع الشهادة الثانوية — حقل مكتشف من كود الفرونت الفعلي، مش موجود بالسكيما الأصلية."""
+
+    scientific = "scientific"  # علمي
+    literary = "literary"  # أدبي
+
+
+class InterestCluster(str, enum.Enum):
+    """
+    التجمّع (المجال) يلي بيميل إله الطالب قبل الفعالية — مطابق تماماً لقيم الـ 8
+    "chips" الفعلية بشاشة RegisterStep2 بالفرونت (مش الـ 42 كلية المحددة).
+    منفصل تماماً عن college_enum لأنه ده مستوى تجمّع/تخمين مبدئي، مش اختيار كلية
+    محددة — الكليات المحددة (college_enum) بتُستخدم بس بـ bookings/checkins/accounts
+    يلي فعلاً محتاجة تحديد كلية بعينها.
+    """
+
+    medicine = "medicine"  # الطب البشري
+    informatics = "informatics"  # المعلوماتية
+    architecture = "architecture"  # الهندسة المعمارية
+    law = "law"  # الحقوق
+    pharmacy = "pharmacy"  # الصيدلة
+    agriculture = "agriculture"  # الهندسة الزراعية
+    education = "education"  # التربية
+    civil = "civil"  # الهندسة المدنية
+    not_chosen_yet = "not_chosen_yet"  # لسّا ما قرّرت
