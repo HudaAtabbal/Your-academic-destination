@@ -16,6 +16,8 @@ from app.routers.dashboard import dashboard_router
 from app.routers.students import student_router
 from app.routers.survey import survey_router
 from app.routers.walkin import walkin_router
+from fastapi.middleware.cors import CORSMiddleware
+from app.routers.registration import registration_router
 
 app = FastAPI(
     title="Wijhatak Al-Akademia API",
@@ -23,6 +25,13 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.exception_handler(AppError)
 def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
@@ -66,6 +75,7 @@ app.include_router(survey_router.router)
 app.include_router(account_router.router)
 app.include_router(student_router.router)
 app.include_router(dashboard_router.router)
+app.include_router(registration_router.router)
 
 
 @app.get("/health", tags=["health"])

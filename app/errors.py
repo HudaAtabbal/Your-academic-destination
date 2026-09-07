@@ -135,3 +135,18 @@ def account_not_found() -> AppError:
 
 def validation_error(message: str) -> AppError:
     return AppError(status_code=400, error_code="validation_error", message=message)
+
+def duplicate_contact() -> AppError:
+    return AppError(
+        status_code=409,
+        error_code="duplicate_contact",
+        message="وسيلة التواصل هاي مسجّلة مسبقاً",
+    )
+
+
+def otp_invalid() -> AppError:
+    return AppError(
+        status_code=400,
+        error_code="otp_invalid",
+        message="رمز التحقق غلط أو منتهي الصلاحية",
+    )
