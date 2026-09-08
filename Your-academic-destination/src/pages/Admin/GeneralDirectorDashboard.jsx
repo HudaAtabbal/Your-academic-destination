@@ -84,6 +84,18 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
     navigate('/create-team-account', { state: { editMember: member } });
   };
 
+  const handleDeleteMember = (member) => {
+    // ⚠️ لسا مافي endpoint حذف حساب بالباك — هاد بس تأكيد بصري مؤقت.
+    // لما يجهز الباك (مثلاً DELETE /admin/accounts/{username})، بدّلي هون
+    // بطلب apiRequest فعلي، وبعد نجاحه احذفي العضو من teamMembers محلياً.
+    const confirmed = window.confirm(
+      `متأكدة إنك بدك تحذفي حساب "${member.username}"؟ (هالميزة لسا مش مفعّلة من الباك)`
+    );
+    if (!confirmed) return;
+
+    console.log('طلب حذف حساب (بانتظار endpoint من الباك):', member.username);
+  };
+
   return (
     <div className="gd-dash-viewport">
 
@@ -126,13 +138,22 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
                   <tr key={idx} className="gd-dash-table-row">
                     <td className="gd-dash-td-action">
                       {member.roleType !== 'super_admin' && (
-                        <button
-                          type="button"
-                          className="gd-dash-edit-btn"
-                          onClick={() => handleEditMember(member)}
-                        >
-                          تعديل
-                        </button>
+                        <div className="gd-dash-action-buttons">
+                          <button
+                            type="button"
+                            className="gd-dash-edit-btn"
+                            onClick={() => handleEditMember(member)}
+                          >
+                            تعديل
+                          </button>
+                          <button
+                            type="button"
+                            className="gd-dash-delete-btn"
+                            onClick={() => handleDeleteMember(member)}
+                          >
+                            حذف
+                          </button>
+                        </div>
                       )}
                     </td>
                     <td className="gd-dash-td-faculty">{member.faculty}</td>

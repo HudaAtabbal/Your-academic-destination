@@ -1,17 +1,3 @@
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-Bold.otf') format('opentype');
-  font-weight: 700;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Ghroob';
-  src: url('../assets/fonts/Ghroob-ExtraBold.otf') format('opentype');
-  font-weight: 800;
-  font-display: swap;
-}
-
 /* Base Viewport Setup for Desktop */
 .gd-dash-viewport {
   min-height: 100vh;
@@ -157,6 +143,25 @@
   background: none;
   border: none;
   color: #0F3B34;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.gd-dash-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.gd-dash-delete-btn {
+  background: none;
+  border: none;
+  color: #B71C1C;
   font-family: inherit;
   font-size: 1rem;
   font-weight: 800;
