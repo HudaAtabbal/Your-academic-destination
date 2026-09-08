@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from '../../components/AdminHeader';
-import { apiGet } from '../../api/api';
+import { apiGet, apiRequest, ApiError } from '../../api/api';
 import '../../style/GeneralDirectorDashboard.css';
 
 // أسماء الأدوار بالعربي — الباك بيرجّع القيمة enum بس (زي college_staff)، مش النص العربي
@@ -84,16 +84,16 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
     navigate('/create-team-account', { state: { editMember: member } });
   };
 
-  const handleDeleteMember = (member) => {
-    // ⚠️ لسا مافي endpoint حذف حساب بالباك — هاد بس تأكيد بصري مؤقت.
-    // لما يجهز الباك (مثلاً DELETE /admin/accounts/{username})، بدّلي هون
-    // بطلب apiRequest فعلي، وبعد نجاحه احذفي العضو من teamMembers محلياً.
-    const confirmed = window.confirm(
-      `متأكدة إنك بدك تحذفي حساب "${member.username}"؟ (هالميزة لسا مش مفعّلة من الباك)`
-    );
+  const handleDeleteMember = async (member) => {
+    const confirmed = window.confirm(`متأكدة إنك بدك تحذفي حساب "${member.username}"؟`);
     if (!confirmed) return;
 
-    console.log('طلب حذف حساب (بانتظار endpoint من الباك):', member.username);
+    try {
+      await apiRequest(`/admin/accounts/${member.username}`, { method: 'DELETE' });
+      setTeamMembers((prev) => prev.filter((m) => m.username !== member.username));
+    } catch (err) {
+      alert(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+    }
   };
 
   return (

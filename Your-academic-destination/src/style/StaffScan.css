@@ -142,6 +142,40 @@
   margin: 0;
 }
 
+.scan-box-paused {
+  width: 220px;
+  height: 220px;
+  border-radius: 28px;
+  background-color: #71122B;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.scan-paused-text {
+  color: #FFFFFF;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+}
+
+.scan-resume-btn {
+  background-color: #FFFFFF;
+  color: #71122B;
+  border: none;
+  border-radius: 16px;
+  padding: 10px 20px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .scan-caption {
   color: #71122B;
   font-size: 0.95rem;
@@ -370,21 +404,4 @@
 
 .connection-status.disconnected {
   color: #E85B0D;
-}
-
-.card-wrapper {
-  padding: 0 !important;
-  align-items: stretch !important;   /* بيلغي التوسيط العمودي — كان سبب فراغ فوق وتحت */
-  justify-content: stretch !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;     /* نفس وحدة القياس المستخدمة بالكرت تحت */
-}
-
-.card-container {
-  max-width: none !important;
-  width: 100% !important;
-  height: 100vh !important;
-  height: 100dvh !important;
-  max-height: none !important;
-  border-radius: 0 !important;
 }

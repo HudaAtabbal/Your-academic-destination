@@ -5,6 +5,7 @@ import StudentPrivateRoute from "./components/StudentPrivateRoute";
 import GuestOnlyRoute from "./components/GuestOnlyRoute";
 
 import WelcomePage from "./pages/student/WelcomePage";
+import FindCardPage from "./pages/student/FindCardPage"
 import RegisterStep1Page from "./pages/student/RegisterStep1Page";
 import RegisterStep2Page from "./pages/student/RegisterStep2Page";
 import RegisterStep3Page from "./pages/student/RegisterStep3Page";
@@ -13,11 +14,13 @@ import OTP from "./pages/student/OTP";
 
 import MyCard from "./pages/student/MyCard";
 import AcademicGuide from "./pages/student/AcademicGuide";
+import MapPage from "./pages/student/MapPage";
 import Survey from "./pages/student/Survey";
 import MyPointsPage from "./pages/student/MyPointsPage";
 
 
 import TeamLoginPage from "./pages/scanners/TeamLoginPage";
+import SelectStationPage from "./pages/scanners/SelectStationPage"
 import TourPage from "./pages/scanners/TourPage";
 import CollegePage from "./pages/scanners/CollegePage";
 import StadiumPage from "./pages/scanners/StadiumPage";
@@ -44,16 +47,19 @@ function App() {
       <Routes>
         {/* صفحات عامة — بلا أي حماية، مفتوحة لأي حدا */}
         <Route path="/" element={<GuestOnlyRoute><WelcomePage /></GuestOnlyRoute>} />
+        <Route path="/find-card" element={<GuestOnlyRoute><FindCardPage /></GuestOnlyRoute>} />
         <Route path="/register-step1" element={<GuestOnlyRoute><RegisterStep1Page /></GuestOnlyRoute>} />
         <Route path="/register-step2" element={<GuestOnlyRoute><RegisterStep2Page /></GuestOnlyRoute>} />
         <Route path="/register-step3" element={<GuestOnlyRoute><RegisterStep3Page /></GuestOnlyRoute>} />
         <Route path="/otp" element={<OTP />} />
-        <Route path="/academic-guide" element={<AcademicGuide/>}/>
+        
         <Route path="/team-log" element={<TeamLoginPage/>}/>
 
 
         {/* صفحات الطالب الشخصية — محتاجة studentCode (بعد تسجيل+تحقق ناجح) */}
         <Route path="/my-card" element={<StudentPrivateRoute><MyCard/></StudentPrivateRoute>}/>
+        <Route path="/academic-guide" element={<AcademicGuide/>}/>
+        <Route path="/map" element={<MapPage/>}/>
         <Route path="/survey" element={<StudentPrivateRoute><Survey/></StudentPrivateRoute>}/>
         <Route path="/my-points" element={<StudentPrivateRoute><MyPointsPage/></StudentPrivateRoute>}/>
 
@@ -67,6 +73,7 @@ function App() {
 
         {/* بوابة الجامعة وإدارة بيانات الطلاب — محتاجة تسجيل دخول (JWT) */}
         <Route path="/gate" element={<TeamPrivateRoute><UniversityGatePage/></TeamPrivateRoute>}/>
+        <Route path="/select-staff" element={<TeamPrivateRoute><SelectStationPage/></TeamPrivateRoute>}/>
         <Route path="/gate-entry-success" element={<TeamPrivateRoute><GateEntrySuccessPage/></TeamPrivateRoute>}/>
         <Route path="/gate-manage" element={<TeamPrivateRoute><StudentDataManagerPage/></TeamPrivateRoute>}/>
         <Route path="/gate-incomplete" element={<TeamPrivateRoute><InWalkIncompletePage/></TeamPrivateRoute>}/>

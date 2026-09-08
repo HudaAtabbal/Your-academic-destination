@@ -22,13 +22,13 @@ const FindCardPage = () => {
     const phone = phoneNumber.trim();
 
     if (!name || !phone) {
-      setError('يرجى تعبئة الاسم الثلاثي ورقم الواتساب');
+      setError('يرجى تعبئة الاسم الثلاثي ورقم الهاتف');
       return;
     }
 
     const phoneRegex = /^09\d{8}$/;
     if (!phoneRegex.test(phone)) {
-      setError('يرجى إدخال رقم واتساب صحيح مكون من 10 أرقام ويبدأ بـ 09');
+      setError('يرجى إدخال رقم الهاتف صحيح مكون من 10 أرقام ويبدأ بـ 09');
       return;
     }
 
@@ -73,7 +73,7 @@ const FindCardPage = () => {
               <input
                 id="fullName"
                 type="text"
-                placeholder="مثال: عمر أحمد العسورة"
+                placeholder="مثال: خالد غيث طليمات"
                 value={fullName}
                 onChange={(e) => {
                   setFullName(e.target.value);

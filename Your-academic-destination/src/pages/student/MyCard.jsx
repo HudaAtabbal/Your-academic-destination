@@ -53,17 +53,21 @@ const MyCard = () => {
       img.onload = () => {
         try {
           const scale = 4;
-          const width = (img.width || qrSize) * scale;
-          const height = (img.height || qrSize) * scale;
+          // "منطقة الهدوء" — هامش أبيض إجباري حوالين رمز الـ QR حسب المواصفة الرسمية.
+          // بدونه، الماسحات (خصوصاً لما تمسحي صورة عن شاشة تانية) ممكن تفشل تقرأه
+          // حتى لو الرمز نفسه سليم 100%. القيمة المعيارية: 4 وحدات (modules) على الأقل.
+          const quietZoneRatio = 0.2; // 20% من حجم الكود من كل جهة، أوسع من الحد الأدنى لضمان إضافي
+          const qrPixelSize = (img.width || qrSize) * scale;
+          const padding = Math.round(qrPixelSize * quietZoneRatio);
 
           const canvas = document.createElement('canvas');
-          canvas.width = width;
-          canvas.height = height;
+          canvas.width = qrPixelSize + padding * 2;
+          canvas.height = qrPixelSize + padding * 2;
 
           const ctx = canvas.getContext('2d');
           ctx.fillStyle = '#FFFFFF';
           ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, padding, padding, qrPixelSize, qrPixelSize);
 
           URL.revokeObjectURL(svgUrl);
 
@@ -109,7 +113,7 @@ const MyCard = () => {
                 size={140}
                 fgColor="#134F47"
                 bgColor="#FFFFFF"
-                level="L"
+                level="H"
               />
             </div>
             <h2 className="mc-user-name">{cardData.name}</h2>

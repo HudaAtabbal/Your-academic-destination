@@ -18,6 +18,7 @@ const StadiumPage = () => {
   const [selectedLectureId, setSelectedLectureId] = useState(LECTURES[0].id);
   const [result, setResult] = useState(null);
   const [scanCount, setScanCount] = useState(null);
+  const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظف يدوس الزر
 
   const selectedLecture = LECTURES.find((l) => l.id === selectedLectureId);
 
@@ -44,6 +45,7 @@ const StadiumPage = () => {
       });
       setScanCount((prev) => (prev != null ? prev + 1 : prev));
       setManualCode('');
+      setIsCameraPaused(true);
     } catch (err) {
       setResult({
         status: 'error',
@@ -51,7 +53,12 @@ const StadiumPage = () => {
         studentName: '',
         studentCode: code,
       });
+      setIsCameraPaused(true);
     }
+  };
+
+  const handleResumeCamera = () => {
+    setIsCameraPaused(false);
   };
 
   const handleQuickRegister = () => {
@@ -93,7 +100,7 @@ const StadiumPage = () => {
           </div>
 
           {/* الكاميرا الفعلية — بتستدعي handleScan تلقائياً بمجرد ما تلتقط رمز */}
-          <ScanBox onScan={handleScan} />
+          <ScanBox onScan={handleScan} paused={isCameraPaused} onResume={handleResumeCamera} />
 
           <div className="manual-code-row">
             <input

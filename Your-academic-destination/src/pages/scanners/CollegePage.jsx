@@ -1,17 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import StaffScanHeader from '../../components/StaffScanHeader';
 import ScanBox from '../../components/ScanBox';
+import ScanResultCard from '../../components/ScanResultCard';
 import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
 import '../../style/StaffScan.css';
+
+const OPTION_LABELS = {
+  tour: 'جولة الكلية',
+  consultation: 'استشارة فردية',
+};
 
 const CollegePage = () => {
   const [manualCode, setManualCode] = useState('');
   const [scannedStudent, setScannedStudent] = useState(null);
   const [choice, setChoice] = useState(null);
   const [choiceError, setChoiceError] = useState('');
+  const [bookingResult, setBookingResult] = useState(null); // نتيجة التوجيه (نجاح/فشل) بعد اختيار الطالب
   const [scanCount, setScanCount] = useState(null);
   const [lookupError, setLookupError] = useState('');
+  const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظفة تدوس الزر
 
   const loadCount = async () => {
     try {
@@ -36,15 +44,23 @@ const CollegePage = () => {
     setLookupError('');
     setChoice(null);
     setChoiceError('');
+    setBookingResult(null); // بدأنا مع طالب جديد — بننضّف نتيجة الطالب السابق
 
     try {
       // بنستخدم endpoint البطاقة (عام، بلا صلاحيات) بس لجلب اسم الطالب للعرض
       const card = await apiGet(`/students/card/${code}`);
       setScannedStudent({ name: card.full_name, code: card.unique_code });
+      setIsCameraPaused(true);
     } catch (err) {
       setScannedStudent(null);
       setLookupError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع');
+      setIsCameraPaused(true);
     }
+  };
+
+  const handleResumeCamera = () => {
+    setIsCameraPaused(false);
+    setBookingResult(null);
   };
 
   const handleChoice = async (option) => {
@@ -56,8 +72,25 @@ const CollegePage = () => {
       await apiPost(`/bookings/${option}`, { unique_code: scannedStudent.code });
       setChoice(option);
       loadCount(); // نحدّث العداد بعد نجاح الحجز
+
+      // نجح التوجيه — منعرض تأكيد واضح ومنسكّر الأسئلة، جاهزين للطالب التالي
+      setBookingResult({
+        status: 'success',
+        title: `تم التوجيه — ${OPTION_LABELS[option]}`,
+        studentName: scannedStudent.name,
+        studentCode: scannedStudent.code,
+      });
+      setScannedStudent(null);
     } catch (err) {
-      setChoiceError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع');
+      const message = err instanceof ApiError ? err.message : 'صار خطأ غير متوقع';
+      setChoiceError(message);
+      // منسيب الأسئلة ظاهرة حتى تقدر تجرّبي خيار تاني بدون ما تعيدي المسح
+      setBookingResult({
+        status: 'error',
+        title: message,
+        studentName: scannedStudent.name,
+        studentCode: scannedStudent.code,
+      });
     }
   };
 
@@ -73,7 +106,12 @@ const CollegePage = () => {
 
         <main className="card-body">
           {/* الكاميرا الفعلية — بتستدعي handleScan تلقائياً بمجرد ما تلتقط رمز */}
-          <ScanBox caption="وجّهي الكاميرا نحو رمز الطالب لتوجيهه" onScan={handleScan} />
+          <ScanBox
+            caption="وجّهي الكاميرا نحو رمز الطالب لتوجيهه"
+            onScan={handleScan}
+            paused={isCameraPaused}
+            onResume={handleResumeCamera}
+          />
 
           <div className="manual-code-row">
             <input
@@ -115,6 +153,13 @@ const CollegePage = () => {
               {choiceError && <p className="scan-error-text">{choiceError}</p>}
             </div>
           )}
+
+          <ScanResultCard
+            status={bookingResult?.status}
+            title={bookingResult?.title}
+            studentName={bookingResult?.studentName}
+            studentCode={bookingResult?.studentCode}
+          />
 
           <p className="scan-rule-text">
             هاد بس توجيه — الحضور الفعلي بينسجّل عند باب الكلية أو باب الاستشارة تحديداً.

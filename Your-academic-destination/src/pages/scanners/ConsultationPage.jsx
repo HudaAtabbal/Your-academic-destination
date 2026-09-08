@@ -10,6 +10,7 @@ const ConsultationPage = () => {
   const [manualCode, setManualCode] = useState('');
   const [result, setResult] = useState(null);
   const [scanCount, setScanCount] = useState(null);
+  const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظف يدوس الزر
 
   useEffect(() => {
     apiGet('/checkins/count/today?activity_type=consultation')
@@ -31,6 +32,7 @@ const ConsultationPage = () => {
       });
       setScanCount((prev) => (prev != null ? prev + 1 : prev));
       setManualCode('');
+      setIsCameraPaused(true);
     } catch (err) {
       setResult({
         status: 'error',
@@ -38,7 +40,12 @@ const ConsultationPage = () => {
         studentName: '',
         studentCode: code,
       });
+      setIsCameraPaused(true);
     }
+  };
+
+  const handleResumeCamera = () => {
+    setIsCameraPaused(false);
   };
 
   return (
@@ -53,7 +60,7 @@ const ConsultationPage = () => {
 
         <main className="card-body">
           {/* الكاميرا الفعلية — بتستدعي handleScan تلقائياً بمجرد ما تلتقط رمز */}
-          <ScanBox onScan={handleScan} />
+          <ScanBox onScan={handleScan} paused={isCameraPaused} onResume={handleResumeCamera} />
 
           <div className="manual-code-row">
             <input

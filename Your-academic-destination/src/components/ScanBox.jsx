@@ -7,7 +7,7 @@ import { Html5Qrcode } from 'html5-qrcode';
  * فيها فترة "تبريد" قصيرة بعد كل مسح ناجح حتى ما تكرر نفس الرمز بالغلط
  * (لأنو الكاميرا بتضل شغالة وبتشوف نفس الملصق كذا مرة بالثانية).
  */
-const ScanBox = ({ caption = 'وجّه الكاميرا نحو رمز QR تبع الطالب', onScan }) => {
+const ScanBox = ({ caption = 'وجّه الكاميرا نحو رمز QR تبع الطالب', onScan, paused = true, onResume }) => {
   const scannerRef = useRef(null);
   const lastScanRef = useRef({ text: '', time: 0 });
   const containerIdRef = useRef(`qr-reader-${Math.random().toString(36).slice(2)}`);
@@ -15,6 +15,9 @@ const ScanBox = ({ caption = 'وجّه الكاميرا نحو رمز QR تبع 
   const [cameraError, setCameraError] = useState('');
 
   useEffect(() => {
+    // لو متوقفة يدوياً (paused=true)، ما منشغّل الكاميرا خالص — منستنى لحد ما تنرجع false
+    if (paused) return;
+
     const containerId = containerIdRef.current;
     let isMounted = true;
     let html5QrCode;
@@ -75,15 +78,24 @@ const ScanBox = ({ caption = 'وجّه الكاميرا نحو رمز QR تبع 
         }
       }
     };
-  }, [onScan]);
+  }, [onScan, paused]);
 
   return (
     <div className="scan-box-wrapper">
-      <div id={containerIdRef.current} className="scan-box-camera" />
+      {paused ? (
+        <div className="scan-box-paused">
+          <p className="scan-paused-text">الكاميرا متوقفة</p>
+          <button type="button" className="scan-resume-btn" onClick={onResume}>
+            ▶ تشغيل الكاميرا
+          </button>
+        </div>
+      ) : (
+        <div id={containerIdRef.current} className="scan-box-camera" />
+      )}
       {cameraError ? (
         <p className="scan-camera-error">{cameraError}</p>
       ) : (
-        <p className="scan-caption">{caption}</p>
+        !paused && <p className="scan-caption">{caption}</p>
       )}
     </div>
   );

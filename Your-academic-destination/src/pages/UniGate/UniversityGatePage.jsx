@@ -11,6 +11,7 @@ const UniversityGatePage = () => {
   const [manualCode, setManualCode] = useState('');
   const [todayCount, setTodayCount] = useState(null);
   const [scanError, setScanError] = useState('');
+  const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظفة تدوس الزر
 
   const handleLogout = () => {
     clearAuthToken();
@@ -50,6 +51,9 @@ const UniversityGatePage = () => {
 
       setTodayCount((prev) => (prev != null ? prev + 1 : prev));
 
+      // بعد أي مسح ناجح، الكاميرا بتوقف — لازم دوسة زر يدوية لمسح الطالب التالي
+      setIsCameraPaused(true);
+
       navigate('/gate-entry-success', {
         state: {
           studentName: response.student_name,
@@ -59,9 +63,17 @@ const UniversityGatePage = () => {
       });
     } catch (err) {
       setScanError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+      // منوقف الكاميرا فعلياً — بدل ما تضل تحاول تمسح نفس الكرت كل 3 ثواني
+      // وترجع نفس الخطأ (409) بلا نهاية. الموظفة بتستأنف يدوياً لما تبعد الكرت
+      setIsCameraPaused(true);
     } finally {
       setManualCode('');
     }
+  };
+
+  const handleResumeCamera = () => {
+    setScanError('');
+    setIsCameraPaused(false);
   };
 
   return (
@@ -94,7 +106,12 @@ const UniversityGatePage = () => {
           </div>
 
           {/* QR Scanner Area — كاميرا حقيقية */}
-          <ScanBox caption="امسح رمز QR لتسجيل دخول الطالب" onScan={handleScan} />
+          <ScanBox
+            caption="امسح رمز QR لتسجيل دخول الطالب"
+            onScan={handleScan}
+            paused={isCameraPaused}
+            onResume={handleResumeCamera}
+          />
           {scanError && <p className="gate-scan-error">{scanError}</p>}
 
           {/* بديل يدوي بحال تعلّقت الكاميرا أو ما قدرت تقرا رمز الطالب */}

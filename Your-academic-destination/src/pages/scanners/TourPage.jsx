@@ -10,6 +10,7 @@ const TourPage = () => {
   const [manualCode, setManualCode] = useState('');
   const [result, setResult] = useState(null);
   const [scanCount, setScanCount] = useState(null);
+  const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظف يدوس الزر
 
   useEffect(() => {
     apiGet('/checkins/count/today?activity_type=tour')
@@ -31,6 +32,8 @@ const TourPage = () => {
       });
       setScanCount((prev) => (prev != null ? prev + 1 : prev));
       setManualCode('');
+      // بعد أي مسح ناجح، الكاميرا بتوقف — لازم دوسة زر يدوية لمسح الطالب التالي
+      setIsCameraPaused(true);
     } catch (err) {
       setResult({
         status: 'error',
@@ -38,7 +41,12 @@ const TourPage = () => {
         studentName: '',
         studentCode: code,
       });
+      setIsCameraPaused(true);
     }
+  };
+
+  const handleResumeCamera = () => {
+    setIsCameraPaused(false);
   };
 
   return (
@@ -53,7 +61,11 @@ const TourPage = () => {
 
         <main className="card-body">
           {/* الكاميرا الفعلية — بتستدعي handleScan تلقائياً بمجرد ما تلتقط رمز */}
-          <ScanBox onScan={handleScan} />
+          <ScanBox
+            onScan={handleScan}
+            paused={isCameraPaused}
+            onResume={handleResumeCamera}
+          />
 
           <div className="manual-code-row">
             <input
