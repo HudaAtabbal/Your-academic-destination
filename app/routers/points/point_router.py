@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import require_role
 from app.models import AccountRole
-from app.routers.points import points_service
+from app.routers.points import point_service
 from app.routers.points.point_schema import LeaderboardResponse, PointsResponse
 
 router = APIRouter(tags=["points"])
@@ -16,7 +16,7 @@ router = APIRouter(tags=["points"])
 
 @router.get("/students/{unique_code}/points", response_model=PointsResponse)
 def get_points(unique_code: str, db: Session = Depends(get_db)) -> PointsResponse:
-    total_points = points_service.get_points(db, unique_code)
+    total_points = point_service.get_points(db, unique_code)
     return PointsResponse(total_points=total_points)
 
 
@@ -26,5 +26,5 @@ def get_points(unique_code: str, db: Session = Depends(get_db)) -> PointsRespons
     dependencies=[Depends(require_role(AccountRole.super_admin))],
 )
 def get_leaderboard(db: Session = Depends(get_db)) -> LeaderboardResponse:
-    leaderboard = points_service.get_leaderboard(db)
+    leaderboard = point_service.get_leaderboard(db)
     return LeaderboardResponse(leaderboard=leaderboard)

@@ -41,5 +41,5 @@ def submit_survey(
     db.add(survey)
     db.commit()
     db.refresh(survey)
-    points_service.recalculate_and_store_points(db, student.id)
+    point_service.recalculate_and_store_points(db, student.id)
     return survey

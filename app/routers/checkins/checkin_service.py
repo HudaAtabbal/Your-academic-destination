@@ -135,7 +135,7 @@ def create_campus_entry_checkin(db: Session, unique_code: str) -> tuple[Checkin,
     db.add(checkin)
     db.commit()
     db.refresh(checkin)
-    points_service.recalculate_and_store_points(db, student.id)
+    point_service.recalculate_and_store_points(db, student.id)
     return checkin, student.full_name
 
 
@@ -164,7 +164,7 @@ def create_lecture_checkin(
     db.add(checkin)
     db.commit()
     db.refresh(checkin)
-    points_service.recalculate_and_store_points(db, student.id)
+    point_service.recalculate_and_store_points(db, student.id)
     return checkin, student.full_name
 
 
@@ -192,7 +192,7 @@ def create_tour_checkin(
     db.add(checkin)
     db.commit()
     db.refresh(checkin)
-    points_service.recalculate_and_store_points(db, student.id)
+    point_service.recalculate_and_store_points(db, student.id)
     return checkin, student.full_name
 
 
@@ -218,7 +218,7 @@ def create_consultation_checkin(db: Session, unique_code: str) -> tuple[Checkin,
     db.add(checkin)
     db.commit()
     db.refresh(checkin)
-    points_service.recalculate_and_store_points(db, student.id)
+    point_service.recalculate_and_store_points(db, student.id)
     return checkin, student.full_name
 
 
