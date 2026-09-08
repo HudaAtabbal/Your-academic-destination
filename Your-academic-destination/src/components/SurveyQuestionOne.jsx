@@ -2,10 +2,10 @@ import React from 'react';
 
 const SurveyQuestionOne = ({ selectedOption, onSelect }) => {
   const options = [
-    { id: 'confirmed', label: 'تأكّد اللي كنت ناويه' },
-    { id: 'changed', label: 'تغيّر تماماً' },
+    { id: 'confirmed_choice', label: 'تأكّد اللي كنت ناويه' },
+    { id: 'changed_completely', label: 'تغيّر تماماً' },
     { id: 'decided', label: 'صار عندي قرار' },
-    { id: 'confused', label: 'لسا محتار' },
+    { id: 'still_confused', label: 'لسا محتار' },
   ];
 
   return (

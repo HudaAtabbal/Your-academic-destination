@@ -1,7 +1,4 @@
-
-
-
-.card-wrapper {
+.wp-card-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -12,9 +9,10 @@
   font-family: 'Ghroob', sans-serif;
 }
 
-.card-container {
+.wp-card-container {
   width: 100%;
   max-width: 380px;
+  height: 680px;
   background-color: #FFF4E0;
   border-radius: 36px;
   overflow: hidden;
@@ -58,25 +56,25 @@
   mix-blend-mode: screen;
 }
 
-.subtitle {
+.wp-subtitle {
   font-size: 0.65rem;
   font-weight: 700;
   opacity: 0.9;
 }
 
 /* Body */
-.card-body {
+.wp-card-body {
   padding: 24px;
 }
 
-.main-title {
+.wp-main-title {
   color: #71122B;
   font-size: 2rem;
   font-weight: 800;
   margin: 0 0 4px 0;
 }
 
-.badge {
+.wp-badge {
   display: inline-block;
   color: #E85B0D;
   font-size: 1.1rem;
@@ -84,12 +82,12 @@
   margin-bottom: 16px;
 }
 
-.description {
+.wp-description {
   color: #134F47;
   font-size: 0.9rem;
   font-weight: 700;
   line-height: 1.6;
-  margin-bottom: 24px;
+  margin-bottom: 40px;
   padding: 0 8px;
 }
 
@@ -100,7 +98,7 @@
   padding: 16px;
   text-align: right;
   direction: rtl;
-  margin-bottom: 28px;
+  margin-bottom: 80px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -125,13 +123,13 @@
 }
 
 /* Buttons */
-.actions {
+.wp-actions {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.btn {
+.wp-btn {
   width: 100%;
   padding: 14px;
   border-radius: 16px;
@@ -141,23 +139,23 @@
   transition: all 0.2s ease;
 }
 
-.btn-primary {
+.wp-btn-primary {
   background-color: #134F47;
   color: #FFFFFF;
   border: none;
   box-shadow: 0 4px 10px rgba(19, 79, 71, 0.2);
 }
 
-.btn-primary:hover {
+.wp-btn-primary:hover {
   background-color: #0d3832;
 }
 
-.btn-secondary {
+.wp-btn-secondary {
   background-color: #FFFFFF;
   color: #134F47;
   border: 2px solid #EAE6DF;
 }
 
-.btn-secondary:hover {
+.wp-btn-secondary:hover {
   background-color: #f9f9f9;
 }

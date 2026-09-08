@@ -8,15 +8,15 @@ import { useNavigate } from "react-router-dom";
 const WelcomePage = () => {
   const navigate = useNavigate();
   return (
-    <div className="card-wrapper">
-      <div className="card-container">
+    <div className="wp-card-wrapper">
+      <div className="wp-card-container">
         <Header logoSrc={logo} subtitle="جامعة حمص • 15–17 أيلول" />
 
-        <main className="card-body">
-          <h1 className="main-title">وجهتك الأكاديمية</h1>
-          <span className="badge">النسخة الثانية</span>
+        <main className="wp-card-body">
+          <h1 className="wp-main-title">وجهتك الأكاديمية</h1>
+          <span className="wp-badge">النسخة الثانية</span>
 
-          <p className="description">
+          <p className="wp-description">
             ثلاثة أيام تتعرّف فيها على كل كلية في الجامعة، وتسأل من درسها قبلك.
           </p>
 
@@ -25,15 +25,15 @@ const WelcomePage = () => {
             text="التسجيل شرط الدخول. بتاخد بطاقة برمز QR خاص فيك، وبتربطك بكل نشاط تحضره."
           />
 
-          <div className="actions">
+          <div className="wp-actions">
             <button
-              className="btn btn-primary"
+              className="wp-btn wp-btn-primary"
               onClick={() => navigate("/register-step1")}
             >
               سجّل الآن • دقيقتين &larr;
             </button>
             <button
-              className="btn btn-secondary"
+              className="wp-btn wp-btn-secondary"
               onClick={() => navigate("/find-card")}
             >
               عندي بطاقة من قبل

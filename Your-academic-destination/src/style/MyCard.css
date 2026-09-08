@@ -164,3 +164,24 @@
 .mc-btn-primary:hover {
   background-color: #0d3832;
 }
+
+.mc-logout-actions {
+  padding-top: 4px;
+}
+
+.mc-btn-logout {
+   background-color: rgba(255, 255, 255, 0.12);
+  color: #134F47;
+  border: none;
+  border-radius: 16px;
+  padding: 8px 18px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.mc-btn-logout:hover {
+  background-color: rgba(255, 255, 255, 0.22);
+}

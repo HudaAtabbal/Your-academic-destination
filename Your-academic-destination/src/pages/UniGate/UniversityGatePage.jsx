@@ -8,6 +8,7 @@ import '../../style/StaffScan.css'; // فيها ستايل ScanBox (الكامي
 const UniversityGatePage = () => {
   const navigate = useNavigate();
   const [studentId, setStudentId] = useState('');
+  const [manualCode, setManualCode] = useState('');
   const [todayCount, setTodayCount] = useState(null);
   const [scanError, setScanError] = useState('');
 
@@ -58,6 +59,8 @@ const UniversityGatePage = () => {
       });
     } catch (err) {
       setScanError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+    } finally {
+      setManualCode('');
     }
   };
 
@@ -93,6 +96,21 @@ const UniversityGatePage = () => {
           {/* QR Scanner Area — كاميرا حقيقية */}
           <ScanBox caption="امسح رمز QR لتسجيل دخول الطالب" onScan={handleScan} />
           {scanError && <p className="gate-scan-error">{scanError}</p>}
+
+          {/* بديل يدوي بحال تعلّقت الكاميرا أو ما قدرت تقرا رمز الطالب */}
+          <div className="manual-code-row">
+            <input
+              type="text"
+              className="manual-code-input"
+              placeholder="R-0248 (بديل يدوي لو تعطلت الكاميرا)"
+              value={manualCode}
+              onChange={(e) => setManualCode(e.target.value)}
+              dir="ltr"
+            />
+            <button type="button" className="manual-code-btn" onClick={() => handleScan(manualCode)}>
+              تسجيل
+            </button>
+          </div>
 
           {/* Divider */}
           <div className="divider">— أو —</div>

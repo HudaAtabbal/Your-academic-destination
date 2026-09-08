@@ -90,14 +90,14 @@ const RegisterStep3Page = () => {
 
         <main className="rs3-card-body">
           <p className="rs3-step-description">
-            سوف نرسل رمز تحقق عبر الواتساب.
+            سوف نرسل رمز تحقق عبر SMS.
           </p>
 
           <form onSubmit={handleSubmit} className="rs3-form-container">
             {/* Phone Input */}
             <div className="rs3-input-group">
               <label htmlFor="phoneNumber" className="rs3-input-label">
-                رقم الواتساب
+                رقم الهاتف
               </label>
 
               <input

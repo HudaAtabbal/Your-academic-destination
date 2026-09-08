@@ -103,12 +103,11 @@
 }
 
 .btn {
-  width: 100%;
-  padding: 16px;
+ width: 100%;
+  padding: 14px;
   border-radius: 16px;
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  font-family: 'Ghroob', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -117,6 +116,7 @@
   background-color: #134F47;
   color: #FFFFFF;
   border: none;
+  box-shadow: 0 4px 10px rgba(19, 79, 71, 0.2);
 }
 
 .btn-primary:hover {

@@ -18,6 +18,12 @@ const MyCard = () => {
     status: 'بانتظار التفعيل',
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('studentCode');
+    localStorage.removeItem('studentName');
+    window.location.href = '/';
+  };
+
   const handleSaveCard = () => {
     try {
       // بنلاقي الـ SVG يلي مكتبة react-qr-code رندرته جوا qr-wrapper
@@ -81,24 +87,24 @@ const MyCard = () => {
   };
 
   return (
-    <div className="card-wrapper">
-      <div className="card-container scrollable">
-        
-        <HeaderStep 
-          title="بطاقتي" 
-          stepText="وجهتك الأكاديمية 2 • جامعة حمص" 
-          onBack={() => window.history.back()} 
+    <div className="mc-card-wrapper">
+      <div className="mc-card-container">
+
+        <HeaderStep
+          title="بطاقتي"
+          stepText="وجهتك الأكاديمية 2 • جامعة حمص"
+          onBack={() => window.history.back()}
         />
 
-        <main className="card-body">
-          
+        <main className="mc-card-body">
+
           {/* Digital ID Card Section */}
-          <div className="id-card-box">
-            <div className="qr-wrapper" ref={qrWrapperRef}>
+          <div className="mc-id-card-box">
+            <div className="mc-qr-wrapper" ref={qrWrapperRef}>
               {/* الـ QR بيحمل بس unique_code تبع الطالب (زي R-0248)،
                   بدون أي بيانات شخصية زي الاسم. لما موظف السكانر يمسحه،
                   الباك اند هو يلي بيرجّع اسم الطالب وكل بياناته من قاعدة البيانات. */}
-              <QRCode 
+              <QRCode
                 value={cardData.code}
                 size={140}
                 fgColor="#134F47"
@@ -106,27 +112,34 @@ const MyCard = () => {
                 level="L"
               />
             </div>
-            <h2 className="user-name">{cardData.name}</h2>
-            <p className="user-code">{cardData.code}</p>
-            <div className="status-badge">
+            <h2 className="mc-user-name">{cardData.name}</h2>
+            <p className="mc-user-code">{cardData.code}</p>
+            <div className="mc-status-badge">
               {cardData.status}
             </div>
           </div>
 
           {/* Features Info Box */}
-          <div className="info-card-box">
-            <h3 className="info-box-title">ماذا تفعل هذه البطاقة ؟</h3>
-            <ul className="info-list">
-               <li>تسمح لك بالدخول عند بوابة الحرم الجامعي</li>
+          <div className="mc-info-card-box">
+            <h3 className="mc-info-box-title">ماذا تفعل هذه البطاقة ؟</h3>
+            <ul className="mc-info-list">
+              <li>تسمح لك بالدخول عند بوابة الحرم الجامعي</li>
               <li>تسجّل حضورك بأي محاضرة أو جولة أو استشارة</li>
               <li>تعمل بدون إنترنت &mdash; لقطة شاشة كافية</li>
             </ul>
           </div>
 
           {/* Action Button */}
-          <div className="actions">
-            <button type="button" onClick={handleSaveCard} className="btn btn-primary">
+          <div className="mc-actions">
+            <button type="button" onClick={handleSaveCard} className="mc-btn mc-btn-primary">
               احفظ البطاقة
+            </button>
+          </div>
+
+          {/* Logout Button */}
+          <div className="mc-logout-actions">
+            <button type="button" onClick={handleLogout} className="mc-btn mc-btn-logout">
+              تسجيل خروج
             </button>
           </div>
 
