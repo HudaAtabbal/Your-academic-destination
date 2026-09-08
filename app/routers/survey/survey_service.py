@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 
 from app.errors import duplicate_survey, student_not_found
 from app.models import College, OpinionChange, PostSurvey, Student
-from app.routers.points import points_service
+from app.routers.points import point_service
 
 
 def _get_student_or_raise(db: Session, unique_code: str) -> Student:

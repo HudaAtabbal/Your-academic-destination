@@ -9,7 +9,7 @@ from app.database import get_db
 from app.dependencies import require_role
 from app.models import AccountRole
 from app.routers.points import points_service
-from app.routers.points.points_schema import LeaderboardResponse, PointsResponse
+from app.routers.points.point_schema import LeaderboardResponse, PointsResponse
 
 router = APIRouter(tags=["points"])
 

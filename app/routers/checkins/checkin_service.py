@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.errors import duplicate_checkin, missing_booking, missing_campus_entry, student_not_found
 from app.models import ActivityType, Booking, BookingType, Checkin, College, Lecture, Student
-from app.routers.points import points_service
+from app.routers.points import point_service
 
 _ACTIVITY_LABELS = {
     ActivityType.campus_entry: "الدخول من بوابة الجامعة اليوم",
