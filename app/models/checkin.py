@@ -3,7 +3,7 @@
 مطابق تماماً لجدول checkins بـ wijhatak_schema_v2.sql.
 """
 
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Index
+from sqlalchemy import BigInteger, Column, Date, DateTime, ForeignKey, Index, cast
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -29,10 +29,12 @@ class Checkin(Base):
     student = relationship("Student", back_populates="checkins")
 
     __table_args__ = (
-        # دخول الجامعة: مرة وحدة بالكامل للطالب
+        # دخول الجامعة: مرة وحدة باليوم الواحد بس — مسموح دخول جديد كل يوم
+        # (محدّث لأجل صفحة النقاط "نقاطي": 5 نقاط لكل دخول بوابة يومي منفصل)
         Index(
             "unique_campus_entry_checkin",
             "student_id",
+            cast(checked_in_at, Date),
             unique=True,
             postgresql_where=(activity_type == ActivityType.campus_entry),
         ),

@@ -15,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.errors import account_not_found, duplicate_username
 from app.models import Account, AccountRole, College
 from app.security import hash_password
+from app.errors import account_not_found, cannot_delete_self, duplicate_username
 
 _PASSWORD_ALPHABET = string.ascii_letters + string.digits
 
@@ -94,3 +95,14 @@ def update_account(
     db.commit()
     db.refresh(account)
     return account
+
+def delete_account(db: Session, username: str, current_username: str) -> None:
+    if username == current_username:
+        raise cannot_delete_self()
+
+    account = db.query(Account).filter(Account.username == username).first()
+    if account is None:
+        raise account_not_found()
+
+    db.delete(account)
+    db.commit()

@@ -150,3 +150,10 @@ def otp_invalid() -> AppError:
         error_code="otp_invalid",
         message="رمز التحقق غلط أو منتهي الصلاحية",
     )
+
+def cannot_delete_self() -> AppError:
+    return AppError(
+        status_code=409,
+        error_code="cannot_delete_self",
+        message="ما فيك تحذف حسابك الحالي",
+    )

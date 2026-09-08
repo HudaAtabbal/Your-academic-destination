@@ -57,6 +57,10 @@ class Student(Base):
         default=StudentStatus.pending,
     )
 
+    # صافي النقاط المتراكمة (نقاطي) — محسوبة ومخزّنة، بتتحدّث تلقائياً بعد كل
+    # نشاط جديد (checkin أو استبيان) عبر points_service.recalculate_and_store_points
+    total_points = Column(SmallInteger, nullable=False, default=0)
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     # لا حاجة لأي cascade هون — سلوك ON DELETE RESTRICT مطبّق أصلاً على مستوى

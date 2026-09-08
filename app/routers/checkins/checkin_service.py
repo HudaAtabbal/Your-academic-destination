@@ -16,11 +16,21 @@ from sqlalchemy.orm import Session
 
 from app.errors import duplicate_checkin, missing_booking, missing_campus_entry, student_not_found
 from app.models import ActivityType, Booking, BookingType, Checkin, College, Lecture, Student
+from app.routers.points import points_service
 
 _ACTIVITY_LABELS = {
-    ActivityType.campus_entry: "الدخول من بوابة الجامعة",
+    ActivityType.campus_entry: "الدخول من بوابة الجامعة اليوم",
     ActivityType.consultation: "الاستشارة الفردية",
 }
+
+
+def _today_range() -> tuple[datetime, datetime]:
+    """
+    حدود "اليوم" — بتستخدم توقيت السيرفر المحلي حالياً (قرار مؤجّل، راجع
+    Business Rules #11 بالعقد: بنحدد الـ timezone بدقة قبل يوم الفعالية).
+    """
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    return today_start, today_start + timedelta(days=1)
 
 
 def _get_student_or_raise(db: Session, unique_code: str) -> Student:
@@ -30,12 +40,37 @@ def _get_student_or_raise(db: Session, unique_code: str) -> Student:
     return student
 
 
-def _has_campus_entry(db: Session, student_id: int) -> bool:
+def _has_campus_entry_today(db: Session, student_id: int) -> bool:
+    """
+    محدّث: campus_entry صار مسموح مرة كل يوم (مش مرة وحدة طول الفعالية) —
+    فالشرط المسبق لحضور محاضرة/جولة/استشارة صار "فات من البوابة بنفس اليوم"،
+    مش "فات ولو مرة بأي يوم سابق".
+    """
+    today_start, today_end = _today_range()
     return (
         db.query(Checkin)
-        .filter(Checkin.student_id == student_id, Checkin.activity_type == ActivityType.campus_entry)
+        .filter(
+            Checkin.student_id == student_id,
+            Checkin.activity_type == ActivityType.campus_entry,
+            Checkin.checked_in_at >= today_start,
+            Checkin.checked_in_at < today_end,
+        )
         .first()
         is not None
+    )
+
+
+def _find_existing_campus_entry_today(db: Session, student_id: int) -> Checkin | None:
+    today_start, today_end = _today_range()
+    return (
+        db.query(Checkin)
+        .filter(
+            Checkin.student_id == student_id,
+            Checkin.activity_type == ActivityType.campus_entry,
+            Checkin.checked_in_at >= today_start,
+            Checkin.checked_in_at < today_end,
+        )
+        .first()
     )
 
 
@@ -87,7 +122,7 @@ def _raise_if_duplicate(
 def create_campus_entry_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | None]:
     student = _get_student_or_raise(db, unique_code)
 
-    existing = _find_existing_checkin(db, student.id, ActivityType.campus_entry)
+    existing = _find_existing_campus_entry_today(db, student.id)
     _raise_if_duplicate(
         existing,
         student.full_name,
@@ -100,6 +135,7 @@ def create_campus_entry_checkin(db: Session, unique_code: str) -> tuple[Checkin,
     db.add(checkin)
     db.commit()
     db.refresh(checkin)
+    points_service.recalculate_and_store_points(db, student.id)
     return checkin, student.full_name
 
 
@@ -108,7 +144,7 @@ def create_lecture_checkin(
 ) -> tuple[Checkin, str | None]:
     student = _get_student_or_raise(db, unique_code)
 
-    if not _has_campus_entry(db, student.id):
+    if not _has_campus_entry_today(db, student.id):
         raise missing_campus_entry()
 
     existing = _find_existing_checkin(
@@ -128,6 +164,7 @@ def create_lecture_checkin(
     db.add(checkin)
     db.commit()
     db.refresh(checkin)
+    points_service.recalculate_and_store_points(db, student.id)
     return checkin, student.full_name
 
 
@@ -136,7 +173,7 @@ def create_tour_checkin(
 ) -> tuple[Checkin, str | None]:
     student = _get_student_or_raise(db, unique_code)
 
-    if not _has_campus_entry(db, student.id):
+    if not _has_campus_entry_today(db, student.id):
         raise missing_campus_entry()
 
     if not _has_matching_booking(db, student.id, BookingType.tour, college=college):
@@ -155,13 +192,14 @@ def create_tour_checkin(
     db.add(checkin)
     db.commit()
     db.refresh(checkin)
+    points_service.recalculate_and_store_points(db, student.id)
     return checkin, student.full_name
 
 
 def create_consultation_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | None]:
     student = _get_student_or_raise(db, unique_code)
 
-    if not _has_campus_entry(db, student.id):
+    if not _has_campus_entry_today(db, student.id):
         raise missing_campus_entry()
 
     if not _has_matching_booking(db, student.id, BookingType.consultation):
@@ -180,6 +218,7 @@ def create_consultation_checkin(db: Session, unique_code: str) -> tuple[Checkin,
     db.add(checkin)
     db.commit()
     db.refresh(checkin)
+    points_service.recalculate_and_store_points(db, student.id)
     return checkin, student.full_name
 
 
