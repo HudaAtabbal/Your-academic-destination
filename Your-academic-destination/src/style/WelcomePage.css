@@ -18,6 +18,7 @@
   overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
   text-align: center;
+
 }
 
 /* Header */
@@ -158,4 +159,22 @@
 
 .wp-btn-secondary:hover {
   background-color: #f9f9f9;
+}
+
+@media (max-width: 480px) {
+  .wp-card-wrapper {
+    padding: 0 !important;
+    align-items: stretch !important;   /* بيلغي التوسيط العمودي — هو سبب الفراغ */
+    justify-content: stretch !important;
+    min-height: 100vh !important;
+    min-height: 100dvh !important;     /* نفس وحدة القياس المستخدمة بالكرت تحت، حتى ما يصير فرق يولّد فراغ */
+  }
+  .wp-card-container {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    max-height: none !important;
+    border-radius: 0 !important;
+  }
 }

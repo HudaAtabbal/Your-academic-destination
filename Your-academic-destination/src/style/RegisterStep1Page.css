@@ -103,11 +103,12 @@
 }
 
 .btn {
- width: 100%;
-  padding: 14px;
+  width: 100%;
+  padding: 16px;
   border-radius: 16px;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
+  font-family: 'Ghroob', sans-serif;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -116,7 +117,6 @@
   background-color: #134F47;
   color: #FFFFFF;
   border: none;
-  box-shadow: 0 4px 10px rgba(19, 79, 71, 0.2);
 }
 
 .btn-primary:hover {
@@ -180,4 +180,27 @@
 
 .btn-primary:disabled:hover {
   background-color: #A0AAB0;
+}
+
+/* الكرت بياخد الشاشة كاملة دايماً — بلا حواف wrapper ظاهرة إطلاقاً.
+   !important هون ضروري لأنو في ملفات تانية بالمشروع فيها تعريف .card-container
+   بدون هالفيكس، وبتفوز بالترتيب لو ما استخدمنا !important */
+.card-wrapper {
+  padding: 0 !important;
+  align-items: stretch !important;   /* بيلغي التوسيط العمودي — كان سبب فراغ فوق وتحت */
+  justify-content: stretch !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;     /* نفس وحدة القياس المستخدمة بالكرت تحت */
+}
+
+.card-container {
+  max-width: none !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  border-radius: 0 !important;
+}
+
+.card-body {
+  border-radius: 0 !important;
 }

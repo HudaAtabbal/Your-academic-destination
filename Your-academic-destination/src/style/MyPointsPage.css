@@ -202,3 +202,20 @@
   font-size: 0.78rem;
   font-weight: 800;
 }
+
+.card-wrapper {
+  padding: 0 !important;
+  align-items: stretch !important;   /* بيلغي التوسيط العمودي — كان سبب فراغ فوق وتحت */
+  justify-content: stretch !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;     /* نفس وحدة القياس المستخدمة بالكرت تحت */
+}
+
+.card-container {
+  max-width: none !important;
+  width: 100% !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: none !important;
+  border-radius: 0 !important;
+}
