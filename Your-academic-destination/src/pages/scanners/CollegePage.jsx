@@ -4,6 +4,7 @@ import ScanBox from '../../components/ScanBox';
 import ScanResultCard from '../../components/ScanResultCard';
 import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
+import { showToast } from '../../api/toast';
 import '../../style/StaffScan.css';
 
 const OPTION_LABELS = {
@@ -15,10 +16,8 @@ const CollegePage = () => {
   const [manualCode, setManualCode] = useState('');
   const [scannedStudent, setScannedStudent] = useState(null);
   const [choice, setChoice] = useState(null);
-  const [choiceError, setChoiceError] = useState('');
   const [bookingResult, setBookingResult] = useState(null); // نتيجة التوجيه (نجاح/فشل) بعد اختيار الطالب
   const [scanCount, setScanCount] = useState(null);
-  const [lookupError, setLookupError] = useState('');
   const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظفة تدوس الزر
 
   const loadCount = async () => {
@@ -41,9 +40,7 @@ const CollegePage = () => {
     const code = rawCode.trim();
     if (!code) return;
 
-    setLookupError('');
     setChoice(null);
-    setChoiceError('');
     setBookingResult(null); // بدأنا مع طالب جديد — بننضّف نتيجة الطالب السابق
 
     try {
@@ -53,7 +50,8 @@ const CollegePage = () => {
       setIsCameraPaused(true);
     } catch (err) {
       setScannedStudent(null);
-      setLookupError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع');
+      const message = err instanceof ApiError ? err.message : 'صار خطأ غير متوقع';
+      showToast(message, 'error');
       setIsCameraPaused(true);
     }
   };
@@ -65,8 +63,6 @@ const CollegePage = () => {
 
   const handleChoice = async (option) => {
     if (!scannedStudent) return;
-
-    setChoiceError('');
 
     try {
       await apiPost(`/bookings/${option}`, { unique_code: scannedStudent.code });
@@ -83,14 +79,9 @@ const CollegePage = () => {
       setScannedStudent(null);
     } catch (err) {
       const message = err instanceof ApiError ? err.message : 'صار خطأ غير متوقع';
-      setChoiceError(message);
+      showToast(message, 'error');
       // منسيب الأسئلة ظاهرة حتى تقدر تجرّبي خيار تاني بدون ما تعيدي المسح
-      setBookingResult({
-        status: 'error',
-        title: message,
-        studentName: scannedStudent.name,
-        studentCode: scannedStudent.code,
-      });
+      setBookingResult(null);
     }
   };
 
@@ -127,8 +118,6 @@ const CollegePage = () => {
             </button>
           </div>
 
-          {lookupError && <p className="scan-error-text">{lookupError}</p>}
-
           {scannedStudent && (
             <div className="orientation-prompt">
               <h3 className="orientation-question">
@@ -150,7 +139,6 @@ const CollegePage = () => {
                   جولة الكلية
                 </button>
               </div>
-              {choiceError && <p className="scan-error-text">{choiceError}</p>}
             </div>
           )}
 

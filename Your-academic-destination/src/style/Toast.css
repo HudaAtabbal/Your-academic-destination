@@ -1,0 +1,51 @@
+/* رسائل منبثقة (toast) — ظاهرة فوق كل شي */
+.toast-container {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  max-width: 380px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  pointer-events: none;
+}
+
+.toast-item {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 16px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  animation: toast-slide-in 0.25s ease-out;
+  pointer-events: auto;
+}
+
+.toast-error {
+  background-color: #C0392B;
+  color: #FFFFFF;
+}
+
+.toast-success {
+  background-color: #134F47;
+  color: #FFFFFF;
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

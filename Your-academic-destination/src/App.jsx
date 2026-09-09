@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+import ToastContainer from "./components/ToastContainer";
 import TeamPrivateRoute from "./components/TeamPrivateRoute";
 import StudentPrivateRoute from "./components/StudentPrivateRoute";
 import GuestOnlyRoute from "./components/GuestOnlyRoute";
@@ -44,6 +45,7 @@ import GenerateWalkInCodesPage from "./pages/Admin/GenerateWalkInCodesPage";
 function App() {
   return (
     <BrowserRouter>
+      <ToastContainer />
       <Routes>
         {/* صفحات عامة — بلا أي حماية، مفتوحة لأي حدا */}
         <Route path="/" element={<GuestOnlyRoute><WelcomePage /></GuestOnlyRoute>} />

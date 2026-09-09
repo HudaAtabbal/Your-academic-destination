@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ScanBox from '../../components/ScanBox';
 import { apiGet, apiPost, ApiError, clearAuthToken } from '../../api/api';
+import { showToast } from '../../api/toast';
 import '../../style/UniversityGatePage.css';
 import '../../style/StaffScan.css'; // فيها ستايل ScanBox (الكاميرا) المشترك
 
@@ -10,7 +11,6 @@ const UniversityGatePage = () => {
   const [studentId, setStudentId] = useState('');
   const [manualCode, setManualCode] = useState('');
   const [todayCount, setTodayCount] = useState(null);
-  const [scanError, setScanError] = useState('');
   const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظفة تدوس الزر
 
   const handleLogout = () => {
@@ -39,8 +39,6 @@ const UniversityGatePage = () => {
     const code = rawCode.trim();
     if (!code) return;
 
-    setScanError('');
-
     try {
       const response = await apiPost('/checkins/campus-entry', { unique_code: code });
 
@@ -62,7 +60,10 @@ const UniversityGatePage = () => {
         },
       });
     } catch (err) {
-      setScanError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
+      showToast(
+        err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية',
+        'error'
+      );
       // منوقف الكاميرا فعلياً — بدل ما تضل تحاول تمسح نفس الكرت كل 3 ثواني
       // وترجع نفس الخطأ (409) بلا نهاية. الموظفة بتستأنف يدوياً لما تبعد الكرت
       setIsCameraPaused(true);
@@ -72,7 +73,6 @@ const UniversityGatePage = () => {
   };
 
   const handleResumeCamera = () => {
-    setScanError('');
     setIsCameraPaused(false);
   };
 
@@ -112,7 +112,6 @@ const UniversityGatePage = () => {
             paused={isCameraPaused}
             onResume={handleResumeCamera}
           />
-          {scanError && <p className="gate-scan-error">{scanError}</p>}
 
           {/* بديل يدوي بحال تعلّقت الكاميرا أو ما قدرت تقرا رمز الطالب */}
           <div className="manual-code-row">
