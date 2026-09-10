@@ -38,3 +38,7 @@
   font-weight: 800;
   font-display: swap;
 }
+
+input, button, textarea, select {
+  font-family: inherit !important;
+}

@@ -28,6 +28,15 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* شبكة أمان — لو المحتوى طال عن الشاشة، يصير سكرول بدل ما ينقص */
+}
+
+.card-body::-webkit-scrollbar {
+  display: none;
+}
+.card-body {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .form-container {
@@ -36,21 +45,27 @@
   flex: 1;
 }
 
-/* OTP Grid Layout */
+/* OTP Grid Layout — الصناديق بتاخد نفس العرض الأقصى (68px) بس على الشاشات
+   الواسعة، وبتنكمش تلقائياً وتتساوى فيما بينها لو المساحة أضيق — هيك
+   مستحيل يفيض صندوق برّا الكرت مهما كان عرض الشاشة، بلا حاجة لعتبات مخمّنة */
 .otp-container {
   display: flex;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 28px;
-  margin-top: 150px;
+  margin-top: clamp(24px, 15vh, 150px);
+  width: 100%;
 }
 
 .otp-input {
-  width: 68px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 68px;
   height: 72px;
   border-radius: 24px;
   background-color: #FFFFFF;
   border: 2px solid transparent;
+  box-sizing: border-box;
   text-align: center;
   font-family: 'Ghroob', sans-serif;
   font-size: 1.8rem;

@@ -1,5 +1,3 @@
-
-
 /* Desktop Viewport Setup */
 .gwic-viewport {
   min-height: 100vh;
@@ -286,4 +284,53 @@
   font-size: 0.95rem;
   font-weight: 700;
   margin: 8px 0 0 0;
+}
+
+/* ============================================
+   Responsive — الفورم بيصير عمود واحد، شبكة أكواد
+   الـ QR بتقل أعمدتها تدريجياً حسب عرض الشاشة
+   ============================================ */
+
+@media (max-width: 900px) {
+  .gwic-qr-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 700px) {
+  .gwic-form-row,
+  .gwic-form-row-simplified {
+    grid-template-columns: 1fr; /* كانت أعراض ثابتة بالبكسل (220px 220px 180px)، بتنكسر على أي شاشة أضيق منها */
+  }
+}
+
+@media (max-width: 480px) {
+  .gwic-main-container {
+    padding: 16px 16px 40px 16px;
+  }
+
+  .gwic-card-panel {
+    padding: 20px 16px;
+  }
+
+  .gwic-qr-panel {
+    padding: 16px;
+  }
+
+  .gwic-panel-title {
+    font-size: 1.25rem;
+  }
+
+  .gwic-qr-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gwic-output-header {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .gwic-print-btn {
+    width: 100%;
+  }
 }

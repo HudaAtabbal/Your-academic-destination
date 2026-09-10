@@ -250,3 +250,59 @@
   background-color: #8C2432;
   border-radius: 50px;
 }
+
+/* ============================================
+   Responsive — تحويل شبكة الديسكتوب لعمود واحد
+   وتخلية الجدول قابل للسكرول الأفقي عالموبايل
+   ============================================ */
+
+@media (max-width: 900px) {
+  .gd-dash-metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .gd-dash-main-container {
+    padding: 20px 16px 40px 16px;
+    gap: 24px;
+  }
+
+  .gd-dash-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .gd-dash-metric-number {
+    font-size: 2.2rem;
+  }
+
+  .gd-dash-section-heading-row {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .gd-dash-create-btn {
+    width: 100%;
+  }
+
+  /* الجدول أعرض من الشاشة بطبيعته — بنخليه قابل للسكرول الأفقي
+     بدل ما تنكسر الأعمدة أو تتراكب فوق بعضها */
+  .gd-dash-table-card {
+    overflow-x: auto;
+  }
+
+  .gd-dash-team-table {
+    min-width: 560px;
+  }
+
+  .gd-dash-occupancy-card {
+    padding: 20px 16px;
+  }
+
+  .gd-dash-occupancy-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

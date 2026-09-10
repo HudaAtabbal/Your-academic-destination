@@ -1,4 +1,3 @@
-
 /* Viewport Setup for Desktop */
 .cta-page-viewport {
   min-height: 100vh;
@@ -245,4 +244,43 @@
 
 .cta-submit-btn:hover {
   background-color: #0A2B26;
+}
+
+/* ============================================
+   Responsive — فورم عمود واحد، أزرار الأدوار 2×2،
+   وزر الإرسال ياخد العرض كامل عالموبايل
+   ============================================ */
+
+@media (max-width: 700px) {
+  .cta-roles-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .cta-main-container {
+    padding: 20px 16px 40px 16px;
+  }
+
+  .cta-form-card {
+    padding: 24px 18px;
+  }
+
+  .cta-form-title {
+    font-size: 1.35rem;
+    margin-bottom: 24px;
+  }
+
+  .cta-grid-2col {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .cta-submit-btn {
+    width: 100%;
+  }
+
+  .cta-form-actions {
+    justify-content: stretch;
+  }
 }

@@ -1,9 +1,11 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-
-export default defineConfig({
-  plugins: [react()],
+export default {
   server: {
-    allowedHosts: ['maturing-platter-sloping.ngrok-free.dev'],
+    host: true,
+    allowedHosts: ['.ngrok-free.app', '.ngrok-free.dev'],
+    hmr: {
+      protocol: 'wss',
+      host: 'maturing-platter-sloping.ngrok-free.dev', // لازم تبدّليها كل مرة يتغيّر رابط ngrok
+      clientPort: 443,
+    },
   },
-})
+}
