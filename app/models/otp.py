@@ -4,7 +4,7 @@
 جدول مؤقت بطبيعته — بينتظف يومياً بمهمة مجدولة (Scheduled Job) بمنطق الـ backend.
 """
 
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, String
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String ,INTEGER
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -20,7 +20,7 @@ class OTP(Base):
     )
 
     code = Column(String(10), nullable=False)
-
+    attempts = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     expires_at = Column(DateTime, nullable=False, index=True)
 

@@ -48,59 +48,6 @@ class OpinionChange(str, enum.Enum):
 
 # ⚠️ TODO: استبدال الـ placeholders بأسماء الـ 42 كلية الفعلية قبل الإطلاق.
 class College(str, enum.Enum):
-    college_placeholder_1 = "college_placeholder_1"
-    college_placeholder_2 = "college_placeholder_2"
-    not_chosen_yet = "not_chosen_yet"  # قيمة خاصة بالاستبيانات فقط
-
-
-# ⚠️ TODO: استبدال الـ placeholders بأسماء المحاضرات الفعلية قبل الإطلاق.
-class Lecture(str, enum.Enum):
-    lecture_placeholder_1 = "lecture_placeholder_1"
-    lecture_placeholder_2 = "lecture_placeholder_2"
-
-
-class AccountRole(str, enum.Enum):
-    super_admin = "super_admin"
-    students_admin = "students_admin"
-    college_staff = "college_staff"
-    gate_scanner = "gate_scanner"
-
-
-class CertificateType(str, enum.Enum):
-    """نوع الشهادة الثانوية — حقل مكتشف من كود الفرونت الفعلي، مش موجود بالسكيما الأصلية."""
-
-    scientific = "scientific"  # علمي
-    literary = "literary"  # أدبي
-
-
-class InterestCluster(str, enum.Enum):
-    """
-    التجمّع (المجال) يلي بيميل إله الطالب قبل الفعالية — مطابق تماماً لقيم الـ 8
-    "chips" الفعلية بشاشة RegisterStep2 بالفرونت (مش الـ 42 كلية المحددة).
-    منفصل تماماً عن college_enum لأنه ده مستوى تجمّع/تخمين مبدئي، مش اختيار كلية
-    محددة — الكليات المحددة (college_enum) بتُستخدم بس بـ bookings/checkins/accounts
-    يلي فعلاً محتاجة تحديد كلية بعينها.
-    """
-
-    medicine = "medicine"  # الطب البشري
-    informatics = "informatics"  # المعلوماتية
-    architecture = "architecture"  # الهندسة المعمارية
-    law = "law"  # الحقوق
-    pharmacy = "pharmacy"  # الصيدلة
-    agriculture = "agriculture"  # الهندسة الزراعية
-    education = "education"  # التربية
-    civil = "civil"  # الهندسة المدنية
-    not_chosen_yet = "not_chosen_yet"  # لسّا ما قرّرت
-
-
-class CertificateType(str, enum.Enum):
-    """نوع الشهادة الثانوية — حقل مكتشف من كود الفرونت الفعلي، مش موجود بالسكيما الأصلية."""
-
-    scientific = "scientific"  # علمي
-    literary = "literary"  # أدبي
-
-
-class InterestCluster(str, enum.Enum):
     medicine = "medicine"  # طب بشري
     dentistry = "dentistry"  # طب أسنان
     pharmacy = "pharmacy"  # صيدلة
@@ -127,3 +74,37 @@ class InterestCluster(str, enum.Enum):
     institute_applied_industries = "institute_applied_industries"  # معهد تقاني صناعات تطبيقية
     institute_computer = "institute_computer"  # معهد تقاني حاسوب
     not_chosen_yet = "not_chosen_yet"  # لسّا ما قرّرت
+
+
+# ⚠️ TODO: استبدال الـ placeholders بأسماء المحاضرات الفعلية قبل الإطلاق.
+class Lecture(str, enum.Enum):
+    lecture_1 = "lecture_1"
+    lecture_2 = "lecture_2"
+    lecture_3 = "lecture_3"
+    lecture_4 = "lecture_4"
+    lecture_5 = "lecture_5"
+    lecture_6 = "lecture_6"
+    lecture_7 = "lecture_7"
+    lecture_8 = "lecture_8"
+    lecture_9 = "lecture_9"
+    lecture_10 = "lecture_10"
+    lecture_11 = "lecture_11"
+    lecture_12 = "lecture_12"
+    lecture_13 = "lecture_13"
+    lecture_14 = "lecture_14"
+    lecture_15 = "lecture_15"
+    lecture_16 = "lecture_16"
+
+class AccountRole(str, enum.Enum):
+    super_admin = "super_admin"
+    students_admin = "students_admin"
+    college_staff = "college_staff"
+    gate_scanner = "gate_scanner"
+
+
+class CertificateType(str, enum.Enum):
+    """نوع الشهادة الثانوية — حقل مكتشف من كود الفرونت الفعلي، مش موجود بالسكيما الأصلية."""
+
+    scientific = "scientific"  # علمي
+    literary = "literary"  # أدبي
+

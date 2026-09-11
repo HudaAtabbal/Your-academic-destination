@@ -8,8 +8,8 @@ from pydantic import BaseModel
 
 from app.models.enums import (
     CertificateType,
+    College,
     ContactPlatform,
-    InterestCluster,
     RegistrationType,
     StudentStatus,
     VerificationStatus,
@@ -26,7 +26,7 @@ class StudentDetail(BaseModel):
     bacc_year: int | None = None
     bacc_average: float | None = None
     certificate_type: CertificateType | None = None
-    initial_preferred_major: list[InterestCluster] | None = None
+    initial_preferred_major: College | None = None
     verification_status: VerificationStatus
     registration_type: RegistrationType
     status: StudentStatus
@@ -49,7 +49,7 @@ class StudentUpdateRequest(BaseModel):
     bacc_year: int | None = None
     bacc_average: float | None = None
     certificate_type: CertificateType | None = None
-    initial_preferred_major: list[InterestCluster] | None = None
+    initial_preferred_major: College | None = None
     verification_status: VerificationStatus | None = None
     status: StudentStatus | None = None
 

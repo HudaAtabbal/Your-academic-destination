@@ -5,7 +5,7 @@ Router: admin/accounts — راجع قسم 7 بملف wijhatak_api_contract.md
 
 import math
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends , Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -28,7 +28,11 @@ router = APIRouter(
 
 
 @router.get("", response_model=AccountListResponse)
-def list_accounts(page: int = 1, limit: int = 20, db: Session = Depends(get_db)) -> AccountListResponse:
+def list_accounts(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+) -> AccountListResponse:
     items, total = account_service.list_accounts(db, page, limit)
     return AccountListResponse(
         items=[AccountPublic(username=a.username, role=a.role, college=a.college) for a in items],

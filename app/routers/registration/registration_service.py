@@ -7,10 +7,10 @@ initial_preferred_major بمستوى تجمّع لا كلية محددة).
 إرسال OTP فعلياً عبر SMS (سيرياتيل Bulk Messaging) — راجع app/sms_service.py.
 """
 
-import random
+import secrets
 import re
 from datetime import datetime, timedelta
-
+from sqlalchemy.exc import IntegrityError
 from requests.exceptions import RequestException
 from sqlalchemy.orm import Session
 
@@ -19,7 +19,7 @@ from app.errors import AppError, duplicate_contact, otp_invalid, sms_send_failed
 from app.models import (
     CertificateType,
     ContactPlatform,
-    InterestCluster,
+    College,
     OTP,
     RegistrationType,
     Student,
@@ -30,7 +30,8 @@ _PREFIX = "R"
 _DIGITS = 4
 _CODE_PATTERN = re.compile(rf"^{_PREFIX}-(\d+)$")
 _OTP_EXPIRY_MINUTES = 10
-
+_MAX_OTP_ATTEMPTS = 5
+_MAX_RETRIES = 5
 
 def _get_next_unique_code(db: Session) -> str:
     """
@@ -49,8 +50,9 @@ def _get_next_unique_code(db: Session) -> str:
 
 
 def _generate_otp_code() -> str:
-    return f"{random.randint(0, 9999):04d}"
+    return f"{secrets.randbelow(10_000):04d}"
 
+_MAX_RETRIES = 5
 
 def register_student(
     db: Session,
@@ -59,7 +61,7 @@ def register_student(
     certificate_year: int,
     certificate_type: CertificateType,
     average_score: float,
-    initial_preferred_major: InterestCluster,
+    initial_preferred_major: College,
     contact_platform: ContactPlatform,
     contact_id: str,
 ) -> tuple[Student, str]:
@@ -75,37 +77,45 @@ def register_student(
     if existing_contact is not None:
         raise duplicate_contact()
 
-    unique_code = _get_next_unique_code(db)
-
-    student = Student(
-        unique_code=unique_code,
-        full_name=full_name,
-        birth_date=birth_date,
-        bacc_year=certificate_year,
-        certificate_type=certificate_type,
-        bacc_average=average_score,
-        initial_preferred_major=initial_preferred_major,
-        contact_platform=contact_platform,
-        contact_id=contact_id,
-        registration_type=RegistrationType.registered,
-        verification_status=VerificationStatus.pending,
-    )
-    db.add(student)
-    db.commit()
-    db.refresh(student)
+    student = None
+    for attempt in range(_MAX_RETRIES):
+        unique_code = _get_next_unique_code(db)
+        student = Student(
+            unique_code=unique_code,
+            full_name=full_name,
+            birth_date=birth_date,
+            bacc_year=certificate_year,
+            certificate_type=certificate_type,
+            bacc_average=average_score,
+            initial_preferred_major=initial_preferred_major,
+            contact_platform=contact_platform,
+            contact_id=contact_id,
+            registration_type=RegistrationType.registered,
+            verification_status=VerificationStatus.pending,
+        )
+        db.add(student)
+        try:
+            db.commit()
+            db.refresh(student)
+            break
+        except IntegrityError:
+            db.rollback()
+            if attempt == _MAX_RETRIES - 1:
+                raise AppError(
+                    status_code=500,
+                    error_code="registration_failed",
+                    message="تعذّر إتمام التسجيل حالياً، حاولي مرة تانية",
+                )
 
     try:
         _create_otp(db, student.id, student.unique_code, student.contact_id)
     except AppError:
-        # فشل إرسال الـ SMS — منلغي التسجيل بالكامل (بدل ما يضل سجل "يتيم"
-        # بالـ DB بدون ما الطالب يكون استلم أي كود فعلياً)، هيك يقدر يعيد
-        # المحاولة بشكل نظيف بدون ما يصطدم بـ duplicate_contact
+        db.query(OTP).filter(OTP.student_id == student.id).delete()
         db.delete(student)
         db.commit()
         raise
 
     return student, unique_code
-
 
 def _create_otp(db: Session, student_id: int, unique_code: str, phone: str) -> str:
     code = _generate_otp_code()
@@ -140,31 +150,43 @@ def resend_otp(db: Session, unique_code: str) -> datetime:
         .first()
     )
     return otp.expires_at
-
-
 def verify_otp(db: Session, unique_code: str, otp_code: str) -> Student:
     student = db.query(Student).filter(Student.unique_code == unique_code).first()
+
     if student is None:
         raise student_not_found()
 
     otp = (
         db.query(OTP)
-        .filter(OTP.student_id == student.id, OTP.verified == False)  # noqa: E712
+        .filter(
+            OTP.student_id == student.id,
+            OTP.verified == False,  # noqa: E712
+        )
         .order_by(OTP.id.desc())
         .first()
     )
 
-    if otp is None or otp.code != otp_code or otp.expires_at < datetime.now():
+    if otp is None:
         raise otp_invalid()
 
+    # انتهت صلاحية الرمز
+    if otp.expires_at < datetime.now():
+        raise otp_invalid()
+
+    # الرمز غير صحيح
+    if otp.code != otp_code:
+        raise otp_invalid()
+
+    # الرمز صحيح
     otp.verified = True
     otp.verified_at = datetime.now()
+
     student.verification_status = VerificationStatus.verified
+
     db.commit()
     db.refresh(student)
 
     return student
-
 
 def get_student_card(db: Session, unique_code: str) -> Student:
     student = db.query(Student).filter(Student.unique_code == unique_code).first()

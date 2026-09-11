@@ -11,8 +11,8 @@ from sqlalchemy.sql import func
 from app.database import Base
 from app.models.enums import (
     CertificateType,
+    College,
     ContactPlatform,
-    InterestCluster,
     RegistrationType,
     StudentStatus,
     VerificationStatus,
@@ -39,11 +39,12 @@ class Student(Base):
     # بالـ DB لنفس سبب bacc_year (لسجلات walk-in)
     certificate_type = Column(SAEnum(CertificateType, name="certificate_type_enum"), nullable=True)
 
-    # التجمّع (المجال) يلي بيميل إله الطالب — enum بـ 8 قيم + not_chosen_yet،
+    # التجمّع (المجال) يلي بيميل إله الطالب — enum بـ 8 قيم + not_chosen_yet，
     # مختلف عن college_enum (راجع تعليق InterestCluster بـ enums.py)
     initial_preferred_major = Column(
-    ARRAY(SAEnum(InterestCluster, name="interest_cluster_enum")), nullable=True
-    )
+    ARRAY(SAEnum(College, name="college_enum")),
+    nullable=True,
+)
 
     verification_status = Column(
         SAEnum(VerificationStatus, name="verification_status_enum"),

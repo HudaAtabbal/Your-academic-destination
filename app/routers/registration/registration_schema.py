@@ -7,7 +7,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, Field
 
-from app.models.enums import CertificateType, ContactPlatform, InterestCluster, VerificationStatus
+from app.models.enums import CertificateType, ContactPlatform, College, VerificationStatus
 
 
 class RegisterRequest(BaseModel):
@@ -16,7 +16,7 @@ class RegisterRequest(BaseModel):
     certificate_year: int = Field(description="bacc_year — سنة الشهادة")
     certificate_type: CertificateType
     average_score: float = Field(ge=0, le=100, description="bacc_average — نسبة مئوية 0-100")
-    initial_preferred_major:list[InterestCluster] = Field(min_length=1)
+    initial_preferred_major:list[College] = Field(min_length=1)
     contact_platform: ContactPlatform
     contact_id: str
 
@@ -37,8 +37,7 @@ class ResendOtpResponse(BaseModel):
 
 class VerifyOtpRequest(BaseModel):
     unique_code: str
-    otp: str
-
+    otp: str = Field(min_length=4, max_length=4)
 
 class VerifyOtpResponse(BaseModel):
     unique_code: str

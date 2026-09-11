@@ -12,7 +12,7 @@ import string
 
 from sqlalchemy.orm import Session
 
-from app.errors import account_not_found, cannot_delete_self, duplicate_username
+from app.errors import account_not_found, cannot_delete_self, duplicate_username, validation_error
 from app.models import Account, AccountRole, College
 from app.security import hash_password
 
@@ -48,6 +48,8 @@ def create_account(
     college: College | None,
 ) -> tuple[Account, str | None]:
     existing = db.query(Account).filter(Account.username == username).first()
+    if role == AccountRole.college_staff and college is None:
+        raise validation_error("لازم تحددي كلية لحساب مسؤول الكلية")
     if existing is not None:
         raise duplicate_username()
 
@@ -82,7 +84,11 @@ def update_account(
         raise account_not_found()
 
     new_role = role if role is not None else account.role
-
+    if new_role == AccountRole.college_staff:
+        final_college = college if college is not None else account.college
+    if final_college is None:
+        raise validation_error("لازم تحددي كلية لحساب مسؤول الكلية")
+    
     if role is not None:
         account.role = role
     if college is not None or role is not None:

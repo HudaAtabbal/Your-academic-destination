@@ -35,19 +35,11 @@ def get_points(db: Session, unique_code: str) -> int:
         raise student_not_found()
     return student.total_points
 
-
 def recalculate_and_store_points(db: Session, student_id: int) -> int:
-    """
-    بتُستدعى بعد أي نشاط جديد بيأثر على النقاط (checkin أو استبيان) — من
-    checkin_service.py و survey_service.py. بتحسب النقاط من جديد بالكامل
-    من مصدر الحقيقة الحقيقي (checkins + post_survey) وبتخزّنها بعمود
-    Student.total_points، مشان يضل العمود دايماً متزامن مع النشاطات الفعلية.
-    """
     total = _calculate_points_for_student_id(db, student_id)
     db.query(Student).filter(Student.id == student_id).update({"total_points": total})
-    db.commit()
+    db.flush()  # بس flush، مش commit — الـ commit صار مسؤولية اللي نادى الدالة
     return total
-
 
 def _calculate_points_for_student_id(db: Session, student_id: int) -> int:
     day_expr = func.date(Checkin.checked_in_at)

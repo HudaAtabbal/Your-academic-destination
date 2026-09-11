@@ -16,17 +16,22 @@ from app.models.enums import AccountRole
 from app.security import decode_access_token
 
 # HTTPBearer بيفرض وجود الهيدر: Authorization: Bearer <token>
-_bearer_scheme = HTTPBearer()
+_bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def get_current_account(
-    credentials: HTTPAuthorizationCredentials = Depends(_bearer_scheme),
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
     db: Session = Depends(get_db),
 ) -> Account:
     """
-    Dependency أساسية — تستخدم بكل endpoint بيحتاج تسجيل دخول فريق عمل.
-    بتفشل بـ 401 لو التوكن غلط/منتهي/الحساب انحذف.
+    ...
     """
+    if credentials is None:
+        raise AppError(
+            status_code=401,
+            error_code="invalid_credentials",
+            message="التوكن غير صالح أو منتهي الصلاحية",
+        )
     token = credentials.credentials
     try:
         payload = decode_access_token(token)

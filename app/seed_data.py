@@ -22,7 +22,6 @@ from app.models import (
     AccountRole,
     College,
     ContactPlatform,
-    InterestCluster,
     RegistrationType,
     Student,
     StudentStatus,
@@ -34,7 +33,7 @@ from app.security import hash_password
 SEED_ACCOUNTS = [
     ("taher_super", "super123", AccountRole.super_admin, None),
     ("sedra_admin", "admin123", AccountRole.students_admin, None),
-    ("rima_staff", "staff123", AccountRole.college_staff, College.college_placeholder_1),
+    ("rima_staff", "staff123", AccountRole.college_staff, College.medicine),
     ("hadi_gate", "gate123", AccountRole.gate_scanner, None),
 ]
 
@@ -48,7 +47,7 @@ SEED_STUDENT = {
     "birth_date": date(2008, 1, 1),
     "bacc_year": 2026,
     "bacc_average": 285.5,
-    "initial_preferred_major": [InterestCluster.informatics],
+    "initial_preferred_major": ["informatics"],
     "verification_status": VerificationStatus.verified,
     "registration_type": RegistrationType.registered,
     "status": StudentStatus.complete,

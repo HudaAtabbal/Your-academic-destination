@@ -39,7 +39,8 @@ def submit_survey(
         student_id=student.id, opinion_change=opinion_change, preferred_major=preferred_major
     )
     db.add(survey)
+    db.flush()
+    point_service.recalculate_and_store_points(db, student.id)
     db.commit()
     db.refresh(survey)
-    point_service.recalculate_and_store_points(db, student.id)
     return survey

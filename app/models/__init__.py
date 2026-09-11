@@ -14,7 +14,6 @@ from app.models.enums import (
     CertificateType,
     College,
     ContactPlatform,
-    InterestCluster,
     Lecture,
     OpinionChange,
     RegistrationType,
@@ -46,5 +45,4 @@ __all__ = [
     "Lecture",
     "AccountRole",
     "CertificateType",
-    "InterestCluster",
 ]
