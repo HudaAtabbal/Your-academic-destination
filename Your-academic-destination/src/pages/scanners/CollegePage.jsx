@@ -12,6 +12,14 @@ const OPTION_LABELS = {
   consultation: 'استشارة فردية',
 };
 
+// أسماء الأدوار بالعربي — نفس الماب المستخدم بصفحة اختيار المحطة
+const ROLE_LABELS = {
+  super_admin: 'المدير العام',
+  students_admin: 'مدير بيانات الطلاب',
+  gate_scanner: 'مسؤول المسح',
+  college_staff: 'مسؤول الكلية',
+};
+
 const CollegePage = () => {
   const [manualCode, setManualCode] = useState('');
   const [scannedStudent, setScannedStudent] = useState(null);
@@ -19,6 +27,12 @@ const CollegePage = () => {
   const [bookingResult, setBookingResult] = useState(null); // نتيجة التوجيه (نجاح/فشل) بعد اختيار الطالب
   const [scanCount, setScanCount] = useState(null);
   const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظفة تدوس الزر
+
+  // بيانات الحساب المسجّل دخوله فعلياً (اتخزنت وقت تسجيل الدخول بـ TeamLoginPage)
+  const accountUsername = localStorage.getItem('accountUsername') || '';
+  const accountRole = localStorage.getItem('accountRole') || '';
+  const accountCollege = localStorage.getItem('accountCollege') || '';
+  const roleLabel = ROLE_LABELS[accountRole] || accountRole || 'مسؤول الكلية';
 
   const loadCount = async () => {
     try {
@@ -90,9 +104,9 @@ const CollegePage = () => {
       <div className="card-container">
         <StaffScanHeader
           title="ركن التوجيه"
-          username="rima_staff"
-          role="مسؤول الكلية"
-          location="داخل مبنى الكلية"
+          username={accountUsername}
+          role={roleLabel}
+          location={accountCollege || 'داخل مبنى الكلية'}
         />
 
         <main className="card-body">

@@ -6,11 +6,25 @@ import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
 import '../../style/StaffScan.css';
 
+// أسماء الأدوار بالعربي — نفس الماب المستخدم بصفحة اختيار المحطة
+const ROLE_LABELS = {
+  super_admin: 'المدير العام',
+  students_admin: 'مدير بيانات الطلاب',
+  gate_scanner: 'مسؤول المسح',
+  college_staff: 'مسؤول الكلية',
+};
+
 const TourPage = () => {
   const [manualCode, setManualCode] = useState('');
   const [result, setResult] = useState(null);
   const [scanCount, setScanCount] = useState(null);
   const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظف يدوس الزر
+
+  // بيانات الحساب المسجّل دخوله فعلياً (اتخزنت وقت تسجيل الدخول بـ TeamLoginPage)
+  const accountUsername = localStorage.getItem('accountUsername') || '';
+  const accountRole = localStorage.getItem('accountRole') || '';
+  const accountCollege = localStorage.getItem('accountCollege') || '';
+  const roleLabel = ROLE_LABELS[accountRole] || accountRole || 'مسؤول الجولة';
 
   useEffect(() => {
     apiGet('/checkins/count/today?activity_type=tour')
@@ -54,9 +68,9 @@ const TourPage = () => {
       <div className="card-container">
         <StaffScanHeader
           title="جولة تعريفية"
-          username="yousef_tour"
-          role="مسؤول الجولة"
-          location="باب الكلية"
+          username={accountUsername}
+          role={roleLabel}
+          location={accountCollege || 'باب الكلية'}
         />
 
         <main className="card-body">

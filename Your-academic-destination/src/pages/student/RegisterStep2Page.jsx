@@ -5,14 +5,13 @@ import StepProgress from '../../components/StepProgress';
 import { updateRegistrationData, getRegistrationData } from '../../api/RegistrationStorage';
 import '../../style/RegisterStep2Page.css';
 
-// --- Sub-Component: قائمة تخصصات قابلة للبحث ---
+// --- Sub-Component: قائمة تخصصات قابلة للبحث (اختيار متعدد) ---
 const MajorSearchList = ({
   categories,
   searchTerm,
   onSearchChange,
-  selectedCategory,
-  onSelectCategory,
-  isUndecided,
+  selectedCategories,
+  onToggleCategory,
 }) => {
   const query = searchTerm.trim();
   const filtered = categories.filter((cat) => !query || cat.name.includes(query));
@@ -34,9 +33,9 @@ const MajorSearchList = ({
               key={cat.id}
               type="button"
               className={`major-list-item ${
-                selectedCategory === cat.id && !isUndecided ? 'selected' : ''
+                selectedCategories.includes(cat.id) ? 'selected' : ''
               }`}
-              onClick={() => onSelectCategory(cat.id)}
+              onClick={() => onToggleCategory(cat.id)}
             >
               {cat.name}
             </button>
@@ -55,40 +54,64 @@ const RegisterStep2Page = () => {
 
   // بنحمّل الاختيار المحفوظ من قبل (لو الطالب رجع لهالخطوة بعد ريفريش أو من خطوة تانية)
   const saved = getRegistrationData();
-  const savedIsUndecided = saved.initialPreferredMajor === 'not_chosen_yet';
+  const savedMajors = Array.isArray(saved.initialPreferredMajor) ? saved.initialPreferredMajor : [];
+  const savedIsUndecided = savedMajors.length === 1 && savedMajors[0] === 'not_chosen_yet';
 
-  const [selectedCategory, setSelectedCategory] = useState(
-    savedIsUndecided || !saved.initialPreferredMajor ? null : saved.initialPreferredMajor
+  const [selectedCategories, setSelectedCategories] = useState(
+    savedIsUndecided ? [] : savedMajors
   );
   const [isUndecided, setIsUndecided] = useState(savedIsUndecided);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // القيم (id) هون مطابقة بالحرف لـ InterestCluster enum بالباك — القائمة الموحّدة
+  // يلي اتفقنا عليها مع فريق الباك (ملف interest-cluster-unified-list.md)
   const categories = [
-    { id: 'medicine', name: 'الطب البشري' },
-    { id: 'informatics', name: 'المعلوماتية' },
-    { id: 'architecture', name: 'الهندسة المعمارية' },
-    { id: 'law', name: 'الحقوق' },
-    { id: 'pharmacy', name: 'الصيدلة' },
-    { id: 'agriculture', name: 'الهندسة الزراعية' },
-    { id: 'education', name: 'التربية' },
-    { id: 'civil', name: 'الهندسة المدنية' },
+    { id: 'medicine', name: 'طب بشري' },
+    { id: 'dentistry', name: 'طب أسنان' },
+    { id: 'pharmacy', name: 'صيدلة' },
+    { id: 'health_sciences', name: 'علوم صحية' },
+    { id: 'informatics', name: 'هندسة معلوماتية' },
+    { id: 'civil', name: 'هندسة مدنية' },
+    { id: 'architecture', name: 'هندسة معمارية' },
+    { id: 'agriculture', name: 'هندسة زراعة' },
+    { id: 'electrical_mechanical_eng', name: 'هندسة كهربائية وميكانيكية' },
+    { id: 'chemical_food_eng', name: 'هندسة كيميائية وغذائية' },
+    { id: 'economics', name: 'اقتصاد' },
+    { id: 'tourism', name: 'سياحة' },
+    { id: 'music', name: 'موسيقا' },
+    { id: 'literature', name: 'اداب' },
+    { id: 'education', name: 'تربية' },
+    { id: 'science', name: 'علوم' },
+    { id: 'applied_science', name: 'تطبيقية' },
+    { id: 'law', name: 'حقوق' },
+    { id: 'institute_agriculture', name: 'معهد تقاني زراعي' },
+    { id: 'institute_desert_affairs', name: 'معهد تقاني لشؤون البادية والتصحر' },
+    { id: 'institute_engineering', name: 'معهد تقاني هندسي' },
+    { id: 'institute_health', name: 'معهد تقاني صحي' },
+    { id: 'institute_dentistry', name: 'معهد تقاني طب اسنان' },
+    { id: 'institute_applied_industries', name: 'معهد تقاني صناعات تطبيقية' },
+    { id: 'institute_computer', name: 'معهد تقاني حاسوب' },
   ];
 
-  // حفظ تلقائي بكل تغيير بالاختيار — بلا ما ننتظر ضغطة "تابع"
+  // حفظ تلقائي بكل تغيير بالاختيار — بلا ما ننتظر ضغطة "تابع".
+  // ⚠️ initialPreferredMajor صارت array (بانتظار الباك يعدّل الحقل لـ List[InterestCluster])
   useEffect(() => {
     updateRegistrationData({
-      initialPreferredMajor: isUndecided || !selectedCategory ? 'not_chosen_yet' : selectedCategory,
+      initialPreferredMajor:
+        isUndecided || selectedCategories.length === 0 ? ['not_chosen_yet'] : selectedCategories,
     });
-  }, [selectedCategory, isUndecided]);
+  }, [selectedCategories, isUndecided]);
 
-  const handleSelectCategory = (id) => {
-    setSelectedCategory(id);
+  const handleToggleCategory = (id) => {
     setIsUndecided(false);
+    setSelectedCategories((prev) =>
+      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+    );
   };
 
   const handleToggleUndecided = () => {
     setIsUndecided(true);
-    setSelectedCategory(null);
+    setSelectedCategories([]);
   };
 
   const handleSubmit = (e) => {
@@ -116,9 +139,8 @@ const RegisterStep2Page = () => {
               categories={categories}
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
-              selectedCategory={selectedCategory}
-              onSelectCategory={handleSelectCategory}
-              isUndecided={isUndecided}
+              selectedCategories={selectedCategories}
+              onToggleCategory={handleToggleCategory}
             />
 
             <div

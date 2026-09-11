@@ -249,3 +249,11 @@
   max-height: none !important;
   border-radius: 0 !important;
 }
+
+/* الدليل الأكاديمي (major-guide.html) — بياخد كل المساحة تحت الهيدر */
+.ag-guide-iframe {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background-color: #FFF4E0;
+}

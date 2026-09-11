@@ -1,4 +1,4 @@
-.card-wrapper {
+.uniGate-wrapper {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -10,7 +10,7 @@
   box-sizing: border-box;
 }
 
-.card-container {
+.uniGate-container {
   width: 100%;
   max-width: 380px;
   height: 680px;
@@ -24,7 +24,7 @@
 }
 
 /* Header */
-.gate-header {
+.uniGate-header {
   background-color: #0E3E37;
   padding: 20px 22px;
   display: flex;
@@ -33,29 +33,29 @@
   color: #FFFFFF;
 }
 
-.user-info {
+.uniGate-userInfo {
   display: flex;
   flex-direction: column;
 }
 
-.header-title {
+.uniGate-headerTitle {
   font-size: 1.35rem;
   font-weight: 800;
   margin: 0 0 2px 0;
 }
 
-.header-subtitle {
+.uniGate-headerSubtitle {
   font-size: 0.8rem;
   font-weight: 500;
   margin: 0;
   opacity: 0.85;
 }
 
-.dot {
+.uniGate-dot {
   margin: 0 4px;
 }
 
-.gate-scan-error {
+.uniGate-scanError {
   color: #B71C1C;
   font-size: 0.85rem;
   font-weight: 700;
@@ -63,7 +63,7 @@
   margin: -6px 0 0 0;
 }
 
-.gate-logout-btn {
+.uniGate-logoutBtn {
   background-color: rgba(255, 255, 255, 0.12);
   color: #FFFFFF;
   border: none;
@@ -77,12 +77,12 @@
   flex-shrink: 0;
 }
 
-.gate-logout-btn:hover {
+.uniGate-logoutBtn:hover {
   background-color: rgba(255, 255, 255, 0.22);
 }
 
 /* Main Body Area */
-.gate-body {
+.uniGate-body {
   padding: 16px;
   flex: 1;
   display: flex;
@@ -91,21 +91,21 @@
   overflow-y: auto;
 }
 
-.gate-body::-webkit-scrollbar {
+.uniGate-body::-webkit-scrollbar {
   display: none;
 }
-.gate-body {
+.uniGate-body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
 
 /* Stats Row */
-.stats-row {
+.uniGate-statsRow {
   display: flex;
   gap: 12px;
 }
 
-.stat-card {
+.uniGate-statCard {
   flex: 1;
   background-color: #FFFFFF;
   border-radius: 20px;
@@ -117,14 +117,14 @@
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
-.stat-label {
+.uniGate-statLabel {
   color: #0E3E37;
   font-size: 0.85rem;
   font-weight: 700;
   opacity: 0.8;
 }
 
-.stat-value {
+.uniGate-statValue {
   color: #0E3E37;
   font-size: 1.8rem;
   font-weight: 800;
@@ -132,7 +132,7 @@
 }
 
 /* QR Card — صارت <button> عشان تصير قابلة للضغط، فمحتاجة نصفّر ستايل الزر الافتراضي */
-.qr-card {
+.uniGate-qrCard {
   width: 100%;
   background-color: #FFFFFF;
   border-radius: 24px;
@@ -148,15 +148,15 @@
   transition: transform 0.15s ease;
 }
 
-.qr-card:hover {
+.uniGate-qrCard:hover {
   transform: scale(1.01);
 }
 
-.qr-card:active {
+.uniGate-qrCard:active {
   transform: scale(0.99);
 }
 
-.qr-viewfinder {
+.uniGate-qrViewfinder {
   width: 170px;
   height: 170px;
   background-color: #0E3E37;
@@ -167,14 +167,14 @@
   margin-bottom: 12px;
 }
 
-.qr-frame {
+.uniGate-qrFrame {
   width: 110px;
   height: 110px;
   border: 2px solid #52C4A5;
   border-radius: 20px;
 }
 
-.qr-hint {
+.uniGate-qrHint {
   color: #0E3E37;
   font-size: 0.85rem;
   font-weight: 700;
@@ -183,7 +183,7 @@
 }
 
 /* Divider */
-.divider {
+.uniGate-divider {
   text-align: center;
   color: #7A6953;
   font-size: 0.9rem;
@@ -192,25 +192,26 @@
 }
 
 /* Search Form */
-.search-form {
+.uniGate-searchForm {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.input-group {
+.uniGate-inputGroup {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.input-group label {
+.uniGate-inputGroup label {
   color: #3B0D23;
   font-size: 0.95rem;
   font-weight: 800;
+  text-align: center;
 }
 
-.input-group input {
+.uniGate-inputGroup input {
   width: 100%;
   padding: 14px 18px;
   border-radius: 16px;
@@ -224,16 +225,16 @@
   transition: border-color 0.2s ease;
 }
 
-.input-group input::placeholder {
+.uniGate-inputGroup input::placeholder {
   color: #A09383;
 }
 
-.input-group input:focus {
+.uniGate-inputGroup input:focus {
   border-color: #0E3E37;
 }
 
 /* Buttons */
-.btn {
+.uniGate-btn {
   width: 100%;
   padding: 14px;
   border-radius: 16px;
@@ -244,18 +245,18 @@
   transition: all 0.2s ease;
 }
 
-.btn-secondary {
+.uniGate-btnSecondary {
   background-color: #FFFFFF;
   color: #0E3E37;
   border: 1.5px solid #E5D5BC;
 }
 
-.btn-secondary:hover {
+.uniGate-btnSecondary:hover {
   background-color: #f7f7f7;
 }
 
 /* Bottom Status Bar */
-.status-bar {
+.uniGate-statusBar {
   margin-top: auto;
   background-color: #0E3E37;
   border-radius: 16px;
@@ -268,15 +269,15 @@
   font-weight: 700;
 }
 
-.status-text {
+.uniGate-statusText {
   opacity: 0.9;
 }
 
-.status-count {
+.uniGate-statusCount {
   opacity: 0.9;
 }
 
-.card-wrapper {
+.uniGate-wrapper {
   padding: 0 !important;
   align-items: stretch !important;   /* بيلغي التوسيط العمودي — كان سبب فراغ فوق وتحت */
   justify-content: stretch !important;
@@ -284,7 +285,7 @@
   min-height: 100dvh !important;     /* نفس وحدة القياس المستخدمة بالكرت تحت */
 }
 
-.card-container {
+.uniGate-container {
   max-width: none !important;
   width: 100% !important;
   height: 100vh !important;
@@ -292,3 +293,7 @@
   max-height: none !important;
   border-radius: 0 !important;
 }
+
+/* ملاحظة: .manual-code-row / .manual-code-input / .manual-code-btn المستخدمة بالـ JSX
+   مو موجودة بهالملف الأصلي (معرّفة بمكان تاني على الأغلب). إذا بدك، لازم نوحّد
+   أسامها هناك كمان لـ .uniGate-manualCodeRow / .uniGate-manualCodeInput / .uniGate-manualCodeBtn */

@@ -6,11 +6,25 @@ import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
 import '../../style/StaffScan.css';
 
+// أسماء الأدوار بالعربي — نفس الماب المستخدم بصفحة اختيار المحطة
+const ROLE_LABELS = {
+  super_admin: 'المدير العام',
+  students_admin: 'مدير بيانات الطلاب',
+  gate_scanner: 'مسؤول المسح',
+  college_staff: 'مسؤول الكلية',
+};
+
 const ConsultationPage = () => {
   const [manualCode, setManualCode] = useState('');
   const [result, setResult] = useState(null);
   const [scanCount, setScanCount] = useState(null);
   const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظف يدوس الزر
+
+  // بيانات الحساب المسجّل دخوله فعلياً (اتخزنت وقت تسجيل الدخول بـ TeamLoginPage)
+  const accountUsername = localStorage.getItem('accountUsername') || '';
+  const accountRole = localStorage.getItem('accountRole') || '';
+  const accountCollege = localStorage.getItem('accountCollege') || '';
+  const roleLabel = ROLE_LABELS[accountRole] || accountRole || 'مسؤول الكلية';
 
   useEffect(() => {
     apiGet('/checkins/count/today?activity_type=consultation')
@@ -53,9 +67,9 @@ const ConsultationPage = () => {
       <div className="card-container">
         <StaffScanHeader
           title="استشارة فردية"
-          username="nour_staff"
-          role="مسؤول الكلية"
-          location="باب الاستشارة"
+          username={accountUsername}
+          role={roleLabel}
+          location={accountCollege || 'باب الاستشارة'}
         />
 
         <main className="card-body">

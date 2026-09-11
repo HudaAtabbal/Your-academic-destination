@@ -1,5 +1,3 @@
-
-
 .card-wrapper {
   display: flex;
   justify-content: center;
@@ -22,18 +20,13 @@
   flex-direction: column;
 }
 
-/* Step Header — الستايل صار مركزي بملف HeaderStep.css، ما عاد لازم يتكرر هون */
 
-
-
-/* Progress Bar — الستايل صار مركزي بملف StepProgress.css، ما عاد لازم يتكرر هون */
 
 
 
 /* Body & Form */
 .card-body {
   padding: 24px;
-  flex: 1;
   border-radius: 0 0 36px 36px; /* FIX: يأخذ الزوايا المدورة السفلية بنفس منطق الهيدر */
 }
 
@@ -189,14 +182,16 @@
   padding: 0 !important;
   align-items: stretch !important;   /* بيلغي التوسيط العمودي — كان سبب فراغ فوق وتحت */
   justify-content: stretch !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;     /* نفس وحدة القياس المستخدمة بالكرت تحت */
+  height: 100vh !important;          /* FIX: height ثابت (مش min-height) عشان يصير عنده سقف حقيقي يعمل سكرول عنده */
+  height: 100dvh !important;         /* نفس وحدة القياس المستخدمة بالكرت تحت */
+  overflow-y: auto !important;       /* FIX: السكرول هلق عالصفحة كلها (wrapper)، مش متعلق بسلسلة flex داخلية دقيقة */
+  -webkit-overflow-scrolling: touch;
 }
 
 .card-container {
   max-width: none !important;
   width: 100% !important;
-  min-height: 100vh !important;
+  min-height: 100vh !important;      /* FIX: min-height بس (مش height ثابت + overflow:hidden)، حتى الكرت يتمدد مع المحتوى الطويل بدل ما يقصه */
   min-height: 100dvh !important;
   border-radius: 0 !important;
 }

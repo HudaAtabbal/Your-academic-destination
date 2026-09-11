@@ -77,31 +77,31 @@ const UniversityGatePage = () => {
   };
 
   return (
-    <div className="card-wrapper">
-      <div className="card-container">
-        
+    <div className="uniGate-wrapper">
+      <div className="uniGate-container">
+
         {/* Top Header */}
-        <header className="gate-header">
-          <div className="user-info">
-            <h1 className="header-title">بوابة الجامعة</h1>
-            <p className="header-subtitle">
-              sedra_admin <span className="dot">•</span> مدير بيانات الطلاب
+        <header className="uniGate-header">
+          <div className="uniGate-userInfo">
+            <h1 className="uniGate-headerTitle">بوابة الجامعة</h1>
+            <p className="uniGate-headerSubtitle">
+              sedra_admin <span className="uniGate-dot">•</span> مدير بيانات الطلاب
             </p>
           </div>
-          <button type="button" className="gate-logout-btn" onClick={handleLogout}>
+          <button type="button" className="uniGate-logoutBtn" onClick={handleLogout}>
             تسجيل خروج
           </button>
         </header>
 
         {/* Scrollable Content Area */}
-        <main className="gate-body">
-          
+        <main className="uniGate-body">
+
           {/* Stats Cards Row */}
-          <div className="stats-row">
-           
-            <div className="stat-card">
-              <span className="stat-label">دخلوا اليوم</span>
-              <span className="stat-value">{todayCount ?? '—'}</span>
+          <div className="uniGate-statsRow">
+
+            <div className="uniGate-statCard">
+              <span className="uniGate-statLabel">دخلوا اليوم</span>
+              <span className="uniGate-statValue">{todayCount ?? '—'}</span>
             </div>
           </div>
 
@@ -129,11 +129,11 @@ const UniversityGatePage = () => {
           </div>
 
           {/* Divider */}
-          <div className="divider">— أو —</div>
+          <div className="uniGate-divider">— أو —</div>
 
           {/* Search Section */}
-          <form onSubmit={handleSearch} className="search-form">
-            <div className="input-group">
+          <form onSubmit={handleSearch} className="uniGate-searchForm">
+            <div className="uniGate-inputGroup">
               <label htmlFor="studentId">ابحث برقم الطالب الفريد</label>
               <input
                 type="text"
@@ -145,15 +145,15 @@ const UniversityGatePage = () => {
               />
             </div>
 
-            <button type="submit" className="btn btn-secondary">
+            <button type="submit" className="uniGate-btn uniGate-btnSecondary">
               بحث وتعديل بيانات
             </button>
           </form>
 
           {/* Bottom Status Bar */}
-          <div className="status-bar">
-            <span className="status-text">متصل</span>
-            <span className="status-count">{todayCount ?? '—'} دخول اليوم</span>
+          <div className="uniGate-statusBar">
+            <span className="uniGate-statusText">متصل</span>
+            <span className="uniGate-statusCount">{todayCount ?? '—'} دخول اليوم</span>
           </div>
 
         </main>
