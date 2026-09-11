@@ -17,8 +17,8 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
     e.preventDefault();
 
     const parsedCount = parseInt(count, 10);
-    if (!parsedCount || parsedCount <= 0) {
-      setError('يرجى إدخال عدد رموز صحيح أكبر من صفر');
+    if (!parsedCount || parsedCount <= 0 || parsedCount > 500) {
+      setError('يرجى إدخال عدد رموز صحيح بين 1 و500');
       return;
     }
 
@@ -28,7 +28,11 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
     try {
       // الباك هو يلي بيحدد رقم البداية تلقائياً (آخر رقم متوقف عنده بالدفعة السابقة)
       const response = await apiPost('/admin/walkin-codes/generate', { count: parsedCount });
-      const codes = response.codes;
+      const codes = Array.isArray(response?.codes) ? response.codes : [];
+      if (codes.length === 0) {
+        setError('ما رجعت أي رموز من الخدمة، حاولي مرة تانية');
+        return;
+      }
 
       setGeneratedCodes(codes);
       setBatchInfo({

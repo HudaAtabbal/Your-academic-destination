@@ -90,6 +90,18 @@ const StudentDataManagerPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // بيانات السجل "مكتملة" فقط إذا الحقول الأساسية معبّأة فعلاً وحالة التحقق مفعّلة —
+  // بدل ما نعرض "سجل مكتمل" بشكل ثابت بغض النظر عن محتوى البيانات الحقيقي
+  const isRecordComplete = Boolean(
+    formData &&
+      formData.fullName &&
+      formData.phoneNumber &&
+      formData.birthDate &&
+      formData.certificateYear &&
+      formData.baccalaureateScore &&
+      formData.verificationStatus === 'verified'
+  );
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (!studentDbId) return;
@@ -97,12 +109,19 @@ const StudentDataManagerPage = () => {
     setIsSaving(true);
     setSaveMessage('');
 
+    const toNumberOrNull = (raw) => {
+      const trimmed = String(raw ?? '').trim();
+      if (!trimmed) return null;
+      const parsed = Number(trimmed);
+      return Number.isFinite(parsed) ? parsed : null;
+    };
+
     const payload = {
       full_name: formData.fullName,
       birth_date: formData.birthDate,
       contact_id: formData.phoneNumber,
-      bacc_year: Number(formData.certificateYear),
-      bacc_average: Number(formData.baccalaureateScore),
+      bacc_year: toNumberOrNull(formData.certificateYear),
+      bacc_average: toNumberOrNull(formData.baccalaureateScore),
       verification_status: formData.verificationStatus,
     };
 
@@ -176,7 +195,9 @@ const StudentDataManagerPage = () => {
           {formData && (
             <section className="edit-card">
               <div className="card-header-row">
-                <span className="status-chip success">سجل مكتمل</span>
+                <span className={`status-chip ${isRecordComplete ? 'success' : 'warning'}`}>
+                  {isRecordComplete ? 'سجل مكتمل' : 'بيانات ناقصة'}
+                </span>
                 <h2 className="edit-title">تعديل سجل الطالب — {activeId}</h2>
               </div>
 

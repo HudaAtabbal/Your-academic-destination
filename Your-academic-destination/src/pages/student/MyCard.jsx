@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import QRCode from 'react-qr-code'; // يمكنك استخدام مكتبة react-qr-code أو صورة QR جاهزة
 import HeaderStep from '../../components/HeaderStep';
 import BottomNav from '../../components/BottomNav';
@@ -6,11 +7,19 @@ import '../../style/MyCard.css';
 
 const MyCard = () => {
   const qrWrapperRef = useRef(null);
+  const navigate = useNavigate();
 
   // بنقرأ الكود من localStorage (اتخزن هناك بصفحة OTP بعد نجاح التحقق)
-  // بدل ما يكون ثابت بالكود؛ الاسم لسا موك لحد ما نربط API فعلي يرجّعه
-  const studentCode = localStorage.getItem('studentCode') || 'R-0248';
-  const studentName = localStorage.getItem('studentName') || 'عمر أحمد العسورة';
+  // ما في قيمة احتياطية للكود لأنها بتشبه كود طالب حقيقي وممكن تسجّل حضور غلط
+  const studentCode = localStorage.getItem('studentCode');
+  const studentName = localStorage.getItem('studentName') || '';
+
+  // لو ما في كود مخزّن، منوجّه المستخدم لصفحة استرجاع الكود بدل ما نعرض بطاقة موك
+  useEffect(() => {
+    if (!studentCode) navigate('/find-card', { replace: true });
+  }, [studentCode, navigate]);
+
+  if (!studentCode) return null;
 
   const cardData = {
     name: studentName,

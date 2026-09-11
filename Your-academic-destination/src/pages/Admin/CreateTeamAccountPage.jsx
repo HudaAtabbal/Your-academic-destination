@@ -23,7 +23,10 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(editMember?.roleType || 'gate_scanner'); // 'super_admin', 'students_admin', 'gate_scanner', 'college_staff'
   const [faculty, setFaculty] = useState(
-    editMember?.roleType === 'college_staff' ? editMember.faculty : ''
+    editMember?.roleType === 'college_staff' &&
+    KNOWN_COLLEGES.some((c) => c.value === editMember.faculty)
+      ? editMember.faculty
+      : ''
   );
   const [error, setError] = useState('');
   const [successInfo, setSuccessInfo] = useState(''); // بيعرض كلمة السر المتولّدة بعد الإنشاء
@@ -131,6 +134,7 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
                   placeholder="مثال: sara_staff"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  disabled={!!editMember}
                   dir="rtl"
                 />
               </div>
