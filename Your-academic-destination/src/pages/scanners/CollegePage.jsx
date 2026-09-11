@@ -27,6 +27,7 @@ const CollegePage = () => {
   const [bookingResult, setBookingResult] = useState(null); // نتيجة التوجيه (نجاح/فشل) بعد اختيار الطالب
   const [scanCount, setScanCount] = useState(null);
   const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظفة تدوس الزر
+  const [isProcessing, setIsProcessing] = useState(false); // guard: يمنع مسح/طلب جديد قبل ما يخلص السابق
 
   // بيانات الحساب المسجّل دخوله فعلياً (اتخزنت وقت تسجيل الدخول بـ TeamLoginPage)
   const accountUsername = localStorage.getItem('accountUsername') || '';
@@ -51,9 +52,12 @@ const CollegePage = () => {
   }, []);
 
   const handleScan = async (rawCode) => {
+    if (isProcessing) return; // guard: طلب سابق لسا شغال، منتجاهل هاد المسح
+
     const code = rawCode.trim();
     if (!code) return;
 
+    setIsProcessing(true);
     setChoice(null);
     setBookingResult(null); // بدأنا مع طالب جديد — بننضّف نتيجة الطالب السابق
 
@@ -67,6 +71,8 @@ const CollegePage = () => {
       const message = err instanceof ApiError ? err.message : 'صار خطأ غير متوقع';
       showToast(message, 'error');
       setIsCameraPaused(true);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -76,7 +82,9 @@ const CollegePage = () => {
   };
 
   const handleChoice = async (option) => {
-    if (!scannedStudent) return;
+    if (!scannedStudent || isProcessing) return; // guard: يمنع ضغط مزدوج على نفس الخيار أو خيار تاني
+
+    setIsProcessing(true);
 
     try {
       await apiPost(`/bookings/${option}`, { unique_code: scannedStudent.code });
@@ -96,6 +104,8 @@ const CollegePage = () => {
       showToast(message, 'error');
       // منسيب الأسئلة ظاهرة حتى تقدر تجرّبي خيار تاني بدون ما تعيدي المسح
       setBookingResult(null);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -126,8 +136,14 @@ const CollegePage = () => {
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               dir="ltr"
+              disabled={isProcessing}
             />
-            <button type="button" className="manual-code-btn" onClick={() => handleScan(manualCode)}>
+            <button
+              type="button"
+              className="manual-code-btn"
+              onClick={() => handleScan(manualCode)}
+              disabled={isProcessing}
+            >
               بحث
             </button>
           </div>
@@ -142,6 +158,7 @@ const CollegePage = () => {
                   type="button"
                   className={`orientation-btn ${choice === 'consultation' ? 'selected' : ''}`}
                   onClick={() => handleChoice('consultation')}
+                  disabled={isProcessing}
                 >
                   استشارة فردية
                 </button>
@@ -149,6 +166,7 @@ const CollegePage = () => {
                   type="button"
                   className={`orientation-btn ${choice === 'tour' ? 'selected' : ''}`}
                   onClick={() => handleChoice('tour')}
+                  disabled={isProcessing}
                 >
                   جولة الكلية
                 </button>

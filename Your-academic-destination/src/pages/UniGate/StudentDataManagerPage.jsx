@@ -274,7 +274,7 @@ const StudentDataManagerPage = () => {
                 </div>
 
                 {/* Row 4 */}
-                <div className="form-row">
+                {/* <div className="form-row">
                   <div className="input-group">
                     <label htmlFor="verificationStatus">حالة التحقق</label>
                     <div className="verified-input-wrapper">
@@ -296,7 +296,7 @@ const StudentDataManagerPage = () => {
                     </div>
                   </div>
                   
-                </div>
+                </div> */}
 
                 {saveMessage && <p className="save-feedback-message">{saveMessage}</p>}
 

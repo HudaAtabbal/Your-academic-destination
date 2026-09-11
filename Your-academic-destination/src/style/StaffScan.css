@@ -423,3 +423,27 @@
   max-height: none !important;
   border-radius: 0 !important;
 }
+
+.scan-box-camera-wrapper {
+  position: relative;
+}
+
+.scan-box-busy-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+}
+
+.scan-box-busy-text {
+  color: #ffffff;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  padding: 10px 20px;
+  background: rgba(19, 79, 71, 0.85); /* نفس أخضر البرايمري بالمشروع */
+  border-radius: 12px;
+}

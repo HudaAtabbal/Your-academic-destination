@@ -19,6 +19,7 @@ const ConsultationPage = () => {
   const [result, setResult] = useState(null);
   const [scanCount, setScanCount] = useState(null);
   const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظف يدوس الزر
+  const [isProcessing, setIsProcessing] = useState(false); // guard: يمنع مسح/طلب جديد قبل ما يخلص السابق
 
   // بيانات الحساب المسجّل دخوله فعلياً (اتخزنت وقت تسجيل الدخول بـ TeamLoginPage)
   const accountUsername = localStorage.getItem('accountUsername') || '';
@@ -33,8 +34,12 @@ const ConsultationPage = () => {
   }, []);
 
   const handleScan = async (rawCode) => {
+    if (isProcessing) return; // guard: طلب سابق لسا شغال، منتجاهل هاد المسح
+
     const code = rawCode.trim();
     if (!code) return;
+
+    setIsProcessing(true);
 
     try {
       const response = await apiPost('/checkins/consultation', { unique_code: code });
@@ -55,6 +60,8 @@ const ConsultationPage = () => {
         studentCode: code,
       });
       setIsCameraPaused(true);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -84,8 +91,14 @@ const ConsultationPage = () => {
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               dir="ltr"
+              disabled={isProcessing}
             />
-            <button type="button" className="manual-code-btn" onClick={() => handleScan(manualCode)}>
+            <button
+              type="button"
+              className="manual-code-btn"
+              onClick={() => handleScan(manualCode)}
+              disabled={isProcessing}
+            >
               تحقق
             </button>
           </div>

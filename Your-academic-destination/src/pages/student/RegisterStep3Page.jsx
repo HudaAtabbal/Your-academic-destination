@@ -14,6 +14,23 @@ const RegisterStep3Page = () => {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // حراسة: لو المستخدم وصل لهاي الصفحة بدون ما يكمّل الخطوات السابقة
+  // (رابط مباشر، بيانات السلة انمسحت أو انتهت صلاحيتها، إلخ) —
+  // منرجعه لـ Step1 بدل ما نخليه يعبي فورم رح يفشل عند الإرسال
+  useEffect(() => {
+    const data = getRegistrationData();
+    const hasPreviousSteps =
+      data.fullName &&
+      data.birthDate &&
+      data.certificateYear &&
+      data.certificateType &&
+      data.averageScore;
+
+    if (!hasPreviousSteps) {
+      navigate("/register-step1", { replace: true });
+    }
+  }, [navigate]);
+
   // حفظ تلقائي بكل تغيير بالرقم — بلا ما ننتظر ضغطة الإرسال
   useEffect(() => {
     if (phoneNumber) {
@@ -44,6 +61,21 @@ const RegisterStep3Page = () => {
 
     // بنجمّع بيانات الخطوات السابقة من السلة (رقم الهاتف أصلاً محفوظ فيها عبر الحفظ التلقائي فوق)
     const previousSteps = getRegistrationData();
+
+    // حماية إضافية وقت الإرسال: لو لسبب ما البيانات ناقصة رغم اجتياز الحراسة فوق
+    // (متلاً انتهت الصلاحية بالضبط أثناء تعبئة رقم الهاتف)، منوقف ومنرجع المستخدم
+    if (
+      !previousSteps.fullName ||
+      !previousSteps.birthDate ||
+      !previousSteps.certificateYear ||
+      !previousSteps.certificateType ||
+      !previousSteps.averageScore
+    ) {
+      setIsSubmitting(false);
+      setError("انتهت صلاحية بياناتك، رح نرجّعك لبداية التسجيل");
+      navigate("/register-step1", { replace: true });
+      return;
+    }
 
     const payload = {
       full_name: previousSteps.fullName,

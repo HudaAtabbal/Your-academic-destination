@@ -12,6 +12,7 @@ const UniversityGatePage = () => {
   const [manualCode, setManualCode] = useState('');
   const [todayCount, setTodayCount] = useState(null);
   const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظفة تدوس الزر
+  const [isProcessing, setIsProcessing] = useState(false); // guard: يمنع مسح/طلب جديد قبل ما يخلص السابق
 
   const handleLogout = () => {
     clearAuthToken();
@@ -36,8 +37,12 @@ const UniversityGatePage = () => {
   };
 
   const handleScan = async (rawCode) => {
+    if (isProcessing) return; // guard: طلب سابق لسا شغال، منتجاهل هاد المسح
+
     const code = rawCode.trim();
     if (!code) return;
+
+    setIsProcessing(true);
 
     try {
       const response = await apiPost('/checkins/campus-entry', { unique_code: code });
@@ -69,6 +74,7 @@ const UniversityGatePage = () => {
       setIsCameraPaused(true);
     } finally {
       setManualCode('');
+      setIsProcessing(false);
     }
   };
 
@@ -122,8 +128,14 @@ const UniversityGatePage = () => {
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               dir="ltr"
+              disabled={isProcessing}
             />
-            <button type="button" className="manual-code-btn" onClick={() => handleScan(manualCode)}>
+            <button
+              type="button"
+              className="manual-code-btn"
+              onClick={() => handleScan(manualCode)}
+              disabled={isProcessing}
+            >
               تسجيل
             </button>
           </div>
