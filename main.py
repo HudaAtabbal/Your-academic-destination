@@ -3,6 +3,7 @@
 تشغيل محلي: uvicorn main:app --reload
 """
 
+import json
 import os
 from contextlib import asynccontextmanager
 
@@ -144,7 +145,43 @@ def validation_exception_handler(request: Request, exc: RequestValidationError) 
         content={
             "error_code": "validation_error",
             "message": message,
-            "details": {"errors": errors},
+            "details": {"errors": _make_json_safe(errors)},
+        },
+    )
+
+
+def _make_json_safe(value):
+    """
+    أخطاء الفاليديشن من Pydantic ممكن تحوي كائنات Python فعلية داخل ctx
+    (مثلاً ctx.error وهو استثناء ValueError من field_validator/برا فيلد)
+    وبيطلع TypeError "not JSON serializable" عند إرسال الرد — هون بنحوّل
+    أي قيمة مش قابلة للتسلسل إلى نصها، والأرقام/النصوص/البوليين عادي بتبقى.
+    """
+    if isinstance(value, dict):
+        return {key: _make_json_safe(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_make_json_safe(item) for item in value]
+    try:
+        json.dumps(value)
+        return value
+    except (TypeError, ValueError):
+        return str(value)
+
+
+@app.exception_handler(Exception)
+def unexpected_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """
+    شبكة أمان أخيرة لأي خطأ غير متوقع (bug/بيانات → DataError...) — بدل ما
+    يسرب رسالة 500 خام ويربك الفرونت، بنرجّع شكل الخطأ الموحّد نفسه بأمان
+    بلا أي تفاصيل داخلية. المعالجات الأخص (AppError / HTTPException /
+    RequestValidationError) بتسبقه بالترتيب، فهاد بيلتقط الباقي بس.
+    """
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error_code": "internal_error",
+            "message": "صار خطأ غير متوقع، حاولي مرة تانية",
+            "details": {},
         },
     )
 

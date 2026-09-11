@@ -6,6 +6,7 @@
 يعبّيه بأي وقت لاحق. يعني ما في "حالة لاحقاً" هون بالباك اند أصلاً.
 """
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import duplicate_survey, student_not_found
@@ -38,9 +39,18 @@ def submit_survey(
     survey = PostSurvey(
         student_id=student.id, opinion_change=opinion_change, preferred_major=preferred_major
     )
-    db.add(survey)
-    db.flush()
-    point_service.recalculate_and_store_points(db, student.id)
-    db.commit()
+    try:
+        db.add(survey)
+        db.flush()
+        point_service.recalculate_and_store_points(db, student.id)
+        db.commit()
+    except IntegrityError:
+        # سباق تزامن: طلب تاني أرسل نفس الاستبيان قبل ما نكتشف نحنا التكرار —
+        # نفس نمط checkin_service._flush_commit_checkin: 409 لطيفة بدل 500 خام
+        db.rollback()
+        existing = db.query(PostSurvey).filter(PostSurvey.student_id == student.id).first()
+        if existing is not None:
+            raise duplicate_survey()
+        raise
     db.refresh(survey)
     return survey

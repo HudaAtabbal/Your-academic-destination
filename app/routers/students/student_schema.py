@@ -4,7 +4,7 @@ Pydantic schemas لروتر admin/students — مطابقة لقسم 6 بملف 
 
 from datetime import date, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.models.enums import (
     CertificateType,
@@ -42,16 +42,51 @@ class StudentUpdateRequest(BaseModel):
     عمداً — حتى لو انبعت بالطلب، بيتجاهل بالكامل بمستوى الـ service.
     """
 
-    full_name: str | None = None
+    full_name: str | None = Field(default=None, min_length=1, max_length=255)
     birth_date: date | None = None
     contact_platform: ContactPlatform | None = None
-    contact_id: str | None = None
-    bacc_year: int | None = None
-    bacc_average: float | None = None
+    contact_id: str | None = Field(default=None, min_length=1, max_length=255)
+    bacc_year: int | None = Field(default=None, ge=1900, le=2100)
+    bacc_average: float | None = Field(default=None, ge=0, le=100)
     certificate_type: CertificateType | None = None
     initial_preferred_major: list[College] | None = None
     verification_status: VerificationStatus | None = None
     status: StudentStatus | None = None
+
+    @field_validator("full_name", "contact_id", mode="before")
+    @classmethod
+    def strip_optional_fields(cls, v):
+        if v is not None and isinstance(v, str):
+            return v.strip()
+        return v
+
+    @field_validator("birth_date")
+    @classmethod
+    def birth_date_not_in_future(cls, v: date | None) -> date | None:
+        if v is not None and v > date.today():
+            raise ValueError("تاريخ الميلاد لا يمكن أن يكون في المستقبل")
+        return v
+
+    @model_validator(mode="after")
+    def require_at_least_one_field(self):
+        """منع طلب تحديث فارغ — {} يُرفض بـ 422 بدل تحديث صامت بلا تأثير."""
+        if all(
+            v is None
+            for v in (
+                self.full_name,
+                self.birth_date,
+                self.contact_platform,
+                self.contact_id,
+                self.bacc_year,
+                self.bacc_average,
+                self.certificate_type,
+                self.initial_preferred_major,
+                self.verification_status,
+                self.status,
+            )
+        ):
+            raise ValueError("لازم تحددي حقل واحد على الأقل للتعديل")
+        return self
 
 
 class StudentStatsResponse(BaseModel):
