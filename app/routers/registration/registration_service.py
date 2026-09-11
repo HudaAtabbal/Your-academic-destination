@@ -81,7 +81,12 @@ def register_student(
         .first()
     )
     if existing_contact is not None:
-        raise duplicate_contact()
+        if existing_contact.verification_status == VerificationStatus.verified:
+            raise duplicate_contact()
+        # الطالب مسجّل بس لسا ما تحقق من OTP — بنحذفه ونبلّش من جديد
+        # (الرقم ما بينحجز إلا بعد التحقق الكامل + الباركود)
+        db.delete(existing_contact)
+        db.flush()
 
     student = None
     for attempt in range(_MAX_RETRIES):
@@ -107,10 +112,26 @@ def register_student(
         except IntegrityError as exc:
             constraint_name = getattr(getattr(exc.orig, "diag", None), "constraint_name", None)
             if constraint_name == "unique_contact_per_registration":
-                # سباق تسجيل بنفس رقم التواصل — مش تعارض رموز، فما في داعي نعيد
-                # المحاولة برمز جديد (بترجع 409 duplicate_contact فوراً)
                 db.rollback()
-                raise duplicate_contact()
+                # سباق: طلب تاني سجّل نفس الرقم قبلنا — نشوف: pending نحذفه ونعيده، verified نرفض
+                conflicting = (
+                    db.query(Student)
+                    .filter(
+                        Student.contact_platform == contact_platform,
+                        Student.contact_id == contact_id,
+                        Student.registration_type == RegistrationType.registered,
+                    )
+                    .first()
+                )
+                if (
+                    conflicting is not None
+                    and conflicting.verification_status == VerificationStatus.verified
+                ):
+                    raise duplicate_contact()
+                if conflicting is not None:
+                    db.delete(conflicting)
+                    db.flush()
+                continue
             db.rollback()
             if attempt == _MAX_RETRIES - 1:
                 raise AppError(
