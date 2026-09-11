@@ -64,6 +64,14 @@ def get_current_account(
             message="الحساب غير موجود",
         )
 
+    # توكن صادر قبل تغيير كلمة السر عنده token_version قديم — مرفوض فوراً
+    if payload.get("token_version") != account.token_version:
+        raise AppError(
+            status_code=401,
+            error_code="invalid_credentials",
+            message="التوكن غير صالح — كلمة السر تغيّرت، سجّلي دخول مرة جديدة",
+        )
+
     return account
 
 
@@ -105,6 +113,28 @@ _request_log: dict[str, list[float]] = defaultdict(list)
 _rate_limit_lock = Lock()
 
 
+# حد لكل طالب (بمفتاح unique_code) على عمليات OTP — مش بس لكل IP، لأنه مهاجم
+# واحد بعدة IPs بيكسر حد الـ IP لوحده
+_otp_student_log: dict[str, list[float]] = defaultdict(list)
+_RATE_LIMIT_OTP_VERIFY_MAX = 5  # == _MAX_OTP_ATTEMPTS: 5 محاولات لكل رمز لكل طالب
+_RATE_LIMIT_OTP_WINDOW_SECONDS = 60
+
+
+def rate_limit_student_otp(unique_code: str, max_requests: int | None = None) -> None:
+    if max_requests is None:
+        max_requests = _RATE_LIMIT_OTP_VERIFY_MAX
+    key = f"otp:{unique_code}"
+    now = time.monotonic()
+    with _rate_limit_lock:
+        timestamps = _otp_student_log[key]
+        cutoff = now - _RATE_LIMIT_OTP_WINDOW_SECONDS
+        while timestamps and timestamps[0] < cutoff:
+            timestamps.pop(0)
+        if len(timestamps) >= max_requests:
+            raise too_many_requests()
+        timestamps.append(now)
+
+
 def rate_limit_public_lookup(request: Request) -> None:
     client_ip = request.client.host if request.client else "unknown"
     now = time.monotonic()
@@ -119,3 +149,10 @@ def rate_limit_public_lookup(request: Request) -> None:
             raise too_many_requests()
 
         timestamps.append(now)
+
+        # منع نمو القاموس بلا حدود (حدث بآلاف الطلاب = آلاف المفاتيح الأبدية):
+        # إخلاء مفاتيح IPs الخاملة كل ما تجاوزنا حد معقول
+        if len(_request_log) > 10_000:
+            stale = [ip for ip, ts in _request_log.items() if not ts or ts[-1] < cutoff]
+            for ip in stale:
+                del _request_log[ip]

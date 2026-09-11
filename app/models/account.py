@@ -5,7 +5,7 @@
 لنفس الكلية (كل واحد بيغطي محطة مختلفة: توجيه/جولة/استشارة).
 """
 
-from sqlalchemy import BigInteger, Column, DateTime, String
+from sqlalchemy import BigInteger, Column, DateTime, Integer, String
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.sql import func
 
@@ -22,5 +22,9 @@ class Account(Base):
 
     role = Column(SAEnum(AccountRole, name="account_role_enum"), nullable=False)
     college = Column(SAEnum(College, name="college_enum"), nullable=True)
+
+    # يرتفع عند تغيير كلمة السر — التوكنات القديمة (عندها token_version قديم)
+    # بتصير مرفوضة فوراً من get_current_account (إبطال الجلسات)
+    token_version = Column(Integer, nullable=False, default=0)
 
     created_at = Column(DateTime, nullable=False, server_default=func.now())

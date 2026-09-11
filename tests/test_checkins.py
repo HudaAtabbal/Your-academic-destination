@@ -330,11 +330,13 @@ def test_count_invalid_activity_type_422(client, gate_scanner_headers):
     assert resp.status_code == 422
 
 
-def test_count_invalid_college_500_known_bug(client, super_headers):
+def test_count_invalid_college_422_after_fix(client, super_headers):
+    """محدّث بعد إصلاح A5: college قيمة غير صالحة = 422 validation بدل 500"""
     with TestClient(main_module.app, raise_server_exceptions=False) as c:
         resp = c.get(
             "/checkins/count/today",
             params={"activity_type": "campus_entry", "college": "bogus"},
             headers=super_headers,
         )
-    assert resp.status_code == 500
+    assert resp.status_code == 422
+    assert resp.json()["error_code"] == "validation_error"

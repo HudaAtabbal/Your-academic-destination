@@ -87,18 +87,25 @@ def list_walkin_incomplete(db: Session, page: int, limit: int) -> tuple[list[dic
         .all()
     )
 
-    items = []
-    for student in students:
-        has_activity = (
-            db.query(Checkin).filter(Checkin.student_id == student.id).first() is not None
-        )
-        items.append(
-            {
-                "unique_code": student.unique_code,
-                "full_name": student.full_name,
-                "contact_id": student.contact_id,
-                "status": "partial" if has_activity else "no_data",
-            }
-        )
+    if not students:
+        return [], total
+
+    # استعلام واحد لكل الصفحة بدل N+1 (استعلام لكل طالب على حدة)
+    active_ids = {
+        row[0]
+        for row in db.query(Checkin.student_id)
+        .filter(Checkin.student_id.in_([s.id for s in students]))
+        .all()
+    }
+
+    items = [
+        {
+            "unique_code": s.unique_code,
+            "full_name": s.full_name,
+            "contact_id": s.contact_id,
+            "status": "partial" if s.id in active_ids else "no_data",
+        }
+        for s in students
+    ]
 
     return items, total

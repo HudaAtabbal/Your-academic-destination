@@ -19,7 +19,8 @@ class OTP(Base):
         BigInteger, ForeignKey("students.id", ondelete="CASCADE"), nullable=False, index=True
     )
 
-    code = Column(String(10), nullable=False)
+    # هاش SHA-256 للرمز (64 حرف hex) — الرمز الصريح ما بينخزن أبداً
+    code = Column(String(64), nullable=False)
     attempts = Column(Integer, nullable=False, default=0)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     expires_at = Column(DateTime, nullable=False, index=True)

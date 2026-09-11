@@ -3,6 +3,8 @@
 تشغيل محلي: uvicorn main:app --reload
 """
 
+import os
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException as FastAPIHTTPException
 from fastapi.exceptions import RequestValidationError
@@ -21,18 +23,28 @@ from app.routers.students import student_router
 from app.routers.survey import survey_router
 from app.routers.walkin import walkin_router
 
+_APP_ENV = os.getenv("APP_ENV", "development")
+_IS_PRODUCTION = _APP_ENV == "production"
+
 app = FastAPI(
     title="Wijhatak Al-Akademia API",
     description="Backend لمنصة وجهتك الأكاديمية — فعالية الاتحاد الطالبي",
     version="0.1.0",
+    # توثيق الـ API (Swagger) مكشوف بالتطوير بس — بعيداً عن الإنتاج
+    docs_url=None if _IS_PRODUCTION else "/docs",
+    redoc_url=None if _IS_PRODUCTION else "/redoc",
 )
 
-# ⚠️ مؤقت للتطوير — بيسمح لأي origin يوصل للـ API (مشان تجربة الفرونت محلياً
-# من vite:5173 وأمثاله بدون ما يرفض المتصفح الطلب). لازم يتقيّد بدومين
-# الفرونت الحقيقي بس قبل أي نشر فعلي.
+# CORS: بالتطوير أي origin مسموح (تجربة فرونت محلية من vite)، بالإنتاج
+# دومين الفرونت الحقيقي محدد بالبيئة ALLOWED_ORIGINS (مفصول بفواصل)
+if _IS_PRODUCTION:
+    _allowed = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+else:
+    _allowed = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],

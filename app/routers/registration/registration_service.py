@@ -7,8 +7,9 @@ initial_preferred_major بمستوى تجمّع لا كلية محددة).
 إرسال OTP فعلياً عبر SMS (سيرياتيل Bulk Messaging) — راجع app/sms_service.py.
 """
 
+import hashlib
+import hmac
 import secrets
-import re
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from requests.exceptions import RequestException
@@ -34,26 +35,18 @@ from app.models import (
 )
 
 _PREFIX = "R"
-_DIGITS = 4
-_CODE_PATTERN = re.compile(rf"^{_PREFIX}-(\d+)$")
 _OTP_EXPIRY_MINUTES = 10
 _MAX_OTP_ATTEMPTS = 5
-_MAX_RETRIES = 5
+_MAX_RETRIES = 10  # الرموز العشوائية: التصادم نادر، بس مساحة أمان كافية
 
-def _get_next_unique_code(db: Session) -> str:
+def _generate_unique_code() -> str:
     """
-    نفس نمط walkin_service._get_next_number بالضبط — بس بادئة R بدل W.
-    بيدوّر على أعلى رقم R-XXXX موجود ويرجع اللي بعده (أو 1 لو ما في ولا رمز).
+    رمز عشوائي 6 خانات (R-XXXXXX) بدل المتسلسل (R-0001, R-0002...).
+    الرمز المتسلسل كان يسمح بتعداد كل الطلاب عبر محاولة رموز متتالية على
+    الـ endpoints العامة (card/points/survey/otp) — وكذلك تزوير QR.
+    الشكل نفسه أمام الفرونت (R-6 خانات) — ما في تغيير بالعقد.
     """
-    existing_codes = (
-        db.query(Student.unique_code).filter(Student.unique_code.like(f"{_PREFIX}-%")).all()
-    )
-    max_number = 0
-    for (code,) in existing_codes:
-        match = _CODE_PATTERN.match(code)
-        if match:
-            max_number = max(max_number, int(match.group(1)))
-    return f"{_PREFIX}-{str(max_number + 1).zfill(_DIGITS)}"
+    return f"{_PREFIX}-{secrets.randbelow(1_000_000):06d}"
 
 
 def _generate_otp_code() -> str:
@@ -90,7 +83,7 @@ def register_student(
 
     student = None
     for attempt in range(_MAX_RETRIES):
-        unique_code = _get_next_unique_code(db)
+        unique_code = _generate_unique_code()
         student = Student(
             unique_code=unique_code,
             full_name=full_name,
@@ -150,11 +143,16 @@ def register_student(
 
     return student, unique_code
 
-def _create_otp(db: Session, student_id: int, unique_code: str, phone: str) -> str:
+def _create_otp(db: Session, student_id: int, unique_code: str, phone: str) -> datetime:
     code = _generate_otp_code()
     expires_at = datetime.now() + timedelta(minutes=_OTP_EXPIRY_MINUTES)
 
-    otp = OTP(student_id=student_id, code=code, expires_at=expires_at)
+    # الرمز الصريح ما بينخزن — هاش بس (أي قراءة DB ما بتكشف الرموز الصالحة)
+    otp = OTP(
+        student_id=student_id,
+        code=hashlib.sha256(code.encode()).hexdigest(),
+        expires_at=expires_at,
+    )
     db.add(otp)
     db.commit()
 
@@ -167,7 +165,7 @@ def _create_otp(db: Session, student_id: int, unique_code: str, phone: str) -> s
         # فشل الاتصال نفسه (سيرفر سيرياتيل واقف، مشكلة شبكة، إلخ)
         raise sms_send_failed(f"connection_error: {e}")
 
-    return code
+    return expires_at
 
 
 def resend_otp(db: Session, unique_code: str) -> datetime:
@@ -175,8 +173,16 @@ def resend_otp(db: Session, unique_code: str) -> datetime:
     if student is None:
         raise student_not_found()
 
+    # إبطال كل الـ OTPs السابقة غير المحققة قبل إصدار الجديد — الرمز القديم
+    # ما عاد صالح، وبالتالي حد المحاولات (5) صار حقيقياً مش قابل للتفافي بالـ resend
+    db.query(OTP).filter(
+        OTP.student_id == student.id,
+        OTP.verified == False,  # noqa: E712
+    ).delete()
+    db.commit()
+
     try:
-        code = _create_otp(db, student.id, student.unique_code, student.contact_id)
+        expires_at = _create_otp(db, student.id, student.unique_code, student.contact_id)
     except AppError:
         # فشل إرسال الـ SMS — منمسح آخر OTP انخلق (يتيم، محدش استلم رمزه فعلياً)
         orphaned_otp = (
@@ -190,13 +196,7 @@ def resend_otp(db: Session, unique_code: str) -> datetime:
             db.commit()
         raise
 
-    otp = (
-        db.query(OTP)
-        .filter(OTP.student_id == student.id, OTP.code == code)
-        .order_by(OTP.id.desc())
-        .first()
-    )
-    return otp.expires_at
+    return expires_at
 def verify_otp(db: Session, unique_code: str, otp_code: str) -> Student:
     student = db.query(Student).filter(Student.unique_code == unique_code).first()
 
@@ -225,7 +225,8 @@ def verify_otp(db: Session, unique_code: str, otp_code: str) -> Student:
         raise otp_invalid()
 
     # الرمز غير صحيح — منزيد العداد ومنرفض، بدون ما نستهلك محاولة لو كان منتهي الصلاحية أصلاً
-    if otp.code != otp_code:
+    # المقارنة على الهاش بهاشتا (compare_digest) — بدون oracle زمني
+    if not hmac.compare_digest(otp.code, hashlib.sha256(otp_code.encode()).hexdigest()):
         otp.attempts += 1
         db.commit()
         raise otp_invalid()

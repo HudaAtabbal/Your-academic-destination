@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import get_current_account, require_role
 from app.errors import AppError
-from app.models import Account, AccountRole, BookingType
+from app.models import Account, AccountRole, BookingType, College
 from app.routers.bookings import booking_service
 from app.routers.bookings.booking_schema import (
     BookingCountResponse,
@@ -62,13 +62,11 @@ def book_consultation(payload: BookingRequest, db: Session = Depends(get_db)) ->
 
 @router.get("/count/today", response_model=BookingCountResponse)
 def count_bookings_today(
+    # نفس توحيد 422: قيمة college غير صالحة = خطأ فاليديشن بدل 500
     booking_type: BookingType,
-    college: str | None = None,
+    college: College | None = None,
     db: Session = Depends(get_db),
     current_account: Account = Depends(get_current_account),
 ) -> BookingCountResponse:
-    from app.models import College as CollegeEnum
-
-    college_enum = CollegeEnum(college) if college else None
-    count = booking_service.count_bookings_today(db, booking_type, college=college_enum)
+    count = booking_service.count_bookings_today(db, booking_type, college=college)
     return BookingCountResponse(count=count)

@@ -159,11 +159,13 @@ def test_booking_count_invalid_type_422(client, college_staff_headers):
     assert resp.status_code == 422
 
 
-def test_booking_count_invalid_college_500_known_bug(client, college_staff_headers):
+def test_booking_count_invalid_college_422_after_fix(client, college_staff_headers):
+    """محدّث بعد إصلاح A5: college قيمة غير صالحة = 422 validation بدل 500"""
     with TestClient(main_module.app, raise_server_exceptions=False) as c:
         resp = c.get(
             "/bookings/count/today",
             params={"booking_type": "tour", "college": "bogus"},
             headers=college_staff_headers,
         )
-    assert resp.status_code == 500
+    assert resp.status_code == 422
+    assert resp.json()["error_code"] == "validation_error"

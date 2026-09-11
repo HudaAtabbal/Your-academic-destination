@@ -30,6 +30,7 @@ def login(
             "sub": account.username,
             "role": account.role.value,
             "college": account.college.value if account.college else None,
+            "token_version": account.token_version,
         }
     )
 

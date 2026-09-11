@@ -96,6 +96,8 @@ def update_account(
         account.college = _resolve_college(new_role, college if college is not None else account.college)
     if password:
         account.password_hash = hash_password(password)
+        # إبطال كل التوكنات الصادرة قبل تغيير كلمة السر
+        account.token_version += 1
 
     db.commit()
     db.refresh(account)

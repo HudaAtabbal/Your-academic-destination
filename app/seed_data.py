@@ -42,7 +42,15 @@ DEFAULT_DEV_PASSWORDS = {
 
 
 def _resolve_password(username: str) -> str:
-    return os.getenv(f"SEED_PASSWORD_{username.upper()}", DEFAULT_DEV_PASSWORDS[username])
+    env_password = os.getenv(f"SEED_PASSWORD_{username.upper()}")
+    if env_password:
+        return env_password
+    if os.getenv("APP_ENV", "development") != "development":
+        raise RuntimeError(
+            f"كلمة سر الحساب {username} مش معرّفة — خارج بيئة التطوير لازم "
+            f"تحدّدي SEED_PASSWORD_{username.upper()}"
+        )
+    return DEFAULT_DEV_PASSWORDS[username]
 
 
 # (username, role, college)

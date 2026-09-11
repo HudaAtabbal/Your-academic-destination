@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import rate_limit_public_lookup
+from app.dependencies import rate_limit_public_lookup, rate_limit_student_otp
 from app.routers.registration import registration_service
 from app.routers.registration.registration_schema import (
     LookupByContactRequest,
@@ -24,7 +24,12 @@ from app.routers.registration.registration_schema import (
 router = APIRouter(prefix="/students", tags=["registration"])
 
 
-@router.post("/register", response_model=RegisterResponse, status_code=201)
+@router.post(
+    "/register",
+    response_model=RegisterResponse,
+    status_code=201,
+    dependencies=[Depends(rate_limit_public_lookup)],
+)
 def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> RegisterResponse:
     student, unique_code = registration_service.register_student(
         db,
@@ -40,14 +45,32 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> Registe
     return RegisterResponse(unique_code=unique_code, full_name=student.full_name)
 
 
-@router.post("/otp/resend", response_model=ResendOtpResponse)
-def resend_otp(payload: ResendOtpRequest, db: Session = Depends(get_db)) -> ResendOtpResponse:
+@router.post(
+    "/otp/resend",
+    response_model=ResendOtpResponse,
+    dependencies=[Depends(rate_limit_public_lookup)],
+)
+def resend_otp(
+    payload: ResendOtpRequest,
+    db: Session = Depends(get_db),
+    _: None = Depends(rate_limit_public_lookup),
+) -> ResendOtpResponse:
+    rate_limit_student_otp(payload.unique_code, max_requests=2)  # مهلة resend: 2/دقيقة لكل طالب
     expires_at = registration_service.resend_otp(db, payload.unique_code)
     return ResendOtpResponse(expires_at=expires_at)
 
 
-@router.post("/otp/verify", response_model=VerifyOtpResponse)
-def verify_otp(payload: VerifyOtpRequest, db: Session = Depends(get_db)) -> VerifyOtpResponse:
+@router.post(
+    "/otp/verify",
+    response_model=VerifyOtpResponse,
+    dependencies=[Depends(rate_limit_public_lookup)],
+)
+def verify_otp(
+    payload: VerifyOtpRequest,
+    db: Session = Depends(get_db),
+    _: None = Depends(rate_limit_public_lookup),
+) -> VerifyOtpResponse:
+    rate_limit_student_otp(payload.unique_code)  # 5 محاولات لكل طالب (محدد في الـ limiter)
     student = registration_service.verify_otp(db, payload.unique_code, payload.otp)
     return VerifyOtpResponse(
         unique_code=student.unique_code,
@@ -71,7 +94,11 @@ def get_card(unique_code: str, db: Session = Depends(get_db)) -> StudentCardResp
     )
 
 
-@router.post("/lookup-by-contact", response_model=LookupByContactResponse)
+@router.post(
+    "/lookup-by-contact",
+    response_model=LookupByContactResponse,
+    dependencies=[Depends(rate_limit_public_lookup)],
+)
 def lookup_by_contact(
     payload: LookupByContactRequest, db: Session = Depends(get_db)
 ) -> LookupByContactResponse:

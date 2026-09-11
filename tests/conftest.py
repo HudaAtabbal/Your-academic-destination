@@ -24,7 +24,7 @@ from sqlalchemy import text
 
 import main as main_module
 from app.database import Base, SessionLocal, engine
-from app.dependencies import _request_log
+from app.dependencies import _otp_student_log, _request_log
 from app.models import Account, AccountRole, College, RegistrationType, Student, StudentStatus, VerificationStatus
 from app.security import hash_password
 
@@ -47,6 +47,7 @@ def _init_test_db():
 @pytest.fixture(autouse=True)
 def _clean_tables(_init_test_db):
     _request_log.clear()
+    _otp_student_log.clear()
     with engine.begin() as conn:
         conn.execute(
             text(
