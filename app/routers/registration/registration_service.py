@@ -249,7 +249,18 @@ def get_student_card(db: Session, unique_code: str) -> Student:
     return student
 
 
-def lookup_by_contact(db: Session, contact_platform: ContactPlatform, contact_id: str) -> Student:
+def _normalize_name(name: str) -> str:
+    """تطبيع الاسم للمقارنة: إزالة المسافات الزايدة + strip."""
+    return " ".join(name.strip().split())
+
+
+def lookup_by_contact(
+    db: Session, contact_platform: ContactPlatform, contact_id: str, full_name: str
+) -> Student:
+    """
+    استرجاع الطالب برقم التواصل + الاسم معاً — مش بس الرقم.
+    لو الاسم لا يطابق، نرجع student_not_found (رسالة موحدة، لا تسريب).
+    """
     student = (
         db.query(Student)
         .filter(Student.contact_platform == contact_platform, Student.contact_id == contact_id)
@@ -257,4 +268,8 @@ def lookup_by_contact(db: Session, contact_platform: ContactPlatform, contact_id
     )
     if student is None:
         raise student_not_found()
+
+    if _normalize_name(student.full_name or "") != _normalize_name(full_name):
+        raise student_not_found()
+
     return student

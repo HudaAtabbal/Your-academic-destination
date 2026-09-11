@@ -207,3 +207,50 @@ class TestRaceSameContact:
             .all()
         )
         assert len(survivors) == 1
+
+
+class TestLookupByNameMatch:
+    def test_lookup_requires_matching_name(self, client, db, monkeypatch):
+        monkeypatch.setattr(registration_service.sms_service, "send_otp_sms", lambda *a, **k: None)
+        r = client.post("/students/register", json=_register_payload(full_name="خالد غيث طليمات"))
+        assert r.status_code == 201, r.text
+        code = r.json()["unique_code"]
+
+        # رقم + اسم صحيح → يرجع الكود
+        ok = client.post(
+            "/students/lookup-by-contact",
+            json={
+                "contact_platform": "whatsapp",
+                "contact_id": "0911111111",
+                "full_name": "خالد غيث طليمات",
+            },
+        )
+        assert ok.status_code == 200, ok.text
+        assert ok.json()["unique_code"] == code
+
+        # نفس الرقم + اسم خاطئ → 404 بنفس رسالة "الرمز مش موجود" (لا تسريب)
+        bad = client.post(
+            "/students/lookup-by-contact",
+            json={
+                "contact_platform": "whatsapp",
+                "contact_id": "0911111111",
+                "full_name": "اسم مختلف تماماً",
+            },
+        )
+        assert bad.status_code == 404, bad.text
+        assert bad.json()["error_code"] == "student_not_found"
+
+    def test_lookup_ignores_extra_whitespace(self, client, db, monkeypatch):
+        monkeypatch.setattr(registration_service.sms_service, "send_otp_sms", lambda *a, **k: None)
+        r = client.post("/students/register", json=_register_payload(full_name="عمر أحمد العسورة"))
+        assert r.status_code == 201, r.text
+
+        ok = client.post(
+            "/students/lookup-by-contact",
+            json={
+                "contact_platform": "whatsapp",
+                "contact_id": "0911111111",
+                "full_name": "  عمر   أحمد    العسورة  ",
+            },
+        )
+        assert ok.status_code == 200, ok.text

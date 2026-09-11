@@ -54,12 +54,12 @@ class TestRateLimit:
         for _ in range(2):
             r = client.post(
                 "/students/lookup-by-contact",
-                json={"contact_platform": "whatsapp", "contact_id": "0911111111"},
+                json={"contact_platform": "whatsapp", "contact_id": "0911111111", "full_name": "طالب تجريبي"},
             )
             assert r.status_code == 404, r.text  # مش موجود — مش مشكلة، الـ limiter بيشتغل قبله
         r3 = client.post(
             "/students/lookup-by-contact",
-            json={"contact_platform": "whatsapp", "contact_id": "0911111111"},
+            json={"contact_platform": "whatsapp", "contact_id": "0911111111", "full_name": "طالب تجريبي"},
         )
         assert r3.status_code == 429, r3.text
 

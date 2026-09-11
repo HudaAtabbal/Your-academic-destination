@@ -55,6 +55,7 @@ class StudentCardResponse(BaseModel):
 class LookupByContactRequest(BaseModel):
     contact_platform: ContactPlatform
     contact_id: str
+    full_name: str = Field(min_length=1)
 
 
 class LookupByContactResponse(BaseModel):

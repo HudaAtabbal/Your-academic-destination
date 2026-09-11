@@ -103,6 +103,6 @@ def lookup_by_contact(
     payload: LookupByContactRequest, db: Session = Depends(get_db)
 ) -> LookupByContactResponse:
     student = registration_service.lookup_by_contact(
-        db, payload.contact_platform, payload.contact_id
+        db, payload.contact_platform, payload.contact_id, payload.full_name
     )
     return LookupByContactResponse(unique_code=student.unique_code, full_name=student.full_name)
