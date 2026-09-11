@@ -56,14 +56,14 @@ def test_shape_duplicate_survey(client, student_factory):
     assert (
         client.post(
             "/survey/R-9001",
-            json={"opinion_change": "decided", "preferred_major": "college_placeholder_1"},
+            json={"opinion_change": "decided", "preferred_major": "medicine"},
         ).status_code
         == 201
     )
     _assert_shape(
         client.post(
             "/survey/R-9001",
-            json={"opinion_change": "decided", "preferred_major": "college_placeholder_1"},
+            json={"opinion_change": "decided", "preferred_major": "medicine"},
         )
     )
 

@@ -29,14 +29,14 @@ def test_create_account_with_password(client, super_headers):
             "username": "new_staff",
             "password": "pw12345",
             "role": "college_staff",
-            "college": "college_placeholder_2",
+            "college": "dentistry",
         },
         headers=super_headers,
     )
     assert resp.status_code == 201
     body = resp.json()
     assert body["generated_password"] is None
-    assert body["college"] == "college_placeholder_2"
+    assert body["college"] == "dentistry"
     login = client.post(
         "/auth/login", json={"username": "new_staff", "password": "pw12345"}
     )
@@ -70,7 +70,7 @@ def test_create_duplicate_username_409(client, super_headers):
 def test_create_college_stripped_for_non_staff(client, super_headers):
     resp = client.post(
         "/admin/accounts",
-        json={"username": "gate_x", "role": "gate_scanner", "college": "college_placeholder_1"},
+        json={"username": "gate_x", "role": "gate_scanner", "college": "medicine"},
         headers=super_headers,
     )
     assert resp.status_code == 201

@@ -61,4 +61,4 @@ def generate_walkin_codes(db: Session, count: int) -> list[str]:
         except IntegrityError:
             db.rollback()
             if attempt == 4:
-                raise
+                raise code_range_taken(candidate_codes)

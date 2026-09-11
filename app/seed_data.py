@@ -7,13 +7,17 @@ super_admin (وحسابات تجريبية لباقي الأدوار)، لأنه
 تجرّبي عمليات المسح (checkins) والحجز (bookings) بدون ما تضطري تعدّي فعلياً
 عبر فلو التسجيل الإلكتروني (تسجيل + OTP) يلي لسا ما بنيناه.
 
-⚠️ كلمات السر هون كلها تجريبية وواضحة (dev-only) — لازم تتغيّر يدوياً قبل أي
-استخدام فعلي بيوم الفعالية.
+كلمات السر:
+- للبيئة المحلية (تطوير): تظل كلمات السر الافتراضية التجريبية الواضحة بالأسفل.
+- لأي بيئة غير محلية: عرّفي متغيّرات بيئة بالشكل SEED_PASSWORD_<USERNAME>
+  (بأحرف كبيرة، مثلاً SEED_PASSWORD_TAHER_SUPER) — وبتطغى على الافتراضي.
+  ما عاد في طباعة لكلمات السر بأي حالة.
 
 طريقة التشغيل (من مجلد المشروع، بعد ما تفعّلي الـ venv):
     python -m app.seed_data
 """
 
+import os
 from datetime import date
 
 from app.database import Base, SessionLocal, engine
@@ -29,12 +33,24 @@ from app.models import (
 )
 from app.security import hash_password
 
-# (username, password, role, college)
+DEFAULT_DEV_PASSWORDS = {
+    "taher_super": "super123",
+    "sedra_admin": "admin123",
+    "rima_staff": "staff123",
+    "hadi_gate": "gate123",
+}
+
+
+def _resolve_password(username: str) -> str:
+    return os.getenv(f"SEED_PASSWORD_{username.upper()}", DEFAULT_DEV_PASSWORDS[username])
+
+
+# (username, role, college)
 SEED_ACCOUNTS = [
-    ("taher_super", "super123", AccountRole.super_admin, None),
-    ("sedra_admin", "admin123", AccountRole.students_admin, None),
-    ("rima_staff", "staff123", AccountRole.college_staff, College.medicine),
-    ("hadi_gate", "gate123", AccountRole.gate_scanner, None),
+    ("taher_super", AccountRole.super_admin, None),
+    ("sedra_admin", AccountRole.students_admin, None),
+    ("rima_staff", AccountRole.college_staff, College.medicine),
+    ("hadi_gate", AccountRole.gate_scanner, None),
 ]
 
 # طالب تجريبي واحد "نظامي" (registered) — verified وbالكامل مكتمل البيانات،
@@ -60,7 +76,7 @@ def seed():
 
     db = SessionLocal()
     try:
-        for username, password, role, college in SEED_ACCOUNTS:
+        for username, role, college in SEED_ACCOUNTS:
             existing = db.query(Account).filter(Account.username == username).first()
             if existing:
                 print(f"⏭  الحساب '{username}' موجود مسبقاً — تم تخطّيه")
@@ -68,13 +84,13 @@ def seed():
 
             account = Account(
                 username=username,
-                password_hash=hash_password(password),
+                password_hash=hash_password(_resolve_password(username)),
                 role=role,
                 college=college,
             )
             db.add(account)
             db.commit()
-            print(f"✅ تم إنشاء الحساب: {username} / {password}  (دور: {role.value})")
+            print(f"✅ تم إنشاء الحساب: {username}  (دور: {role.value})")
 
         existing_student = (
             db.query(Student).filter(Student.unique_code == SEED_STUDENT["unique_code"]).first()

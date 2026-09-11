@@ -59,7 +59,6 @@ def _get_next_unique_code(db: Session) -> str:
 def _generate_otp_code() -> str:
     return f"{secrets.randbelow(10_000):04d}"
 
-_MAX_RETRIES = 5
 
 def register_student(
     db: Session,
@@ -68,7 +67,7 @@ def register_student(
     certificate_year: int,
     certificate_type: CertificateType,
     average_score: float,
-    initial_preferred_major: College,
+    initial_preferred_major: list[College],
     contact_platform: ContactPlatform,
     contact_id: str,
 ) -> tuple[Student, str]:
@@ -105,7 +104,13 @@ def register_student(
             db.commit()
             db.refresh(student)
             break
-        except IntegrityError:
+        except IntegrityError as exc:
+            constraint_name = getattr(getattr(exc.orig, "diag", None), "constraint_name", None)
+            if constraint_name == "unique_contact_per_registration":
+                # سباق تسجيل بنفس رقم التواصل — مش تعارض رموز، فما في داعي نعيد
+                # المحاولة برمز جديد (بترجع 409 duplicate_contact فوراً)
+                db.rollback()
+                raise duplicate_contact()
             db.rollback()
             if attempt == _MAX_RETRIES - 1:
                 raise AppError(

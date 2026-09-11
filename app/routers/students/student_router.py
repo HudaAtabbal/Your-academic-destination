@@ -5,7 +5,7 @@ Router: admin/students — راجع قسم 6 بملف wijhatak_api_contract.md
 
 import math
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -52,7 +52,9 @@ def student_stats(db: Session = Depends(get_db)) -> StudentStatsResponse:
 
 @router.get("/walkin-incomplete", response_model=WalkinIncompleteListResponse)
 def walkin_incomplete(
-    page: int = 1, limit: int = 20, db: Session = Depends(get_db)
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
 ) -> WalkinIncompleteListResponse:
     items, total = student_service.list_walkin_incomplete(db, page, limit)
     return WalkinIncompleteListResponse(

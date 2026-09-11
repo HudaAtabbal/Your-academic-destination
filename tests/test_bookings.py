@@ -29,7 +29,7 @@ def test_tour_booking_happy(client, student_factory, students_admin_headers, col
     resp = client.post("/bookings/tour", json={"unique_code": STUDENT}, headers=college_staff_headers)
     assert resp.status_code == 201
     body = resp.json()
-    assert body["college"] == "college_placeholder_1"
+    assert body["college"] == "medicine"
     assert "booking_id" in body
     assert "booked_at" in body
 

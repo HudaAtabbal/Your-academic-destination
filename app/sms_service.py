@@ -65,7 +65,7 @@ def send_otp_sms(phone: str, otp_code: str) -> None:
     هي المسؤولة تقرر شو تسوي بكل حالة.
     """
     if not all([_USERNAME, _PASSWORD, _SENDER, _TEMPLATE_CODE]):
-        raise RuntimeError(
+        raise SmsSendError(
             "بيانات حساب سيرياتيل (SYRIATEL_*) مش معرّفة بالـ .env — "
             "راجعي .env.example"
         )

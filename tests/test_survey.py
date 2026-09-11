@@ -2,7 +2,7 @@
 
 STUDENT = "R-9001"
 OPINION = "decided"
-MAJOR = "college_placeholder_1"
+MAJOR = "medicine"
 
 
 def _status(client, code=STUDENT):

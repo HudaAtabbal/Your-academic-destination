@@ -24,7 +24,7 @@ def test_login_college_staff_returns_college(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body["role"] == AccountRole.college_staff.value
-    assert body["college"] == "college_placeholder_1"
+    assert body["college"] == "medicine"
 
 
 def test_login_any_role_accepts_all_seeded(client):

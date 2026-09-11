@@ -6,8 +6,8 @@ import main as main_module
 from app.models import College
 
 STUDENT = "R-9001"
-L1 = "lecture_placeholder_1"
-L2 = "lecture_placeholder_2"
+L1 = "lecture_1"
+L2 = "lecture_2"
 
 
 def _campus_entry(client, headers, code=STUDENT):
@@ -164,7 +164,7 @@ def test_tour_happy(client, student_factory, students_admin_headers, college_sta
     assert _tour_booking(client, college_staff_headers).status_code == 201
     resp = client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=college_staff_headers)
     assert resp.status_code == 201
-    assert resp.json()["college"] == "college_placeholder_1"
+    assert resp.json()["college"] == "medicine"
 
 
 def test_tour_duplicate_same_college_409(
@@ -205,7 +205,7 @@ def test_tour_booking_other_college_does_not_satisfy(
     student_factory(STUDENT)
     assert _campus_entry(client, students_admin_headers).status_code == 201
     assert _tour_booking(client, college_staff_headers).status_code == 201
-    create_custom_staff("staff2", "pw456", College.college_placeholder_2)
+    create_custom_staff("staff2", "pw456", College.dentistry)
     headers = auth_headers("staff2", "pw456")
     resp = client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=headers)
     assert resp.status_code == 409
@@ -287,13 +287,13 @@ def test_count_tour_filtered_by_college(
     )
     r1 = client.get(
         "/checkins/count/today",
-        params={"activity_type": "tour", "college": "college_placeholder_1"},
+        params={"activity_type": "tour", "college": "medicine"},
         headers=college_staff_headers,
     )
     assert r1.json()["count"] == 1
     r2 = client.get(
         "/checkins/count/today",
-        params={"activity_type": "tour", "college": "college_placeholder_2"},
+        params={"activity_type": "tour", "college": "dentistry"},
         headers=college_staff_headers,
     )
     assert r2.json()["count"] == 0

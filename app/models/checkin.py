@@ -38,11 +38,13 @@ class Checkin(Base):
             unique=True,
             postgresql_where=(activity_type == ActivityType.campus_entry),
         ),
-        # محاضرة: كل lecture_name مرة وحدة للطالب
+        # محاضرة: كل lecture_name مرة وحدة للطالب — بس باليوم الواحد (مش عبر كل
+        # أيام الفعالية)، بنفس نمط campus_entry. النقاط بتتراكم لكل يوم منفصل.
         Index(
             "unique_lecture_checkin",
             "student_id",
             "lecture_name",
+            cast(checked_in_at, Date),
             unique=True,
             postgresql_where=(activity_type == ActivityType.lecture),
         ),

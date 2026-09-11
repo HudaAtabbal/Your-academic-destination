@@ -24,13 +24,14 @@ from sqlalchemy import text
 
 import main as main_module
 from app.database import Base, SessionLocal, engine
+from app.dependencies import _request_log
 from app.models import Account, AccountRole, College, RegistrationType, Student, StudentStatus, VerificationStatus
 from app.security import hash_password
 
 BASE_ACCOUNTS = [
     ("taher_super", "super123", AccountRole.super_admin, None),
     ("sedra_admin", "admin123", AccountRole.students_admin, None),
-    ("rima_staff", "staff123", AccountRole.college_staff, College.college_placeholder_1),
+    ("rima_staff", "staff123", AccountRole.college_staff, College.medicine),
     ("hadi_gate", "gate123", AccountRole.gate_scanner, None),
 ]
 
@@ -45,6 +46,7 @@ def _init_test_db():
 
 @pytest.fixture(autouse=True)
 def _clean_tables(_init_test_db):
+    _request_log.clear()
     with engine.begin() as conn:
         conn.execute(
             text(

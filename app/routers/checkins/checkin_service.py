@@ -12,6 +12,7 @@
 
 from datetime import datetime, timedelta
 
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import duplicate_checkin, missing_booking, missing_campus_entry, student_not_found
@@ -119,6 +120,36 @@ def _raise_if_duplicate(
         )
 
 
+def _flush_commit_checkin(
+    db: Session,
+    existing_lookup,
+    student: Student,
+    unique_code: str,
+    activity_type: ActivityType,
+    activity_label: str,
+) -> None:
+    """
+    بيCommit إضافة checkin الحالية، وبيمسك سباق التزامن (IntegrityError من
+    الـ index الفريد) نحوّله لـ 409 duplicate_checkin لطيفة بدل 500 خام.
+    """
+    try:
+        db.flush()
+        point_service.recalculate_and_store_points(db, student.id)
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        existing = existing_lookup()
+        if existing is not None:
+            raise duplicate_checkin(
+                student_name=student.full_name or unique_code,
+                unique_code=unique_code,
+                activity_type=activity_type.value,
+                activity_label=activity_label,
+                first_occurred_at=existing.checked_in_at,
+            )
+        raise
+
+
 def create_campus_entry_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | None]:
     student = _get_student_or_raise(db, unique_code)
 
@@ -133,9 +164,14 @@ def create_campus_entry_checkin(db: Session, unique_code: str) -> tuple[Checkin,
 
     checkin = Checkin(student_id=student.id, activity_type=ActivityType.campus_entry)
     db.add(checkin)
-    db.flush()
-    point_service.recalculate_and_store_points(db, student.id)
-    db.commit()
+    _flush_commit_checkin(
+        db,
+        lambda: _find_existing_campus_entry_today(db, student.id),
+        student,
+        unique_code,
+        ActivityType.campus_entry,
+        _ACTIVITY_LABELS[ActivityType.campus_entry],
+    )
     db.refresh(checkin)
     return checkin, student.full_name
 
@@ -163,9 +199,14 @@ def create_lecture_checkin(
         student_id=student.id, activity_type=ActivityType.lecture, lecture_name=lecture_name
     )
     db.add(checkin)
-    db.flush()
-    point_service.recalculate_and_store_points(db, student.id)
-    db.commit()
+    _flush_commit_checkin(
+        db,
+        lambda: _find_existing_checkin(db, student.id, ActivityType.lecture, lecture_name=lecture_name),
+        student,
+        unique_code,
+        ActivityType.lecture,
+        f"محاضرة ({lecture_name.value})",
+    )
     db.refresh(checkin)
     return checkin, student.full_name
 
@@ -192,9 +233,14 @@ def create_tour_checkin(
 
     checkin = Checkin(student_id=student.id, activity_type=ActivityType.tour, college=college)
     db.add(checkin)
-    db.flush()
-    point_service.recalculate_and_store_points(db, student.id)
-    db.commit()
+    _flush_commit_checkin(
+        db,
+        lambda: _find_existing_checkin(db, student.id, ActivityType.tour, college=college),
+        student,
+        unique_code,
+        ActivityType.tour,
+        f"جولة كلية ({college.value})",
+    )
     db.refresh(checkin)
     return checkin, student.full_name
 
@@ -219,9 +265,14 @@ def create_consultation_checkin(db: Session, unique_code: str) -> tuple[Checkin,
 
     checkin = Checkin(student_id=student.id, activity_type=ActivityType.consultation)
     db.add(checkin)
-    db.flush()
-    point_service.recalculate_and_store_points(db, student.id)
-    db.commit()
+    _flush_commit_checkin(
+        db,
+        lambda: _find_existing_checkin(db, student.id, ActivityType.consultation),
+        student,
+        unique_code,
+        ActivityType.consultation,
+        _ACTIVITY_LABELS[ActivityType.consultation],
+    )
     db.refresh(checkin)
     return checkin, student.full_name
 

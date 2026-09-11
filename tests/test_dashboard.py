@@ -3,7 +3,7 @@
 from app.models import RegistrationType, VerificationStatus
 
 STUDENT = "R-9001"
-L1 = "lecture_placeholder_1"
+L1 = "lecture_1"
 
 
 def _campus_entry(client, headers, code):
@@ -39,7 +39,7 @@ def test_dashboard_stats(
     assert (
         client.post(
             f"/survey/{STUDENT}",
-            json={"opinion_change": "decided", "preferred_major": "college_placeholder_1"},
+            json={"opinion_change": "decided", "preferred_major": "medicine"},
         ).status_code
         == 201
     )
