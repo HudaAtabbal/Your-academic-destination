@@ -168,3 +168,18 @@ def otp_invalid() -> AppError:
         error_code="otp_invalid",
         message="الرمز غلط أو منتهي الصلاحية",
     )
+
+def otp_too_many_attempts() -> AppError:
+    return AppError(
+        status_code=429,
+        error_code="otp_too_many_attempts",
+        message="تجاوزت الحد الأقصى للمحاولات، اطلبي رمز جديد",
+    )
+
+
+def too_many_requests() -> AppError:
+    return AppError(
+        status_code=429,
+        error_code="too_many_requests",
+        message="عدد كبير من الطلبات، حاولي بعد شوي",
+    )

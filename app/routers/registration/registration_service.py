@@ -15,7 +15,14 @@ from requests.exceptions import RequestException
 from sqlalchemy.orm import Session
 
 from app import sms_service
-from app.errors import AppError, duplicate_contact, otp_invalid, sms_send_failed, student_not_found
+from app.errors import (
+    AppError,
+    duplicate_contact,
+    otp_invalid,
+    otp_too_many_attempts,
+    sms_send_failed,
+    student_not_found,
+)
 from app.models import (
     CertificateType,
     ContactPlatform,
@@ -142,7 +149,21 @@ def resend_otp(db: Session, unique_code: str) -> datetime:
     if student is None:
         raise student_not_found()
 
-    code = _create_otp(db, student.id, student.unique_code, student.contact_id)
+    try:
+        code = _create_otp(db, student.id, student.unique_code, student.contact_id)
+    except AppError:
+        # فشل إرسال الـ SMS — منمسح آخر OTP انخلق (يتيم، محدش استلم رمزه فعلياً)
+        orphaned_otp = (
+            db.query(OTP)
+            .filter(OTP.student_id == student.id, OTP.verified == False)  # noqa: E712
+            .order_by(OTP.id.desc())
+            .first()
+        )
+        if orphaned_otp is not None:
+            db.delete(orphaned_otp)
+            db.commit()
+        raise
+
     otp = (
         db.query(OTP)
         .filter(OTP.student_id == student.id, OTP.code == code)
@@ -169,12 +190,18 @@ def verify_otp(db: Session, unique_code: str, otp_code: str) -> Student:
     if otp is None:
         raise otp_invalid()
 
+    # تجاوز الحد الأقصى للمحاولات على نفس الرمز — لازم تطلب رمز جديد (resend)
+    if otp.attempts >= _MAX_OTP_ATTEMPTS:
+        raise otp_too_many_attempts()
+
     # انتهت صلاحية الرمز
     if otp.expires_at < datetime.now():
         raise otp_invalid()
 
-    # الرمز غير صحيح
+    # الرمز غير صحيح — منزيد العداد ومنرفض، بدون ما نستهلك محاولة لو كان منتهي الصلاحية أصلاً
     if otp.code != otp_code:
+        otp.attempts += 1
+        db.commit()
         raise otp_invalid()
 
     # الرمز صحيح
