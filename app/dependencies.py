@@ -6,6 +6,7 @@ Dependencies مشتركة عبر كل الروترات:
   العامة يلي بتعتمد على unique_code بس (بدون تسجيل دخول)
 """
 
+import os
 import time
 from collections import defaultdict
 from threading import Lock
@@ -109,6 +110,12 @@ def require_role(*allowed_roles: AccountRole):
 _RATE_LIMIT_WINDOW_SECONDS = 60
 _RATE_LIMIT_MAX_REQUESTS = 20
 
+# خلف وكيل موثوق (nginx/cloudflare tunnel/proxy) بيجي عنوان IP الحقيقي
+# بجدول X-Forwarded-For — بدونه كل الطلبات بتظهر من عنوان الوكيل الواحد
+# والـ rate limit يصير عالمي (مهاجم واحد بيستنزف ميزانية الجميع = DoS).
+# فعلّيه فقط لما تكون متأكد إنه الطلبات بتمر عبر وكيل تتحكمي فيه.
+_TRUST_PROXY_HEADERS = os.getenv("TRUST_PROXY_HEADERS", "0") == "1"
+
 _request_log: dict[str, list[float]] = defaultdict(list)
 _rate_limit_lock = Lock()
 
@@ -135,8 +142,22 @@ def rate_limit_student_otp(unique_code: str, max_requests: int | None = None) ->
         timestamps.append(now)
 
 
+def _client_ip(request: Request) -> str:
+    """عنوان الـ IP الحقيقي: من X-Forwarded-For خلف الوكيل الموثوق، وإلا client.host.
+
+    خلف proxy/load balancer، `request.client.host` بترجع عنوان الوكيل نفسه لكل
+    الطلبات — فـ rate limit بيصير عالمي بدل فردي. لما TRUST_PROXY_HEADERS=1
+    بناخذ أول عنوان من السلسلة (الأقرب للمستخدم الفعلي).
+    """
+    if _TRUST_PROXY_HEADERS:
+        forwarded = request.headers.get("X-Forwarded-For")
+        if forwarded:
+            return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 def rate_limit_public_lookup(request: Request) -> None:
-    client_ip = request.client.host if request.client else "unknown"
+    client_ip = _client_ip(request)
     now = time.monotonic()
 
     with _rate_limit_lock:

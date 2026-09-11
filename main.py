@@ -4,6 +4,7 @@
 """
 
 import os
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException as FastAPIHTTPException
@@ -11,6 +12,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.database import Base, engine
 from app.errors import AppError
 from app.routers.accounts import account_router
 from app.routers.auth import auth_router
@@ -26,6 +28,21 @@ from app.routers.walkin import walkin_router
 _APP_ENV = os.getenv("APP_ENV", "development")
 _IS_PRODUCTION = _APP_ENV == "production"
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    عند الإقلاع بنتأكد إنه كل الجداول موجودة (create_all idempotent — ما بيمس
+    ولا بيعمل alter لأي جدول موجود). مفيدة لقاعدة نظيفة (ما بعد إنشاؤها) —
+    خصوصاً على منصات النشر بتنشئ قاعدة فاضية ثانية: بدون هاد السطر الموديلات
+    الجديدة (مثل otps.code varchar(64) و accounts.token_version) ما رح تظهر.
+    للترحيلات الحقيقية (تغيير جداول موجودة) لازم أداة ترحيل صريحة (Alembic) —
+    لسا ما صرنا محتاجينها.
+    """
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
 app = FastAPI(
     title="Wijhatak Al-Akademia API",
     description="Backend لمنصة وجهتك الأكاديمية — فعالية الاتحاد الطالبي",
@@ -33,6 +50,7 @@ app = FastAPI(
     # توثيق الـ API (Swagger) مكشوف بالتطوير بس — بعيداً عن الإنتاج
     docs_url=None if _IS_PRODUCTION else "/docs",
     redoc_url=None if _IS_PRODUCTION else "/redoc",
+    lifespan=lifespan,
 )
 
 # CORS: بالتطوير أي origin مسموح (تجربة فرونت محلية من vite)، بالإنتاج
