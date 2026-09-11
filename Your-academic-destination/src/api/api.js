@@ -13,8 +13,9 @@
  *     بحال احتجتي منطق خاص حسب نوع الخطأ (مثلاً تمييز خطأ فاليديشن عن خطأ صلاحيات).
  */
 
-// TODO: بدّليها لعنوان الباك اند الفعلي لما يجهز (من .env مثلاً)
-const API_BASE_URL = 'https://unpiloted-flannels-recast.ngrok-free.dev';
+// العنوان الأساسي للباك اند — من متغير بيئة VITE_API_URL (ملف .env).
+// لو ما اتعرف، بنسقط على localhost للـ تطوير المحلي.
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // أقصى مدة انتظار لأي طلب قبل ما ننهيه تلقائياً (بالميلي ثانية).
 // بدونها، لو السيرفر أو الـ tunnel وقع، الطلب بيضل معلّق للأبد والواجهة
@@ -22,11 +23,18 @@ const API_BASE_URL = 'https://unpiloted-flannels-recast.ngrok-free.dev';
 const REQUEST_TIMEOUT_MS = 30000;
 
 // مفتاح تخزين توكن تسجيل دخول فريق العمل (JWT) — نفس القيمة يلي بيرجّعها /auth/login
+//
+// مخزّن بـ sessionStorage (مش localStorage) عمداً:
+//   - localStorage: بيرضل حتى بعد قفل التاب → لو فيه XSS، بيسرق جلسة تصمد 8 ساعات.
+//   - sessionStorage: بيضل عند التحديث (F5) لكن بينمسح تلقائياً عند قفل التاب
+//     → نافذة السرقة تصير مشروطة بتاب مفتوح، وأي تسريب بيختفي بقفل النافذة.
+//   - بديل أأمن أصلاً (httpOnly cookie) بيحتاج تغيير على الباك يعتمد على cookies —
+//     قرار مؤجّل، هاد حل وسط بمقدار تغيير صفر على الباك.
 const AUTH_TOKEN_KEY = 'authToken';
 
-export const getAuthToken = () => localStorage.getItem(AUTH_TOKEN_KEY);
-export const setAuthToken = (token) => localStorage.setItem(AUTH_TOKEN_KEY, token);
-export const clearAuthToken = () => localStorage.removeItem(AUTH_TOKEN_KEY);
+export const getAuthToken = () => sessionStorage.getItem(AUTH_TOKEN_KEY);
+export const setAuthToken = (token) => sessionStorage.setItem(AUTH_TOKEN_KEY, token);
+export const clearAuthToken = () => sessionStorage.removeItem(AUTH_TOKEN_KEY);
 
 class ApiError extends Error {
   constructor(errorCode, message, details) {
@@ -57,16 +65,21 @@ export async function apiRequest(path, options = {}) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
+  // ننزع الـ headers و signal من options حتى ما يعبّوا عن القيم الجاهزة تحت
+  // (كان ...options آخر سطر يمسح headers و signal صمتاً). أي خصائص تانية
+  // (method, body, credentials...) بتنتقل كما هي.
+  const { signal: callerSignal, headers: callerHeaders, ...restOptions } = options;
+
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
+      ...restOptions,
       headers: {
         'Content-Type': 'application/json',
         'ngrok-skip-browser-warning': 'true', // يمنع صفحة التحذير الوسيطة تبع ngrok المجاني
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(options.headers || {}),
+        ...(callerHeaders || {}),
       },
-      signal: controller.signal,
-      ...options,
+      signal: callerSignal || controller.signal,
     });
   } catch (networkErr) {
     if (networkErr.name === 'AbortError') {

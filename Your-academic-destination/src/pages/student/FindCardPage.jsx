@@ -4,9 +4,6 @@ import HeaderStep from '../../components/HeaderStep';
 import { apiPost, ApiError } from '../../api/api';
 import '../../style/FindCardPage.css';
 
-// بنطبّع النص قبل المقارنة (نشيل المسافات الزايدة، نوحّد حالة الأحرف) حتى المقارنة تكون مرنة شوي
-const normalize = (text) => text.trim().replace(/\s+/g, ' ').toLowerCase();
-
 const FindCardPage = () => {
   const navigate = useNavigate();
 
@@ -36,16 +33,14 @@ const FindCardPage = () => {
     setIsSubmitting(true);
 
     try {
+      // الاسم بيتحقق منه الباك اند نفسه الآن (لو الاسم ما بيطابق الرقم،
+      // الباك بيرجع 404 بنفس الرسالة الموحّدة) — المقارنة بس على الفرونت
+      // ما بتعتبر أمان، كان أي حدا بيعرف رقم الهاتف بيمشي عليها من غير متصفح.
       const result = await apiPost('/students/lookup-by-contact', {
         contact_platform: 'whatsapp',
         contact_id: phone,
+        full_name: name,
       });
-
-      // الاسم هون طبقة تأكيد إضافية فوق رقم الهاتف
-      if (normalize(result.full_name) !== normalize(name)) {
-        setError('الاسم ما بيطابق رقم الهاتف يلي دخلتيه، تأكدي من الاثنين');
-        return;
-      }
 
       localStorage.setItem('studentCode', result.unique_code);
       localStorage.setItem('studentName', result.full_name);

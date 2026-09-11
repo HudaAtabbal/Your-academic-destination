@@ -62,10 +62,12 @@ const TeamLoginPage = () => {
       const landingPage = ROLE_LANDING_PAGES[response.role] || '/dashboard';
       navigate(landingPage);
     } catch (err) {
-      if (err instanceof ApiError && err.status === 404) {
+      // الانتباه: ApiError عنده errorCode (مش status) — كان الفحص القديم
+      // err.status === 404/401 ما بيتطابق أبداً وبتضل الرسالة العامة بتطلع
+      if (err instanceof ApiError && err.errorCode === 'account_not_found') {
         // الحساب انحذف أو غير موجود أصلاً
         setError('هذا الحساب غير موجود، يرجى التواصل مع المدير العام');
-      } else if (err instanceof ApiError && err.status === 401) {
+      } else if (err instanceof ApiError && err.errorCode === 'invalid_credentials') {
         setError('اسم المستخدم أو كلمة السر غير صحيحة');
       } else {
         setError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
