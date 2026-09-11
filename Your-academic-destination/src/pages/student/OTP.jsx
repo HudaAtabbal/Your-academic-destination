@@ -130,7 +130,7 @@ const OTP = () => {
 
         <HeaderStep
           title="أدخل رمز التحقق"
-          stepText="وصلك عالواتساب هلق"
+          stepText="سيصلك الرمز عبر SMS"
           onBack={() => window.history.back()}
         />
 
@@ -163,7 +163,7 @@ const OTP = () => {
 
             {/* Resend Action */}
             <p className="resend-text">
-              ما وصلك شي؟{' '}
+               لم يصلك رمز؟{' '}
               <button type="button" onClick={handleResend} className="resend-btn">
                 أعد الإرسال
               </button>

@@ -17,10 +17,35 @@ const Survey = () => {
   // ⚠️ مؤقت للتجربة فقط — القيم مطابقة لـ enum College بالباك (placeholders حالياً).
   // لما يجهز enum الـ42 كلية الفعلي، بدّلي هون بس (name = القيمة الفعلية بالـ enum الجديد،
   // ومنيح تضيفي حقل منفصل للعرض بالعربي إذا بدك تعرضي اسم الكلية الحقيقي بالواجهة).
-  const majors = [
-    { id: 1, name: 'college_placeholder_1' },
-    { id: 2, name: 'college_placeholder_2' },
+ const majors = [
+    { id: 'medicine', name: 'طب البشري' },
+    { id: 'dentistry', name: 'طب الأسنان' },
+    { id: 'pharmacy', name: 'صيدلة' },
+    { id: 'health_sciences', name: 'علوم صحية' },
+    { id: 'informatics', name: 'هندسة المعلوماتية' },
+    { id: 'civil', name: 'هندسة مدنية' },
+    { id: 'architecture', name: 'هندسة معمارية' },
+    { id: 'agriculture', name: 'هندسة الزراعة' },
+    { id: 'electrical_mechanical_eng', name: 'هندسة كهربائية وميكانيكية' },
+    { id: 'chemical_food_eng', name: 'هندسة كيميائية وغذائية' },
+    { id: 'economics', name: 'اقتصاد' },
+    { id: 'tourism', name: 'سياحة' },
+    { id: 'music', name: 'موسيقى' },
+    { id: 'literature', name: 'اداب' },
+    { id: 'education', name: 'تربية' },
+    { id: 'science', name: 'علوم' },
+    { id: 'applied_science', name: 'تطبيقية' },
+    { id: 'law', name: 'حقوق' },
+    { id: 'institute_agriculture', name: 'معهد تقاني زراعي' },
+    { id: 'institute_desert_affairs', name: 'معهد تقاني لشؤون البادية والتصحر' },
+    { id: 'institute_engineering', name: 'معهد تقاني هندسي' },
+    { id: 'institute_health', name: 'معهد تقاني صحي' },
+    { id: 'institute_dentistry', name: 'معهد تقاني طب اسنان' },
+    { id: 'institute_applied_industries', name: 'معهد تقاني صناعات تطبيقية' },
+    { id: 'institute_computer', name: 'معهد تقاني حاسوب' },
   ];
+
+  const isUndecided = q1Option === 'undecided';
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,7 +62,7 @@ const Survey = () => {
     try {
       await apiPost(`/survey/${studentCode}`, {
         opinion_change: q1Option,
-        preferred_major: q2Major,
+        preferred_major: isUndecided ? null : q2Major,
       });
 
       navigate('/my-card');
@@ -70,11 +95,13 @@ const Survey = () => {
               onSelect={setQ1Option}
             />
 
-            <SurveyQuestionTwo
-              selectedMajor={q2Major}
-              onChange={setQ2Major}
-              majorsList={majors}
-            />
+            {!isUndecided && (
+              <SurveyQuestionTwo
+                selectedMajor={q2Major}
+                onChange={setQ2Major}
+                majorsList={majors}
+              />
+            )}
 
             <div className="actions">
               <button type="submit" className="btn btn-primary" disabled={isSubmitting}>

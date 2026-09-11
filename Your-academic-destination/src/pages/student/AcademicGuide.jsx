@@ -15,7 +15,7 @@ const AcademicGuide = () => {
 
         <HeaderStep
           title="الدليل الأكاديمي"
-          stepText="42 فرعاً على 6 مستويات صعوبة"
+          stepText="كل ما تحتاج معرفته عن الكليات"
           onBack={() => window.history.back()}
         />
 

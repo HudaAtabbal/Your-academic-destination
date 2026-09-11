@@ -6,11 +6,33 @@ import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
 import '../../style/StaffScan.css';
 
-// ⚠️ الباك لسا عنده بس قيمتين placeholder لـ Lecture enum (مش المحاضرات الحقيقية).
-// لما تتوفر القائمة الفعلية، بنستبدل هالمصفوفة بالقيم الحقيقية القادمة من الباك.
+// أسماء الأدوار بالعربي — لبناء نص المستخدم من بيانات الحساب المخزّنة فعلياً
+const ROLE_LABELS = {
+  super_admin: 'المدير العام',
+  students_admin: 'مدير بيانات الطلاب',
+  gate_scanner: 'مسؤول المسح',
+  college_staff: 'مسؤول الكلية',
+};
+
+// مطابقة لـ enum Lecture بالباك (id = اسم القيمة بالـ enum، name = النص الفعلي).
+// ⚠️ القاعة (hall) مش موجودة بالـ enum — لسا لازم نحددها مع الباك أو نضيفها لاحقاً.
 const LECTURES = [
-  { id: 'lecture_placeholder_1', name: 'محاضرة تجريبية 1 (placeholder)', hall: 'مدرج رئيسي' },
-  { id: 'lecture_placeholder_2', name: 'محاضرة تجريبية 2 (placeholder)', hall: 'مدرج ب' },
+  { id: 'lecture_1', name: 'ندوة كليات العلوم الإنسانية', hall: '' },
+  { id: 'lecture_2', name: 'ندوة مركزية: كيف تختار تخصصك الجامعي', hall: '' },
+  { id: 'lecture_3', name: 'ندوة الكليات الطبية', hall: '' },
+  { id: 'lecture_4', name: 'ندوة مركزية: اتجاهات سوق العمل والمهن الصاعدة', hall: '' },
+  { id: 'lecture_5', name: 'ندوة أولياء الأمور', hall: '' },
+  { id: 'lecture_6', name: 'ندوة كليات العلوم الأساسية والاقتصادية', hall: '' },
+  { id: 'lecture_7', name: 'ندوة مركزية 2', hall: '' },
+  { id: 'lecture_8', name: 'ندوة كلية الهندسة المعلوماتية مع نبذة عن الكلية التطبيقية', hall: '' },
+  { id: 'lecture_9', name: 'ندوة الكليات: الهندسية المدنية · الهندسة المدنية · المعمارية · الزراعة', hall: '' },
+  { id: 'lecture_10', name: 'ندوة مركزية: التخصصات المستجدة', hall: '' },
+  { id: 'lecture_11', name: 'ندوة كلية الهندسة الميكانيكية', hall: '' },
+  { id: 'lecture_12', name: 'ندوة كلية الهندسة الكيميائية والبترولية', hall: '' },
+  { id: 'lecture_13', name: 'ندوة كلية الهندسة الكهربائية', hall: '' },
+  { id: 'lecture_14', name: 'ندوة صناعة الحياة الجامعية', hall: '' },
+  { id: 'lecture_15', name: 'ندوة المعاهد المتوسطة والعليا', hall: '' },
+  { id: 'lecture_16', name: 'حفل الختام والتكريم وتوزيع جوائز النقاط', hall: '' },
 ];
 
 const StadiumPage = () => {
@@ -21,6 +43,11 @@ const StadiumPage = () => {
   const [isCameraPaused, setIsCameraPaused] = useState(true); // مقفولة افتراضياً — تفتح بس لما الموظف يدوس الزر
 
   const selectedLecture = LECTURES.find((l) => l.id === selectedLectureId);
+
+  // بيانات الحساب المسجّل دخوله فعلياً (اتخزنت وقت تسجيل الدخول)
+  const username = localStorage.getItem('accountUsername') || '';
+  const roleType = localStorage.getItem('accountRole') || '';
+  const roleLabel = ROLE_LABELS[roleType] || roleType;
 
   useEffect(() => {
     apiGet(`/checkins/count/today?activity_type=lecture&lecture_name=${selectedLectureId}`)
@@ -71,8 +98,8 @@ const StadiumPage = () => {
       <div className="card-container">
         <StaffScanHeader
           title="مسح عند المدرج"
-          username="hadi_gate"
-          role="مسؤول المسح"
+          username={username}
+          role={roleLabel}
           location={selectedLecture.hall}
         />
 
@@ -92,7 +119,7 @@ const StadiumPage = () => {
               >
                 {LECTURES.map((lecture) => (
                   <option key={lecture.id} value={lecture.id}>
-                    {lecture.name} · {lecture.hall}
+                    {lecture.hall ? `${lecture.name} · ${lecture.hall}` : lecture.name}
                   </option>
                 ))}
               </select>
