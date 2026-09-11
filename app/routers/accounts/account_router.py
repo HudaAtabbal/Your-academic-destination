@@ -9,8 +9,8 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.dependencies import require_role , get_current_account
-from app.models import AccountRole , Account
+from app.dependencies import require_role
+from app.models import Account, AccountRole
 from app.routers.accounts import account_service
 from app.routers.accounts.account_schema import (
     AccountCreateRequest,
@@ -63,10 +63,11 @@ def update_account(
     )
     return AccountPublic(username=account.username, role=account.role, college=account.college)
 
+
 @router.delete("/{username}", status_code=204)
 def delete_account(
     username: str,
     db: Session = Depends(get_db),
-    current_account: Account = Depends(get_current_account),
+    current_account: Account = Depends(require_role(AccountRole.super_admin)),
 ) -> None:
     account_service.delete_account(db, username, current_account.username)

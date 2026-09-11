@@ -48,7 +48,7 @@ SEED_STUDENT = {
     "birth_date": date(2008, 1, 1),
     "bacc_year": 2026,
     "bacc_average": 285.5,
-    "initial_preferred_major": InterestCluster.informatics,
+    "initial_preferred_major": [InterestCluster.informatics],
     "verification_status": VerificationStatus.verified,
     "registration_type": RegistrationType.registered,
     "status": StudentStatus.complete,

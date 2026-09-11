@@ -16,7 +16,7 @@ class RegisterRequest(BaseModel):
     certificate_year: int = Field(description="bacc_year — سنة الشهادة")
     certificate_type: CertificateType
     average_score: float = Field(ge=0, le=100, description="bacc_average — نسبة مئوية 0-100")
-    initial_preferred_major: InterestCluster
+    initial_preferred_major:list[InterestCluster] = Field(min_length=1)
     contact_platform: ContactPlatform
     contact_id: str
 

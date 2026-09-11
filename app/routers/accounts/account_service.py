@@ -12,10 +12,9 @@ import string
 
 from sqlalchemy.orm import Session
 
-from app.errors import account_not_found, duplicate_username
+from app.errors import account_not_found, cannot_delete_self, duplicate_username
 from app.models import Account, AccountRole, College
 from app.security import hash_password
-from app.errors import account_not_found, cannot_delete_self, duplicate_username
 
 _PASSWORD_ALPHABET = string.ascii_letters + string.digits
 
@@ -96,7 +95,13 @@ def update_account(
     db.refresh(account)
     return account
 
+
 def delete_account(db: Session, username: str, current_username: str) -> None:
+    """
+    حذف نهائي لحساب فريق عمل. ممنوع أي حساب يحذف حساب نفسه (حتى لو
+    super_admin) — مشان ما يصير قفل نفسه برا النظام بالغلط بدون أي حساب
+    super_admin تاني يقدر يرجّعه.
+    """
     if username == current_username:
         raise cannot_delete_self()
 

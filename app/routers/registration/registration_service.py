@@ -4,18 +4,18 @@
 الفرونت الفعلي: certificate_type, certificate_year, average_score,
 initial_preferred_major بمستوى تجمّع لا كلية محددة).
 
-⚠️ ملاحظة تطوير حالية: دالة الإرسال الفعلي لـ OTP (واتساب) لسا مش موصولة —
-حالياً بس منطبع الكود بالـ console (server log) للتجربة اليدوية. لما تتحدد
-تفاصيل مزوّد الإرسال (WhatsGo)، بتنضاف دالة إرسال حقيقية هون بدل الـ print.
+إرسال OTP فعلياً عبر SMS (سيرياتيل Bulk Messaging) — راجع app/sms_service.py.
 """
 
 import random
 import re
 from datetime import datetime, timedelta
 
+from requests.exceptions import RequestException
 from sqlalchemy.orm import Session
 
-from app.errors import AppError, duplicate_contact, otp_invalid, student_not_found
+from app import sms_service
+from app.errors import AppError, duplicate_contact, otp_invalid, sms_send_failed, student_not_found
 from app.models import (
     CertificateType,
     ContactPlatform,
@@ -94,12 +94,20 @@ def register_student(
     db.commit()
     db.refresh(student)
 
-    _create_otp(db, student.id, student.unique_code)
+    try:
+        _create_otp(db, student.id, student.unique_code, student.contact_id)
+    except AppError:
+        # فشل إرسال الـ SMS — منلغي التسجيل بالكامل (بدل ما يضل سجل "يتيم"
+        # بالـ DB بدون ما الطالب يكون استلم أي كود فعلياً)، هيك يقدر يعيد
+        # المحاولة بشكل نظيف بدون ما يصطدم بـ duplicate_contact
+        db.delete(student)
+        db.commit()
+        raise
 
     return student, unique_code
 
 
-def _create_otp(db: Session, student_id: int, unique_code: str) -> str:
+def _create_otp(db: Session, student_id: int, unique_code: str, phone: str) -> str:
     code = _generate_otp_code()
     expires_at = datetime.now() + timedelta(minutes=_OTP_EXPIRY_MINUTES)
 
@@ -107,8 +115,14 @@ def _create_otp(db: Session, student_id: int, unique_code: str) -> str:
     db.add(otp)
     db.commit()
 
-    # ⚠️ مؤقت للتطوير — بدل إرسال فعلي، منطبع الكود بالـ console للتجربة اليدوية
-    print(f"📩 [DEV] رمز OTP للطالب {unique_code}: {code} (صالح لغاية {expires_at:%H:%M:%S})")
+    try:
+        sms_service.send_otp_sms(phone, code)
+    except sms_service.SmsSendError as e:
+        # سيرياتيل نفسها ردّت برسالة خطأ (حساب موقوف، بارامترات غلط، إلخ)
+        raise sms_send_failed(str(e))
+    except RequestException as e:
+        # فشل الاتصال نفسه (سيرفر سيرياتيل واقف، مشكلة شبكة، إلخ)
+        raise sms_send_failed(f"connection_error: {e}")
 
     return code
 
@@ -118,7 +132,7 @@ def resend_otp(db: Session, unique_code: str) -> datetime:
     if student is None:
         raise student_not_found()
 
-    code = _create_otp(db, student.id, student.unique_code)
+    code = _create_otp(db, student.id, student.unique_code, student.contact_id)
     otp = (
         db.query(OTP)
         .filter(OTP.student_id == student.id, OTP.code == code)

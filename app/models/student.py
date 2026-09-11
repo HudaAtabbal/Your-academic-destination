@@ -3,7 +3,7 @@
 مطابق تماماً لجدول students بـ wijhatak_schema_v2.sql.
 """
 
-from sqlalchemy import BigInteger, Column, Date, DateTime, Index, Numeric, SmallInteger, String
+from sqlalchemy import ARRAY, BigInteger, Column, Date, DateTime, Index, Numeric, SmallInteger, String
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -42,7 +42,7 @@ class Student(Base):
     # التجمّع (المجال) يلي بيميل إله الطالب — enum بـ 8 قيم + not_chosen_yet،
     # مختلف عن college_enum (راجع تعليق InterestCluster بـ enums.py)
     initial_preferred_major = Column(
-        SAEnum(InterestCluster, name="interest_cluster_enum"), nullable=True
+    ARRAY(SAEnum(InterestCluster, name="interest_cluster_enum")), nullable=True
     )
 
     verification_status = Column(

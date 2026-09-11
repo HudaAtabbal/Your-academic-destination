@@ -133,14 +133,32 @@ def account_not_found() -> AppError:
     )
 
 
+def cannot_delete_self() -> AppError:
+    return AppError(
+        status_code=400,
+        error_code="cannot_delete_self",
+        message="ما فيك تحذفي حسابك أنتِ بنفسك",
+    )
+
+
+def sms_send_failed(reason: str | None = None) -> AppError:
+    return AppError(
+        status_code=502,
+        error_code="sms_send_failed",
+        message="تعذّر إرسال رمز التحقق حالياً، حاولي مرة تانية بعد شوي",
+        details={"reason": reason} if reason else {},
+    )
+
+
 def validation_error(message: str) -> AppError:
     return AppError(status_code=400, error_code="validation_error", message=message)
+
 
 def duplicate_contact() -> AppError:
     return AppError(
         status_code=409,
         error_code="duplicate_contact",
-        message="وسيلة التواصل هاي مسجّلة مسبقاً",
+        message="رقم التواصل هاد مسجّل مسبقاً",
     )
 
 
@@ -148,12 +166,5 @@ def otp_invalid() -> AppError:
     return AppError(
         status_code=400,
         error_code="otp_invalid",
-        message="رمز التحقق غلط أو منتهي الصلاحية",
-    )
-
-def cannot_delete_self() -> AppError:
-    return AppError(
-        status_code=409,
-        error_code="cannot_delete_self",
-        message="ما فيك تحذف حسابك الحالي",
+        message="الرمز غلط أو منتهي الصلاحية",
     )

@@ -101,20 +101,29 @@ class CertificateType(str, enum.Enum):
 
 
 class InterestCluster(str, enum.Enum):
-    """
-    التجمّع (المجال) يلي بيميل إله الطالب قبل الفعالية — مطابق تماماً لقيم الـ 8
-    "chips" الفعلية بشاشة RegisterStep2 بالفرونت (مش الـ 42 كلية المحددة).
-    منفصل تماماً عن college_enum لأنه ده مستوى تجمّع/تخمين مبدئي، مش اختيار كلية
-    محددة — الكليات المحددة (college_enum) بتُستخدم بس بـ bookings/checkins/accounts
-    يلي فعلاً محتاجة تحديد كلية بعينها.
-    """
-
-    medicine = "medicine"  # الطب البشري
-    informatics = "informatics"  # المعلوماتية
-    architecture = "architecture"  # الهندسة المعمارية
-    law = "law"  # الحقوق
-    pharmacy = "pharmacy"  # الصيدلة
-    agriculture = "agriculture"  # الهندسة الزراعية
-    education = "education"  # التربية
-    civil = "civil"  # الهندسة المدنية
+    medicine = "medicine"  # طب بشري
+    dentistry = "dentistry"  # طب أسنان
+    pharmacy = "pharmacy"  # صيدلة
+    health_sciences = "health_sciences"  # علوم صحية
+    informatics = "informatics"  # هندسة معلوماتية
+    civil = "civil"  # هندسة مدنية
+    architecture = "architecture"  # هندسة معمارية
+    agriculture = "agriculture"  # هندسة زراعة
+    electrical_mechanical_eng = "electrical_mechanical_eng"  # هندسة كهربائية وميكانيكية
+    chemical_food_eng = "chemical_food_eng"  # هندسة كيميائية وغذائية
+    economics = "economics"  # اقتصاد
+    tourism = "tourism"  # سياحة
+    music = "music"  # موسيقا
+    literature = "literature"  # اداب
+    education = "education"  # تربية
+    science = "science"  # علوم
+    applied_science = "applied_science"  # تطبيقية
+    law = "law"  # حقوق
+    institute_agriculture = "institute_agriculture"  # معهد تقاني زراعي
+    institute_desert_affairs = "institute_desert_affairs"  # معهد تقاني لشؤون البادية والتصحر
+    institute_engineering = "institute_engineering"  # معهد تقاني هندسي
+    institute_health = "institute_health"  # معهد تقاني صحي
+    institute_dentistry = "institute_dentistry"  # معهد تقاني طب اسنان
+    institute_applied_industries = "institute_applied_industries"  # معهد تقاني صناعات تطبيقية
+    institute_computer = "institute_computer"  # معهد تقاني حاسوب
     not_chosen_yet = "not_chosen_yet"  # لسّا ما قرّرت

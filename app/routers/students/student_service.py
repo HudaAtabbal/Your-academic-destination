@@ -18,6 +18,17 @@ from app.models import Checkin, RegistrationType, Student, StudentStatus
 # حقول ما بينسمح تعديلها من هاد الروتر — registration_type ثابت بعد الإنشاء
 _IMMUTABLE_FIELDS = {"registration_type", "id", "unique_code", "created_at"}
 
+_WALKIN_REQUIRED_FIELDS = (
+    "full_name",
+    "contact_platform",
+    "contact_id",
+    "birth_date",
+    "bacc_year",
+    "bacc_average",
+    "certificate_type",
+    "initial_preferred_major",
+)
+
 
 def find_student_by_code(db: Session, code: str) -> Student:
     student = db.query(Student).filter(Student.unique_code == code).first()
@@ -36,6 +47,13 @@ def update_student(db: Session, student_id: int, updates: dict) -> Student:
             continue  # حماية إضافية — حتى لو انبعت الحقل، بيتجاهل بصمت
         if value is not None:
             setattr(student, field, value)
+
+    if student.registration_type == RegistrationType.walk_in and student.status == StudentStatus.pending:
+        if all(
+            getattr(student, field) is not None
+            for field in _WALKIN_REQUIRED_FIELDS
+        ):
+            student.status = StudentStatus.complete
 
     db.commit()
     db.refresh(student)
