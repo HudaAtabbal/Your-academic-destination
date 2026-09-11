@@ -45,6 +45,26 @@
   flex: 1;
 }
 
+/* زر العودة لتعديل رقم الهاتف */
+.otp-back-btn {
+  display: block;
+  align-self: center;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 10px 0 0;
+  color: #E85B0D;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+
+.otp-back-btn:hover {
+  text-decoration: underline;
+}
+
 /* OTP Grid Layout — الصناديق بتاخد نفس العرض الأقصى (68px) بس على الشاشات
    الواسعة، وبتنكمش تلقائياً وتتساوى فيما بينها لو المساحة أضيق — هيك
    مستحيل يفيض صندوق برّا الكرت مهما كان عرض الشاشة، بلا حاجة لعتبات مخمّنة */

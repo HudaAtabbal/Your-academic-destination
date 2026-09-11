@@ -74,14 +74,14 @@ const InWalkIncompletePage = () => {
           <div className="stats-row">
             {/* ⚠️ هالكرتين (حضرت نشاط واحد / بلا أي بيانات) ما عندهن endpoint مخصص بالباك لسا،
                 فضلين موك مؤقتاً — لازم نطلب من الباك إضافتهن لـ StudentStatsResponse */}
-            <div className="stat-card">
+            {/* <div className="stat-card">
               <span className="stat-label">حضرت نشاط واحد على الأقل</span>
               <span className="stat-value dark-green-text">١٥</span>
             </div>
             <div className="stat-card">
               <span className="stat-label">بلا أي بيانات مدوّنة</span>
               <span className="stat-value reddish-text">٢٢</span>
-            </div>
+            </div> */}
             <div className="stat-card">
               <span className="stat-label">سجلات in-walk غير مكتملة</span>
               <span className="stat-value orange-text">{totalIncomplete ?? '—'}</span>

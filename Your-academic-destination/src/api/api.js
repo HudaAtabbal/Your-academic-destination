@@ -16,6 +16,11 @@
 // TODO: بدّليها لعنوان الباك اند الفعلي لما يجهز (من .env مثلاً)
 const API_BASE_URL = 'https://unpiloted-flannels-recast.ngrok-free.dev';
 
+// أقصى مدة انتظار لأي طلب قبل ما ننهيه تلقائياً (بالميلي ثانية).
+// بدونها، لو السيرفر أو الـ tunnel وقع، الطلب بيضل معلّق للأبد والواجهة
+// بتضل عالقة بحالة "جاري التحميل" بلا أي رسالة للمستخدم.
+const REQUEST_TIMEOUT_MS = 30000;
+
 // مفتاح تخزين توكن تسجيل دخول فريق العمل (JWT) — نفس القيمة يلي بيرجّعها /auth/login
 const AUTH_TOKEN_KEY = 'authToken';
 
@@ -38,7 +43,7 @@ class ApiError extends Error {
  * - options: نفس خيارات fetch العادية (method, body, headers...)
  *
  * بترجع الـ JSON body مباشرة عند النجاح.
- * بترمي ApiError عند أي فشل (شبكة، أو رد بصيغة {error_code, message, details}).
+ * بترمي ApiError عند أي فشل (شبكة، تايم أوت، أو رد بصيغة {error_code, message, details}).
  *
  * لو في توكن مخزّن (بعد تسجيل دخول فريق عمل)، بينضاف تلقائياً كـ
  * "Authorization: Bearer <token>" — ما محتاجة ترفقيه يدوياً بكل استدعاء.
@@ -46,6 +51,11 @@ class ApiError extends Error {
 export async function apiRequest(path, options = {}) {
   let response;
   const token = getAuthToken();
+
+  // AbortController: لو الطلب طوّل أكتر من REQUEST_TIMEOUT_MS، منلغيه تلقائياً
+  // بدل ما يعلّق للأبد (مثلاً لو ngrok tunnel وقع بمنتصف الطلب)
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
@@ -55,15 +65,26 @@ export async function apiRequest(path, options = {}) {
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...(options.headers || {}),
       },
+      signal: controller.signal,
       ...options,
     });
   } catch (networkErr) {
+    if (networkErr.name === 'AbortError') {
+      throw new ApiError(
+        'timeout',
+        'استغرق الاتصال بالسيرفر وقتاً أطول من المتوقع، تأكدي من الإنترنت وحاولي مرة تانية',
+        null
+      );
+    }
+
     // فشل الاتصال نفسه (السيرفر واقف، مافي إنترنت...) — قبل ما نوصل حتى لرد الباك
     throw new ApiError(
       'network_error',
       'تعذّر الاتصال بالسيرفر، تأكدي من الإنترنت وحاولي مرة تانية',
       null
     );
+  } finally {
+    clearTimeout(timeoutId);
   }
 
   let body = null;
