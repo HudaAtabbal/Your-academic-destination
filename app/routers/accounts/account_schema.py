@@ -4,7 +4,7 @@ Pydantic schemas لروتر accounts — مطابقة لقسم 7 بملف wijhat
 
 from pydantic import BaseModel, Field, model_validator
 
-from app.models.enums import AccountRole, College
+from app.models.enums import AccountRole, Faculty
 
 
 class AccountPublic(BaseModel):
@@ -12,7 +12,7 @@ class AccountPublic(BaseModel):
 
     username: str
     role: AccountRole
-    college: College | None = None
+    college: Faculty | None = None
 
 
 class AccountListResponse(BaseModel):
@@ -27,19 +27,19 @@ class AccountCreateRequest(BaseModel):
     username: str = Field(min_length=1, max_length=100)
     password: str | None = None  # لو فاضي/None، بتتولّد تلقائياً
     role: AccountRole
-    college: College | None = None  # مطلوب بس لو role=college_staff
+    college: Faculty | None = None  # مطلوب بس لو role=college_staff
 
 
 class AccountCreateResponse(BaseModel):
     username: str
     generated_password: str | None = None  # بترجع مرة وحدة بس، عند الإنشاء
     role: AccountRole
-    college: College | None = None
+    college: Faculty | None = None
 
 
 class AccountUpdateRequest(BaseModel):
     role: AccountRole | None = None
-    college: College | None = None
+    college: Faculty | None = None
     password: str | None = None
 
     @model_validator(mode="after")

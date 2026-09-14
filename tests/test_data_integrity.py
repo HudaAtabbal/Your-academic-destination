@@ -9,6 +9,7 @@ from app.models import (
     ActivityType,
     Checkin,
     College,
+    Faculty,
     Lecture,
     OpinionChange,
     PostSurvey,
@@ -63,8 +64,8 @@ def test_points_formula_full_matrix(client, db, student_factory):
         _insert_checkin(
             db, sid, ActivityType.lecture, lecture=getattr(Lecture, f"lecture_{i}"), at=now
         )
-    _insert_checkin(db, sid, ActivityType.tour, college=College.medicine, at=now)
-    _insert_checkin(db, sid, ActivityType.tour, college=College.dentistry, at=now)
+    _insert_checkin(db, sid, ActivityType.tour, college=Faculty.medicine, at=now)
+    _insert_checkin(db, sid, ActivityType.tour, college=Faculty.dentistry, at=now)
     _insert_checkin(db, sid, ActivityType.consultation, at=now)
     db.add(
         PostSurvey(

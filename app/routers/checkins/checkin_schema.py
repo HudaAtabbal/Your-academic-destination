@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.models.enums import College, Lecture
+from app.models.enums import Faculty, Lecture
 
 
 class UniqueCodeRequest(BaseModel):
@@ -25,7 +25,7 @@ class CheckinResponse(BaseModel):
     student_name: str | None = None
     checked_in_at: datetime
     lecture_name: Lecture | None = None
-    college: College | None = None
+    college: Faculty | None = None
 
 
 class CheckinCountResponse(BaseModel):

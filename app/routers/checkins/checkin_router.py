@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import get_current_account, require_role
 from app.errors import AppError
-from app.models import Account, ActivityType, AccountRole, College, Lecture
+from app.models import Account, ActivityType, AccountRole, Faculty, Lecture
 from app.routers.checkins import checkin_service
 from app.routers.checkins.checkin_schema import (
     CheckinCountResponse,
@@ -104,7 +104,7 @@ def count_checkins_today(
     # الأعمدة أنواع enum — FastAPI بيرجّع 422 موحّد لأي قيمة غير صالحة
     # (بدل ValueError مسرّب كـ 500 يلي كان يكشف internals)
     activity_type: ActivityType,
-    college: College | None = None,
+    college: Faculty | None = None,
     lecture_name: Lecture | None = None,
     db: Session = Depends(get_db),
     # أي حساب فريق عمل مسجّل دخول يقدر يشوف العداد — مش محصور بدور معيّن،

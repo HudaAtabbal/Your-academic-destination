@@ -19,7 +19,7 @@ try:
 except (AttributeError, ValueError):
     pass
 
-MIGRATION_FILE = Path(__file__).resolve().parent / "migration_drop_contact_platform.sql"
+MIGRATION_FILE = Path(__file__).resolve().parent / "migration_faculty_enum.sql"
 TARGET_DBS = [
     ("dev", "postgresql://postgres:1234@localhost:5432/Wijhatak_db"),
     ("test", "postgresql://postgres:1234@localhost:5432/wijhatak_test"),

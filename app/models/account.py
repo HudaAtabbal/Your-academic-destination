@@ -10,7 +10,7 @@ from sqlalchemy import Enum as SAEnum
 from sqlalchemy.sql import func
 
 from app.database import Base
-from app.models.enums import AccountRole, College
+from app.models.enums import AccountRole, Faculty
 
 
 class Account(Base):
@@ -21,7 +21,7 @@ class Account(Base):
     password_hash = Column(String(255), nullable=False)
 
     role = Column(SAEnum(AccountRole, name="account_role_enum"), nullable=False)
-    college = Column(SAEnum(College, name="college_enum"), nullable=True)
+    college = Column(SAEnum(Faculty, name="faculty_enum"), nullable=True)
 
     # يرتفع عند تغيير كلمة السر — التوكنات القديمة (عندها token_version قديم)
     # بتصير مرفوضة فوراً من get_current_account (إبطال الجلسات)

@@ -16,7 +16,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.errors import duplicate_checkin, missing_booking, missing_campus_entry, student_not_found
-from app.models import ActivityType, Booking, BookingType, Checkin, College, Lecture, Student
+from app.models import ActivityType, Booking, BookingType, Checkin, Faculty, Lecture, Student
 from app.routers.points import point_service
 
 _ACTIVITY_LABELS = {
@@ -80,7 +80,7 @@ def _find_existing_checkin(
     student_id: int,
     activity_type: ActivityType,
     lecture_name: Lecture | None = None,
-    college: College | None = None,
+    college: Faculty | None = None,
 ) -> Checkin | None:
     query = db.query(Checkin).filter(
         Checkin.student_id == student_id, Checkin.activity_type == activity_type
@@ -93,7 +93,7 @@ def _find_existing_checkin(
 
 
 def _has_matching_booking(
-    db: Session, student_id: int, booking_type: BookingType, college: College | None = None
+    db: Session, student_id: int, booking_type: BookingType, college: Faculty | None = None
 ) -> bool:
     query = db.query(Booking).filter(
         Booking.student_id == student_id, Booking.booking_type == booking_type
@@ -212,7 +212,7 @@ def create_lecture_checkin(
 
 
 def create_tour_checkin(
-    db: Session, unique_code: str, college: College
+    db: Session, unique_code: str, college: Faculty
 ) -> tuple[Checkin, str | None]:
     student = _get_student_or_raise(db, unique_code)
 
@@ -280,7 +280,7 @@ def create_consultation_checkin(db: Session, unique_code: str) -> tuple[Checkin,
 def count_checkins_today(
     db: Session,
     activity_type: ActivityType,
-    college: College | None = None,
+    college: Faculty | None = None,
     lecture_name: Lecture | None = None,
 ) -> int:
     """

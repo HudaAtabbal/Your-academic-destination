@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
 
 from app.errors import duplicate_booking, missing_campus_entry, student_not_found
-from app.models import Booking, BookingType, Checkin, ActivityType, College, Student
+from app.models import Booking, BookingType, Checkin, ActivityType, Faculty, Student
 
 
 def _get_student_or_raise(db: Session, unique_code: str) -> Student:
@@ -32,7 +32,7 @@ def _has_campus_entry(db: Session, student_id: int) -> bool:
 
 
 def _find_existing_booking(
-    db: Session, student_id: int, booking_type: BookingType, college: College | None = None
+    db: Session, student_id: int, booking_type: BookingType, college: Faculty | None = None
 ) -> Booking | None:
     query = db.query(Booking).filter(
         Booking.student_id == student_id, Booking.booking_type == booking_type
@@ -42,7 +42,7 @@ def _find_existing_booking(
     return query.first()
 
 
-def create_tour_booking(db: Session, unique_code: str, college: College) -> tuple[Booking, str | None]:
+def create_tour_booking(db: Session, unique_code: str, college: Faculty) -> tuple[Booking, str | None]:
     student = _get_student_or_raise(db, unique_code)
 
     if not _has_campus_entry(db, student.id):
@@ -79,7 +79,7 @@ def create_consultation_booking(db: Session, unique_code: str) -> tuple[Booking,
 
 
 def count_bookings_today(
-    db: Session, booking_type: BookingType, college: College | None = None
+    db: Session, booking_type: BookingType, college: Faculty | None = None
 ) -> int:
     """
     عدّاد "اليوم" لعدد الحجوزات (بغض النظر إذا تأكدت فعلياً بـ checkins أو لأ) —

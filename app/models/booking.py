@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database import Base
-from app.models.enums import BookingType, College
+from app.models.enums import BookingType, Faculty
 
 
 class Booking(Base):
@@ -21,7 +21,7 @@ class Booking(Base):
     )
 
     booking_type = Column(SAEnum(BookingType, name="booking_type_enum"), nullable=False)
-    college = Column(SAEnum(College, name="college_enum"), nullable=True)
+    college = Column(SAEnum(Faculty, name="faculty_enum"), nullable=True)
 
     booked_at = Column(DateTime, nullable=False, server_default=func.now())
 

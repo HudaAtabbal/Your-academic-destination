@@ -9,7 +9,7 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.database import Base
-from app.models.enums import ActivityType, College, Lecture
+from app.models.enums import ActivityType, Faculty, Lecture
 
 
 class Checkin(Base):
@@ -22,7 +22,7 @@ class Checkin(Base):
 
     activity_type = Column(SAEnum(ActivityType, name="activity_type_enum"), nullable=False)
     lecture_name = Column(SAEnum(Lecture, name="lecture_enum"), nullable=True)
-    college = Column(SAEnum(College, name="college_enum"), nullable=True)
+    college = Column(SAEnum(Faculty, name="faculty_enum"), nullable=True)
 
     checked_in_at = Column(DateTime, nullable=False, server_default=func.now())
 

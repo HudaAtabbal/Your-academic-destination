@@ -98,6 +98,37 @@ class College(str, enum.Enum):
     not_chosen_yet = "not_chosen_yet"  # لسّا ما قرّرت
 
 
+# قائمة "الكلية المرتبطة" لحسابات مسؤولي الكليات (Account.college) — قائمة
+# منفصلة ومبسّطة عن College اللي بتخصّ اختيارات الطلاب. الباك يحفظ id الإنكليزي،
+# والاسم العربي معروض بالمقابل بالواجهة. نفس فكرة "المعاهد" مدمجة بنفس القائمة.
+class Faculty(str, enum.Enum):
+    medicine = "medicine"  # الطب البشري
+    dentistry = "dentistry"  # طب الأسنان
+    pharmacy = "pharmacy"  # الصيدلة
+    health_sciences = "health_sciences"  # كلية العلوم الصحية
+    informatics = "informatics"  # كلية المعلوماتية
+    civil_engineering = "civil_engineering"  # كلية الهندسة المدنية
+    architecture = "architecture"  # كلية العمارة
+    agriculture = "agriculture"  # كلية الهندسة الزراعية
+    electrical_mechanical = "electrical_mechanical"  # كلية الهندسة الكهربائية والميكانيكية
+    chemical_food = "chemical_food"  # كلية الهندسة الكيميائية والغذائية
+    economics = "economics"  # كلية الاقتصاد
+    tourism = "tourism"  # كلية السياحة
+    music = "music"  # كلية الموسيقا
+    arts = "arts"  # كلية الآداب والعلوم الإنسانية
+    education = "education"  # كلية التربية
+    sciences = "sciences"  # كلية العلوم
+    applied = "applied"  # الكلية التطبيقية
+    law = "law"  # كلية الحقوق
+    institute_agriculture = "institute_agriculture"  # معهد تقاني زراعي
+    institute_desert_affairs = "institute_desert_affairs"  # معهد تقاني لشؤون البادية والتصحر
+    institute_engineering = "institute_engineering"  # معهد تقاني هندسي
+    institute_health = "institute_health"  # معهد تقاني صحي
+    institute_dentistry = "institute_dentistry"  # معهد تقاني طب أسنان
+    institute_applied_industries = "institute_applied_industries"  # معهد تقاني صناعات تطبيقية
+    institute_computer = "institute_computer"  # معهد تقاني حاسوب
+
+
 # ⚠️ TODO: استبدال الـ placeholders بأسماء المحاضرات الفعلية قبل الإطلاق.
 class Lecture(str, enum.Enum):
     lecture_1 = "lecture_1"

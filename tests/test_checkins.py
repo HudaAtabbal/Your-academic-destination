@@ -3,7 +3,7 @@
 from fastapi.testclient import TestClient
 
 import main as main_module
-from app.models import College
+from app.models import College, Faculty
 
 STUDENT = "R-9001"
 L1 = "lecture_1"
@@ -205,7 +205,7 @@ def test_tour_booking_other_college_does_not_satisfy(
     student_factory(STUDENT)
     assert _campus_entry(client, students_admin_headers).status_code == 201
     assert _tour_booking(client, college_staff_headers).status_code == 201
-    create_custom_staff("staff2", "pw456", College.dentistry)
+    create_custom_staff("staff2", "pw456", Faculty.dentistry)
     headers = auth_headers("staff2", "pw456")
     resp = client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=headers)
     assert resp.status_code == 409

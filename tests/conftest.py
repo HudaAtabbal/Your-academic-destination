@@ -25,13 +25,13 @@ from sqlalchemy import text
 import main as main_module
 from app.database import Base, SessionLocal, engine
 from app.dependencies import _otp_student_log, _request_log
-from app.models import Account, AccountRole, College, RegistrationType, Student, StudentStatus, VerificationStatus
+from app.models import Account, AccountRole, College, Faculty, RegistrationType, Student, StudentStatus, VerificationStatus
 from app.security import hash_password
 
 BASE_ACCOUNTS = [
     ("taher_super", "super123", AccountRole.super_admin, None),
     ("sedra_admin", "admin123", AccountRole.students_admin, None),
-    ("rima_staff", "staff123", AccountRole.college_staff, College.medicine),
+    ("rima_staff", "staff123", AccountRole.college_staff, Faculty.medicine),
     ("hadi_gate", "gate123", AccountRole.gate_scanner, None),
 ]
 
@@ -152,7 +152,7 @@ def student_factory(db):
 
 @pytest.fixture
 def create_custom_staff(db):
-    def _create(username: str, password: str, college: College | None) -> Account:
+    def _create(username: str, password: str, college: Faculty | None) -> Account:
         account = Account(
             username=username,
             password_hash=hash_password(password),

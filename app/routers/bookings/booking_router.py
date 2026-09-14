@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import get_current_account, require_role
 from app.errors import AppError
-from app.models import Account, AccountRole, BookingType, College
+from app.models import Account, AccountRole, BookingType, Faculty
 from app.routers.bookings import booking_service
 from app.routers.bookings.booking_schema import (
     BookingCountResponse,
@@ -21,7 +21,7 @@ from app.routers.bookings.booking_schema import (
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
 
-def _get_account_college(current_account: Account) -> str:
+def _get_account_college(current_account: Account) -> Faculty:
     if current_account.college is None:
         raise AppError(
             status_code=400,
@@ -64,7 +64,7 @@ def book_consultation(payload: BookingRequest, db: Session = Depends(get_db)) ->
 def count_bookings_today(
     # نفس توحيد 422: قيمة college غير صالحة = خطأ فاليديشن بدل 500
     booking_type: BookingType,
-    college: College | None = None,
+    college: Faculty | None = None,
     db: Session = Depends(get_db),
     current_account: Account = Depends(get_current_account),
 ) -> BookingCountResponse:

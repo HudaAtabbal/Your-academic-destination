@@ -53,7 +53,7 @@ def code_range_taken(codes: list[str]) -> AppError:
     return AppError(
         status_code=409,
         error_code="code_range_taken",
-        message="بعض الرموز بهاد النطاق مستخدمة مسبقاً",
+        message="لم نتمكن من توليد رموز فريدة، حاولي مرة أخرى",
         details={"conflicting_codes": codes},
     )
 

@@ -1,15 +1,14 @@
 """اختبارات توليد رموز walk-in (super_admin فقط)."""
 
+import re
+
 from app.models import RegistrationType, Student, VerificationStatus
+
+_CODE_RE = re.compile(r"^W-\d{6}$")
 
 
 def _walkin_students(db):
-    return (
-        db.query(Student)
-        .filter(Student.unique_code.like("W-%"))
-        .order_by(Student.unique_code)
-        .all()
-    )
+    return db.query(Student).filter(Student.unique_code.like("W-%")).all()
 
 
 def test_generate_walkin_codes(client, super_headers, db):
@@ -17,7 +16,12 @@ def test_generate_walkin_codes(client, super_headers, db):
         "/admin/walkin-codes/generate", json={"count": 3}, headers=super_headers
     )
     assert resp.status_code == 201
-    assert resp.json()["codes"] == ["W-0001", "W-0002", "W-0003"]
+
+    codes = resp.json()["codes"]
+    assert len(codes) == 3
+    # كل رمز عشوائي بالصيغة W-XXXXXX — مش تسلسلي
+    assert all(_CODE_RE.match(code) for code in codes)
+    assert len(set(codes)) == 3  # فريدة جوا الدفعة
 
     students = _walkin_students(db)
     assert len(students) == 3
@@ -26,18 +30,23 @@ def test_generate_walkin_codes(client, super_headers, db):
         assert student.verification_status == VerificationStatus.verified
 
 
-def test_sequence_continues_from_existing(client, super_headers, db, student_factory):
+def test_generate_avoids_existing_codes(client, super_headers, db, student_factory):
+    # رمز موجود مسبقاً بالـ DB — التوليد لازم ما يكرّره
+    existing_code = "W-123456"
     student_factory(
-        "W-0023",
+        existing_code,
         full_name=None,
         registration_type=RegistrationType.walk_in,
         verification_status=VerificationStatus.verified,
     )
     resp = client.post(
-        "/admin/walkin-codes/generate", json={"count": 2}, headers=super_headers
+        "/admin/walkin-codes/generate", json={"count": 3}, headers=super_headers
     )
     assert resp.status_code == 201
-    assert resp.json()["codes"] == ["W-0024", "W-0025"]
+    codes = resp.json()["codes"]
+    assert existing_code not in codes
+    assert all(_CODE_RE.match(code) for code in codes)
+    assert len(set(codes)) == 3
 
 
 def test_generate_count_zero_422(client, super_headers):

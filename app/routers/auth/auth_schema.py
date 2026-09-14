@@ -4,7 +4,7 @@ Pydantic schemas لروتر auth — مطابقة تماماً لقسم 1 (Auth)
 
 from pydantic import BaseModel
 
-from app.models.enums import AccountRole, College
+from app.models.enums import AccountRole, Faculty
 
 
 class LoginRequest(BaseModel):
@@ -16,4 +16,4 @@ class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     role: AccountRole
-    college: College | None = None
+    college: Faculty | None = None

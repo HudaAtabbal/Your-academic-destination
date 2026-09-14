@@ -13,7 +13,7 @@ import string
 from sqlalchemy.orm import Session
 
 from app.errors import account_not_found, cannot_delete_self, duplicate_username, validation_error
-from app.models import Account, AccountRole, College
+from app.models import Account, AccountRole, Faculty
 from app.security import hash_password
 
 _PASSWORD_ALPHABET = string.ascii_letters + string.digits
@@ -23,7 +23,7 @@ def _generate_password(length: int = 8) -> str:
     return "".join(secrets.choice(_PASSWORD_ALPHABET) for _ in range(length))
 
 
-def _resolve_college(role: AccountRole, college: College | None) -> College | None:
+def _resolve_college(role: AccountRole, college: Faculty | None) -> Faculty | None:
     """college منطقية بس لو الدور college_staff — أي دور تاني بيتجاهلها."""
     return college if role == AccountRole.college_staff else None
 
@@ -45,7 +45,7 @@ def create_account(
     username: str,
     password: str | None,
     role: AccountRole,
-    college: College | None,
+    college: Faculty | None,
 ) -> tuple[Account, str | None]:
     existing = db.query(Account).filter(Account.username == username).first()
     if role == AccountRole.college_staff and college is None:
@@ -76,7 +76,7 @@ def update_account(
     db: Session,
     username: str,
     role: AccountRole | None,
-    college: College | None,
+    college: Faculty | None,
     password: str | None,
 ) -> Account:
     account = db.query(Account).filter(Account.username == username).first()

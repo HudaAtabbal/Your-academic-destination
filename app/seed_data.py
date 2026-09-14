@@ -25,6 +25,7 @@ from app.models import (
     Account,
     AccountRole,
     College,
+    Faculty,
     RegistrationType,
     Student,
     StudentStatus,
@@ -56,7 +57,7 @@ def _resolve_password(username: str) -> str:
 SEED_ACCOUNTS = [
     ("taher_super", AccountRole.super_admin, None),
     ("sedra_admin", AccountRole.students_admin, None),
-    ("rima_staff", AccountRole.college_staff, College.medicine),
+    ("rima_staff", AccountRole.college_staff, Faculty.medicine),
     ("hadi_gate", AccountRole.gate_scanner, None),
 ]
 

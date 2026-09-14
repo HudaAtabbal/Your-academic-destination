@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.models.enums import College
+from app.models.enums import Faculty
 
 
 class BookingRequest(BaseModel):
@@ -19,7 +19,7 @@ class BookingResponse(BaseModel):
     booking_id: int
     student_name: str | None = None
     booked_at: datetime
-    college: College | None = None
+    college: Faculty | None = None
 
 
 class BookingCountResponse(BaseModel):
