@@ -13,7 +13,7 @@ import pytest
 
 from app.errors import AppError
 from app.models import OTP, RegistrationType, Student, VerificationStatus
-from app.models.enums import CertificateType, College, ContactPlatform
+from app.models.enums import CertificateType, College
 from app.routers.registration import registration_service
 from app import sms_service
 
@@ -26,7 +26,6 @@ def _service_args(contact_id: str = "0911111111", full_name: str = "اسم مب�
         certificate_type=CertificateType.scientific,
         average_score=85.5,
         initial_preferred_major=[College.medicine],
-        contact_platform=ContactPlatform.whatsapp,
         contact_id=contact_id,
     )
 
@@ -40,7 +39,6 @@ def _register_payload(contact_id: str = "0911111111", full_name: str = "اسم �
         "certificate_type": args["certificate_type"].value,
         "average_score": args["average_score"],
         "initial_preferred_major": [c.value for c in args["initial_preferred_major"]],
-        "contact_platform": args["contact_platform"].value,
         "contact_id": args["contact_id"],
     }
 
@@ -179,7 +177,6 @@ class TestRaceSameContact:
                     certificate_type=CertificateType.scientific,
                     average_score=85.5,
                     initial_preferred_major=[College.medicine],
-                    contact_platform=ContactPlatform.whatsapp,
                     contact_id="0911111111",
                 )
                 session.commit()
@@ -220,7 +217,6 @@ class TestLookupByNameMatch:
         ok = client.post(
             "/students/lookup-by-contact",
             json={
-                "contact_platform": "whatsapp",
                 "contact_id": "0911111111",
                 "full_name": "خالد غيث طليمات",
             },
@@ -232,7 +228,6 @@ class TestLookupByNameMatch:
         bad = client.post(
             "/students/lookup-by-contact",
             json={
-                "contact_platform": "whatsapp",
                 "contact_id": "0911111111",
                 "full_name": "اسم مختلف تماماً",
             },
@@ -248,7 +243,6 @@ class TestLookupByNameMatch:
         ok = client.post(
             "/students/lookup-by-contact",
             json={
-                "contact_platform": "whatsapp",
                 "contact_id": "0911111111",
                 "full_name": "  عمر   أحمد    العسورة  ",
             },

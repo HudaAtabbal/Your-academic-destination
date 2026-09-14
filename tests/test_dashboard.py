@@ -78,3 +78,22 @@ def test_dashboard_forbidden_for_non_super(client, students_admin_headers):
     resp = client.get("/admin/dashboard/stats", headers=students_admin_headers)
     assert resp.status_code == 403
     assert resp.json()["error_code"] == "forbidden"
+
+
+def test_dashboard_counts_only_verified_registered(
+    client, student_factory, super_headers
+):
+    """'مسجّلون إلكترونياً' يِحسب فقط الموثَّق (دخل الـ OTP وشاف البطاقة)،
+    لا من سُدّد تسجيلُه وأُرسل له الرمز فقط."""
+    student_factory("R-9001", verification_status=VerificationStatus.verified)
+    student_factory(  # مسجّل إلكترونياً لكنه لسا موثّق (بعد إرسال الـ OTP فقط)
+        "R-9002", verification_status=VerificationStatus.pending
+    )
+    student_factory(  # walk-in موثّق — ليس "إلكترونياً"
+        "W-0001",
+        registration_type=RegistrationType.walk_in,
+        verification_status=VerificationStatus.verified,
+    )
+    resp = client.get("/admin/dashboard/stats", headers=super_headers)
+    assert resp.status_code == 200
+    assert resp.json()["registered_online_count"] == 1

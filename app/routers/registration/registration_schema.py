@@ -7,7 +7,7 @@ from datetime import date, datetime
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.models.enums import CertificateType, ContactPlatform, College, VerificationStatus
+from app.models.enums import CertificateType, College, VerificationStatus
 
 
 class RegisterRequest(BaseModel):
@@ -17,8 +17,12 @@ class RegisterRequest(BaseModel):
     certificate_type: CertificateType
     average_score: float = Field(ge=0, le=100, description="bacc_average — نسبة مئوية 0-100")
     initial_preferred_major:list[College] = Field(min_length=1)
-    contact_platform: ContactPlatform
-    contact_id: str = Field(min_length=1, max_length=255, description="رقم التواصل")
+    contact_id: str = Field(min_length=1, max_length=255, description="رقم الهاتف")
+    previous_unique_code: str | None = Field(
+        default=None,
+        max_length=20,
+        description="كود التسجيل السابق (عند تعديل رقم الهاتف من صفحة OTP) — يُحذف الطالب المعلّق القديم",
+    )
 
     @field_validator("full_name", "contact_id", mode="before")
     @classmethod
@@ -68,7 +72,6 @@ class StudentCardResponse(BaseModel):
 
 
 class LookupByContactRequest(BaseModel):
-    contact_platform: ContactPlatform
     contact_id: str
     full_name: str = Field(min_length=1)
 

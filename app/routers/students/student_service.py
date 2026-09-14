@@ -20,7 +20,6 @@ _IMMUTABLE_FIELDS = {"registration_type", "id", "unique_code", "created_at"}
 
 _WALKIN_REQUIRED_FIELDS = (
     "full_name",
-    "contact_platform",
     "contact_id",
     "birth_date",
     "bacc_year",

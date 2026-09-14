@@ -27,7 +27,6 @@ def _register_payload(**overrides):
         "certificate_type": "scientific",
         "average_score": 88.5,
         "initial_preferred_major": ["medicine"],
-        "contact_platform": "whatsapp",
         "contact_id": "0912345678",
     }
     payload.update(overrides)

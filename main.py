@@ -113,7 +113,6 @@ _FIELD_NAMES_AR = {
     "certificate_type": "نوع الشهادة",
     "average_score": "المعدل",
     "initial_preferred_major": "التخصص المفضل",
-    "contact_platform": "وسيلة التواصل",
     "contact_id": "رقم التواصل",
     "unique_code": "الرمز الفريد",
     "username": "اسم المستخدم",

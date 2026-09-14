@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from app.models.enums import (
     CertificateType,
     College,
-    ContactPlatform,
     RegistrationType,
     StudentStatus,
     VerificationStatus,
@@ -21,7 +20,6 @@ class StudentDetail(BaseModel):
     unique_code: str
     full_name: str | None = None
     birth_date: date | None = None
-    contact_platform: ContactPlatform | None = None
     contact_id: str | None = None
     bacc_year: int | None = None
     bacc_average: float | None = None
@@ -44,7 +42,6 @@ class StudentUpdateRequest(BaseModel):
 
     full_name: str | None = Field(default=None, min_length=1, max_length=255)
     birth_date: date | None = None
-    contact_platform: ContactPlatform | None = None
     contact_id: str | None = Field(default=None, min_length=1, max_length=255)
     bacc_year: int | None = Field(default=None, ge=1900, le=2100)
     bacc_average: float | None = Field(default=None, ge=0, le=100)
@@ -75,7 +72,6 @@ class StudentUpdateRequest(BaseModel):
             for v in (
                 self.full_name,
                 self.birth_date,
-                self.contact_platform,
                 self.contact_id,
                 self.bacc_year,
                 self.bacc_average,

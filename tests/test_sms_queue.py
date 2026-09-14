@@ -32,9 +32,8 @@ _REGISTER_PAYLOAD = {
     "certificate_year": 2024,
     "certificate_type": "scientific",
     "average_score": 88.5,
-    "initial_preferred_major": ["medicine"],
-    "contact_platform": "whatsapp",
-    "contact_id": "0912345678",
+"initial_preferred_major": ["medicine"],
+        "contact_id": "0912345678",
 }
 
 
@@ -134,7 +133,7 @@ def test_dequeue_returns_job_with_international_phone_and_plaintext_code(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("SMS_MODE", "queue")
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     otp, job = _add_job(db, student=student, phone="0912345678", otp_code="4321")
 
     items = _dequeue(client)
@@ -161,7 +160,7 @@ def test_second_dequeue_is_empty_while_job_sending(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("SMS_MODE", "queue")
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     _add_job(db, student=student)
 
     assert len(_dequeue(client)) == 1
@@ -177,7 +176,7 @@ def test_report_success_marks_job_sent(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("SMS_MODE", "queue")
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     otp, job = _add_job(db, student=student)
     job_id = _dequeue(client)[0]["job_id"]
 
@@ -203,7 +202,7 @@ def test_report_permanent_failure_marks_job_failed(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("SMS_MODE", "queue")
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     otp, job = _add_job(db, student=student)
     job_id = _dequeue(client)[0]["job_id"]
 
@@ -224,7 +223,7 @@ def test_report_transient_failure_returns_job_to_pending(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("SMS_MODE", "queue")
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     otp, job = _add_job(db, student=student)
     job_id = _dequeue(client)[0]["job_id"]
 
@@ -251,7 +250,7 @@ def test_stale_sending_job_reclaimed_when_worker_dead(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("SMS_MODE", "queue")
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     stale_at = datetime.now() - timedelta(seconds=180)
     otp, job = _add_job(
         db, student=student, status=SmsJobStatus.sending, attempts=1, claimed_at=stale_at
@@ -271,7 +270,7 @@ def test_sending_job_with_exhausted_attempts_marked_failed(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("SMS_MODE", "queue")
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     stale_at = datetime.now() - timedelta(seconds=180)
     otp, job = _add_job(
         db, student=student, status=SmsJobStatus.sending, attempts=5, claimed_at=stale_at
@@ -289,7 +288,7 @@ def test_stale_sending_job_reclaimed_even_when_worker_alive(
     """إبلاغ ضائع والمُرسِل حيّ (نبضات مستمرة) — المهمة لازم تُستردّ بعد المهلة،
     ما تبقى محتجزة إلى الأبد. هاد الفرق يلي بيمنع رمز ما يوصل أبداً."""
     monkeypatch.setenv("SMS_MODE", "queue")
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     # نبضة حديثة → المُرسِل "حي" تماماً كحالة إبلاغ ضاع فيه اتصال الخادم
     heartbeat = client.post("/internal/sms/heartbeat", headers=_worker_headers())
     assert heartbeat.status_code == 200
@@ -317,7 +316,7 @@ def test_expired_otp_job_never_dispatched(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("SMS_MODE", "queue")
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     expires_past = datetime.now() - timedelta(minutes=1)
     otp, job = _add_job(db, student=student, expires_at=expires_past)
 
@@ -336,7 +335,7 @@ def test_internal_endpoints_reject_missing_token(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("WORKER_TOKEN", _WORKER_TOKEN)
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     _add_job(db, student=student)
 
     for path, payload in (
@@ -353,7 +352,7 @@ def test_internal_endpoints_reject_wrong_token(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.setenv("WORKER_TOKEN", _WORKER_TOKEN)
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     _add_job(db, student=student)
 
     bad = {"Authorization": "Bearer wrong-token"}
@@ -365,7 +364,7 @@ def test_internal_endpoints_reject_when_worker_token_unset(
     client, db, student_factory, monkeypatch
 ):
     monkeypatch.delenv("WORKER_TOKEN", raising=False)
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
     _add_job(db, student=student)
 
     resp = client.post("/internal/sms/dequeue?batch=1", headers=_worker_headers())
@@ -381,7 +380,7 @@ def test_dashboard_sms_status_counts_and_worker_online(
 ):
     monkeypatch.setenv("SMS_MODE", "queue")
     monkeypatch.setenv("WORKER_TOKEN", _WORKER_TOKEN)
-    student = student_factory("R-9001", contact_platform="whatsapp", contact_id="0912345678")
+    student = student_factory("R-9001", contact_id="0912345678")
 
     # صف خُلّق pending وآخر وصل sent — لنفحص الأعداد
     otp, pending_job = _add_job(db, student=student)

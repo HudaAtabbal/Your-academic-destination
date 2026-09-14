@@ -27,7 +27,6 @@ from app.errors import (
 )
 from app.models import (
     CertificateType,
-    ContactPlatform,
     College,
     OTP,
     RegistrationType,
@@ -73,13 +72,27 @@ def register_student(
     certificate_type: CertificateType,
     average_score: float,
     initial_preferred_major: list[College],
-    contact_platform: ContactPlatform,
     contact_id: str,
+    previous_unique_code: str | None = None,
 ) -> tuple[Student, str]:
+    # تنظيف طالب معلّق قديم عند تعديل رقم الهاتف من صفحة OTP
+    if previous_unique_code:
+        prev = (
+            db.query(Student)
+            .filter(
+                Student.unique_code == previous_unique_code,
+                Student.registration_type == RegistrationType.registered,
+                Student.verification_status == VerificationStatus.pending,
+            )
+            .first()
+        )
+        if prev is not None:
+            db.delete(prev)
+            db.flush()
+
     existing_contact = (
         db.query(Student)
         .filter(
-            Student.contact_platform == contact_platform,
             Student.contact_id == contact_id,
             Student.registration_type == RegistrationType.registered,
         )
@@ -104,7 +117,6 @@ def register_student(
             certificate_type=certificate_type,
             bacc_average=average_score,
             initial_preferred_major=initial_preferred_major,
-            contact_platform=contact_platform,
             contact_id=contact_id,
             registration_type=RegistrationType.registered,
             verification_status=VerificationStatus.pending,
@@ -122,7 +134,6 @@ def register_student(
                 conflicting = (
                     db.query(Student)
                     .filter(
-                        Student.contact_platform == contact_platform,
                         Student.contact_id == contact_id,
                         Student.registration_type == RegistrationType.registered,
                     )
@@ -286,7 +297,7 @@ def _normalize_name(name: str) -> str:
 
 
 def lookup_by_contact(
-    db: Session, contact_platform: ContactPlatform, contact_id: str, full_name: str
+    db: Session, contact_id: str, full_name: str
 ) -> Student:
     """
     استرجاع الطالب برقم التواصل + الاسم معاً — مش بس الرقم.
@@ -294,7 +305,7 @@ def lookup_by_contact(
     """
     student = (
         db.query(Student)
-        .filter(Student.contact_platform == contact_platform, Student.contact_id == contact_id)
+        .filter(Student.contact_id == contact_id)
         .first()
     )
     if student is None:

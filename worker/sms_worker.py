@@ -24,11 +24,15 @@ from logging.handlers import RotatingFileHandler
 
 import requests
 
-# السماح باستيراد app.sms_service من مجلد المشروع (على اللابتوب أعد تسمية
-# المجلد كما تشاء — الشرط أن يحتوي على app/sms_service.py)
-_REPO_ROOT = os.path.dirname(os.path.abspath(__file__))
-if _REPO_ROOT not in sys.path:
-    sys.path.insert(0, _REPO_ROOT)
+# السماح باستيراد app.sms_service:
+# - على اللابتوب: مجلد app/ بجانب هذا الملف (البنية المنسوخة).
+# - داخل المستودع: app/ في المجلد الأب (لتسهيل التجربة المحلية).
+_HERE = os.path.dirname(os.path.abspath(__file__))
+for _candidate in (_HERE, os.path.dirname(_HERE)):
+    if os.path.isdir(os.path.join(_candidate, "app")):
+        if _candidate not in sys.path:
+            sys.path.insert(0, _candidate)
+        break
 
 from app.sms_service import SmsSendError, send_otp_sms  # noqa: E402
 

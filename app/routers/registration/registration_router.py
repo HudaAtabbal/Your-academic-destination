@@ -39,8 +39,8 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> Registe
         certificate_type=payload.certificate_type,
         average_score=payload.average_score,
         initial_preferred_major=payload.initial_preferred_major,
-        contact_platform=payload.contact_platform,
         contact_id=payload.contact_id,
+        previous_unique_code=payload.previous_unique_code,
     )
     return RegisterResponse(unique_code=unique_code, full_name=student.full_name)
 
@@ -103,6 +103,6 @@ def lookup_by_contact(
     payload: LookupByContactRequest, db: Session = Depends(get_db)
 ) -> LookupByContactResponse:
     student = registration_service.lookup_by_contact(
-        db, payload.contact_platform, payload.contact_id, payload.full_name
+        db, payload.contact_id, payload.full_name
     )
     return LookupByContactResponse(unique_code=student.unique_code, full_name=student.full_name)

@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models import ActivityType, Checkin, PostSurvey, RegistrationType, Student
+from app.models import ActivityType, Checkin, PostSurvey, RegistrationType, Student, VerificationStatus
 from app.routers.internal import internal_service
 
 _HALL_LABEL = "المدرج الرئيسي"
@@ -26,7 +26,10 @@ _HALL_LABEL = "المدرج الرئيسي"
 
 def get_dashboard_stats(db: Session) -> dict:
     registered_online_count = (
-        db.query(Student).filter(Student.registration_type == RegistrationType.registered).count()
+        db.query(Student).filter(
+            Student.registration_type == RegistrationType.registered,
+            Student.verification_status == VerificationStatus.verified,
+        ).count()
     )
 
     campus_entries_count = (

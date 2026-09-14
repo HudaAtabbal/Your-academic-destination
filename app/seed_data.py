@@ -25,7 +25,6 @@ from app.models import (
     Account,
     AccountRole,
     College,
-    ContactPlatform,
     RegistrationType,
     Student,
     StudentStatus,
@@ -66,7 +65,6 @@ SEED_ACCOUNTS = [
 SEED_STUDENT = {
     "unique_code": "R-9001",
     "full_name": "طالب تجريبي",
-    "contact_platform": ContactPlatform.whatsapp,
     "contact_id": "0999999999",
     "birth_date": date(2008, 1, 1),
     "bacc_year": 2026,

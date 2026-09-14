@@ -129,7 +129,6 @@ def student_factory(db):
         registration_type: RegistrationType = RegistrationType.registered,
         verification_status: VerificationStatus = VerificationStatus.verified,
         status: StudentStatus = StudentStatus.complete,
-        contact_platform=None,
         contact_id: str | None = None,
         initial_preferred_major=None,
     ) -> Student:
@@ -139,10 +138,8 @@ def student_factory(db):
             registration_type=registration_type,
             verification_status=verification_status,
             status=status,
+            contact_id=contact_id,
         )
-        if contact_platform is not None:
-            student.contact_platform = contact_platform
-            student.contact_id = contact_id
         if initial_preferred_major is not None:
             student.initial_preferred_major = initial_preferred_major
         db.add(student)

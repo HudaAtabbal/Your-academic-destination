@@ -12,7 +12,6 @@ from app.database import Base
 from app.models.enums import (
     CertificateType,
     College,
-    ContactPlatform,
     RegistrationType,
     StudentStatus,
     VerificationStatus,
@@ -26,7 +25,6 @@ class Student(Base):
     unique_code = Column(String(20), unique=True, nullable=False, index=True)
 
     full_name = Column(String(255), nullable=True)
-    contact_platform = Column(SAEnum(ContactPlatform, name="contact_platform_enum"), nullable=True)
     contact_id = Column(String(255), nullable=True)
     birth_date = Column(Date, nullable=True)
 
@@ -78,7 +76,6 @@ class Student(Base):
         # يمنع تسجيل نفس رقم التواصل مرتين لطلاب التسجيل المسبق فقط
         Index(
             "unique_contact_per_registration",
-            "contact_platform",
             "contact_id",
             unique=True,
             postgresql_where=(registration_type == RegistrationType.registered),

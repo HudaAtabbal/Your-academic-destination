@@ -230,7 +230,6 @@ def test_walkin_completeness_transition(client, db, super_headers, students_admi
 
     patch = {
         "full_name": "طالب مشي",
-        "contact_platform": "whatsapp",
         "contact_id": "0999999999",
         "birth_date": "2002-02-02",
         "bacc_year": 2023,

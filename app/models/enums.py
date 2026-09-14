@@ -7,11 +7,6 @@
 import enum
 
 
-class ContactPlatform(str, enum.Enum):
-    whatsapp = "whatsapp"
-    telegram = "telegram"
-
-
 class VerificationStatus(str, enum.Enum):
     pending = "pending"
     verified = "verified"
