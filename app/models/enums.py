@@ -46,26 +46,53 @@ class OpinionChange(str, enum.Enum):
     still_confused = "still_confused"           # لسا محتار
 
 
-# ⚠️ TODO: استبدال الـ placeholders بأسماء الـ 42 كلية الفعلية قبل الإطلاق.
+# قائمة الكليات الرسمية — الترتيب هنا هو ترتيب العرض المعتمد (id إنجليزي ثابت،
+# والاسم العربي معروض بالواجهة). القيمة `not_chosen_yet` مميزة: تعني "لسّا ما قرّرت".
 class College(str, enum.Enum):
-    medicine = "medicine"  # طب بشري
-    dentistry = "dentistry"  # طب أسنان
-    pharmacy = "pharmacy"  # صيدلة
-    health_sciences = "health_sciences"  # علوم صحية
-    informatics = "informatics"  # هندسة معلوماتية
-    civil = "civil"  # هندسة مدنية
-    architecture = "architecture"  # هندسة معمارية
-    agriculture = "agriculture"  # هندسة زراعة
-    electrical_mechanical_eng = "electrical_mechanical_eng"  # هندسة كهربائية وميكانيكية
-    chemical_food_eng = "chemical_food_eng"  # هندسة كيميائية وغذائية
-    economics = "economics"  # اقتصاد
+    medicine = "medicine"  # الطب البشري
+    pharmacy = "pharmacy"  # الصيدلة
+    dentistry = "dentistry"  # طب الأسنان
+    health_labs = "health_labs"  # علوم صحيّة مخابر
+    health_nutrition = "health_nutrition"  # علوم صحيّة تغذية
+    health_physiotherapy = "health_physiotherapy"  # علوم صحية علاج فيزيائي
+    mech_power_eng = "mech_power_eng"  # هندسة قوى ميكانيكية
+    control_computer_eng = "control_computer_eng"  # هندسة تحكم آلي وحواسيب
+    energy_eng = "energy_eng"  # هندسة طاقة
+    mechatronics = "mechatronics"  # ميكاترونك
+    telecom_eng = "telecom_eng"  # هندسة اتصالات
+    metallurgy_eng = "metallurgy_eng"  # هندسة المعادن
+    design_production_eng = "design_production_eng"  # هندسة التصميم والإنتاج
+    petroleum_eng = "petroleum_eng"  # هندسة بيتروليّة
+    food_eng = "food_eng"  # هندسة غذائية
+    chemical_eng = "chemical_eng"  # هندسة كيميائية
+    textile_eng = "textile_eng"  # هندسة الغزل والنسيج
+    civil = "civil"  # هندسة مدنيّة
     tourism = "tourism"  # سياحة
+    architecture = "architecture"  # هندسة معماريّة
     music = "music"  # موسيقا
-    literature = "literature"  # اداب
-    education = "education"  # تربية
-    science = "science"  # علوم
-    applied_science = "applied_science"  # تطبيقية
+    physics = "physics"  # فيزياء
+    mathematics = "mathematics"  # رياضيات
+    statistics = "statistics"  # إحصاء
+    biology = "biology"  # علم الحياة بيولوجيا
+    geology = "geology"  # علم الحياة جيولوجيا
+    chemistry = "chemistry"  # كيمياء
+    economics = "economics"  # اقتصاد
+    informatics = "informatics"  # هندسة معلوماتية
+    applied_science = "applied_science"  # كلية تطبيقية
+    arabic = "arabic"  # لغة عربية
+    english = "english"  # لغة انكليزية
+    french = "french"  # لغة فرنسية
+    persian = "persian"  # لغة فارسية
+    history = "history"  # تاريخ
+    philosophy = "philosophy"  # فلسفة
+    agriculture = "agriculture"  # هندسة زراعية
     law = "law"  # حقوق
+    curricula = "curricula"  # مناهج وطرق تدريس
+    psychology = "psychology"  # علم نفس
+    kindergarten = "kindergarten"  # رياض أطفال
+    psychological_counseling = "psychological_counseling"  # إرشاد نفسي
+    class_teacher = "class_teacher"  # معلم صف
+    sharia = "sharia"  # شريعة
     institute_agriculture = "institute_agriculture"  # معهد تقاني زراعي
     institute_desert_affairs = "institute_desert_affairs"  # معهد تقاني لشؤون البادية والتصحر
     institute_engineering = "institute_engineering"  # معهد تقاني هندسي
