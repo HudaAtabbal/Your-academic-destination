@@ -56,6 +56,10 @@ const CollegePage = () => {
 
     const code = rawCode.trim();
     if (!code) return;
+    if (!/^[RW]-\d{6}$/.test(code)) {
+      showToast('صيغة الرمز غير صحيحة — تأكد من الشكل R-XXXXXX أو W-XXXXXX', 'error');
+      return;
+    }
 
     setIsProcessing(true);
     setChoice(null);

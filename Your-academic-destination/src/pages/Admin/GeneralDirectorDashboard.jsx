@@ -25,8 +25,49 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
   const [hallOccupancy, setHallOccupancy] = useState(null); // null = ما في بيانات قاعات لسا
   const [smsStatus, setSmsStatus] = useState(null); // null = ما في بيانات حالة المُرسِل لسا
 
+  // الإحصاءات + إشغال القاعات — بتتحدث كل 15 ثانية مثل حالة المُرسِل
   useEffect(() => {
-    // حسابات فريق العمل
+    const fetchStats = () => {
+      // الإحصاءات الأربع — endpoint جديد مخصص للداشبورد صار متوفر
+      apiGet('/admin/dashboard/stats')
+        .then((res) => {
+          setStats([
+            { id: 'registered', label: 'مسجّلون إلكترونياً', value: res.registered_online_count },
+            { id: 'inside', label: 'داخل الحرم الآن', value: res.campus_entries_count },
+            { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: res.activities_today_cumulative },
+            { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
+          ]);
+        })
+        .catch(() => {});
+
+      // إشغال القاعات — بناخد أول قاعة نشطة بالقائمة للعرض (الكرت مصمم لقاعة وحدة حالياً)
+      apiGet('/admin/dashboard/rooms-occupancy')
+        .then((res) => {
+          if (res.rooms && res.rooms.length > 0) {
+            const room = res.rooms[0];
+            setHallOccupancy({
+              title: room.hall_label,
+              time: new Date(room.last_updated).toLocaleTimeString('ar', {
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              current: room.current_count,
+              // ⚠️ الباك ما بيرجّع السعة القصوى للقاعة، فمؤقتاً حاطة رقم ثابت لحد ما تنضاف
+              total: 300,
+            });
+          }
+        })
+        .catch(() => {});
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 15000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // حسابات فريق العمل — بتتحمل مرة وحدة فقط (تحريراتها يدوية من الداشبورد)
+  useEffect(() => {
     apiGet('/admin/accounts?page=1&limit=50')
       .then((res) => {
         setTeamMembers(
@@ -37,37 +78,6 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             faculty: account.college || '—',
           }))
         );
-      })
-      .catch(() => {});
-
-    // الإحصاءات الأربع — endpoint جديد مخصص للداشبورد صار متوفر
-    apiGet('/admin/dashboard/stats')
-      .then((res) => {
-        setStats([
-          { id: 'registered', label: 'مسجّلون إلكترونياً', value: res.registered_online_count },
-          { id: 'inside', label: 'داخل الحرم الآن', value: res.campus_entries_count },
-          { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: res.activities_today_cumulative },
-          { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
-        ]);
-      })
-      .catch(() => {});
-
-    // إشغال القاعات — بناخد أول قاعة نشطة بالقائمة للعرض (الكرت مصمم لقاعة وحدة حالياً)
-    apiGet('/admin/dashboard/rooms-occupancy')
-      .then((res) => {
-        if (res.rooms && res.rooms.length > 0) {
-          const room = res.rooms[0];
-          setHallOccupancy({
-            title: room.hall_label,
-            time: new Date(room.last_updated).toLocaleTimeString('ar', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-            current: room.current_count,
-            // ⚠️ الباك ما بيرجّع السعة القصوى للقاعة، فمؤقتاً حاطة رقم ثابت لحد ما تنضاف
-            total: 300,
-          });
-        }
       })
       .catch(() => {});
   }, []);

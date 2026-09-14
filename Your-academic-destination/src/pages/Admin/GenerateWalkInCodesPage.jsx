@@ -10,7 +10,7 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
   const [count, setCount] = useState('50');
   const [error, setError] = useState('');
   const [generatedCodes, setGeneratedCodes] = useState([]);
-  const [batchInfo, setBatchInfo] = useState(null); // { total, start, end }
+  const [batchInfo, setBatchInfo] = useState(null); // { total }
   const [isGenerating, setIsGenerating] = useState(false);
 
   const handleGenerate = async (e) => {
@@ -26,7 +26,7 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
     setIsGenerating(true);
 
     try {
-      // الباك هو يلي بيحدد رقم البداية تلقائياً (آخر رقم متوقف عنده بالدفعة السابقة)
+      // الباك يولّد رموزاً عشوائية فريدة (W-XXXXXX) — مش متسلسلة
       const response = await apiPost('/admin/walkin-codes/generate', { count: parsedCount });
       const codes = Array.isArray(response?.codes) ? response.codes : [];
       if (codes.length === 0) {
@@ -37,8 +37,6 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
       setGeneratedCodes(codes);
       setBatchInfo({
         total: codes.length,
-        start: codes[0],
-        end: codes[codes.length - 1],
       });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
@@ -117,7 +115,7 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
           <>
             <div className="gwic-output-header">
               <h2 className="gwic-batch-title">
-                دفعة اليوم — {batchInfo.total} رمزاً ({batchInfo.start} إلى {batchInfo.end})
+                دفعة اليوم — {batchInfo.total} رمزاً
               </h2>
               <button type="button" className="gwic-print-btn" onClick={handlePrint}>
                 طباعة الدفعة
@@ -148,7 +146,7 @@ const GenerateWalkInCodesPage = ({ userRole = 'المدير العام', onPrint
             {/* قسم مخفي بالشاشة، بيظهر بس وقت الطباعة، وفيه كل أكواد الدفعة كاملة */}
             <div className="gwic-print-only">
               <h2 className="gwic-print-title">
-                دفعة الرموز — {batchInfo.total} رمزاً ({batchInfo.start} إلى {batchInfo.end})
+                دفعة الرموز — {batchInfo.total} رمزاً
               </h2>
               <div className="gwic-qr-grid gwic-print-grid">
                 {generatedCodes.map((code) => (

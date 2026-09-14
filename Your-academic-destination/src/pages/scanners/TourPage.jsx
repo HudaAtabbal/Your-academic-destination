@@ -38,6 +38,10 @@ const TourPage = () => {
 
     const code = rawCode.trim();
     if (!code) return;
+    if (!/^[RW]-\d{6}$/.test(code)) {
+      setResult({ status: 'error', title: 'صيغة الرمز غير صحيحة — تأكد من الشكل R-XXXXXX أو W-XXXXXX', studentName: '', studentCode: code });
+      return;
+    }
 
     setIsProcessing(true);
 

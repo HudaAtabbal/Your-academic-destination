@@ -24,7 +24,7 @@ const MyCard = () => {
   const cardData = {
     name: studentName,
     code: studentCode,
-    status: 'بانتظار التفعيل',
+    status: 'بطاقتك جاهزة',
   };
 
   const handleLogout = () => {
