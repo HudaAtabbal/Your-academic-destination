@@ -19,6 +19,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.models import ActivityType, Checkin, PostSurvey, RegistrationType, Student
+from app.routers.internal import internal_service
 
 _HALL_LABEL = "المدرج الرئيسي"
 
@@ -71,3 +72,8 @@ def get_rooms_occupancy(db: Session) -> list[dict]:
         }
         for lecture_name, count, last_updated in rows
     ]
+
+
+def get_sms_status(db: Session) -> dict:
+    """حالة طابور إرسال SMS (أعداد حسب الحالة) + حالة المرسل المحلي."""
+    return internal_service.get_sms_status(db)

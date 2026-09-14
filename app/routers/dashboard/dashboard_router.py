@@ -14,6 +14,8 @@ from app.routers.dashboard.dashboard_schema import (
     DashboardStatsResponse,
     RoomOccupancyItem,
     RoomsOccupancyResponse,
+    SmsCounts,
+    SmsStatusResponse,
 )
 
 router = APIRouter(
@@ -27,6 +29,16 @@ router = APIRouter(
 def dashboard_stats(db: Session = Depends(get_db)) -> DashboardStatsResponse:
     stats = dashboard_service.get_dashboard_stats(db)
     return DashboardStatsResponse(**stats)
+
+
+@router.get("/sms-status", response_model=SmsStatusResponse)
+def sms_status(db: Session = Depends(get_db)) -> SmsStatusResponse:
+    status = dashboard_service.get_sms_status(db)
+    return SmsStatusResponse(
+        counts=SmsCounts(**status["counts"]),
+        last_heartbeat=status["last_heartbeat"],
+        worker_online=status["worker_online"],
+    )
 
 
 @router.get("/rooms-occupancy", response_model=RoomsOccupancyResponse)

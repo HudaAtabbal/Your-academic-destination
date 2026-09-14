@@ -9,6 +9,7 @@ initial_preferred_major بمستوى تجمّع لا كلية محددة).
 
 import hashlib
 import hmac
+import os
 import secrets
 from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
@@ -30,6 +31,8 @@ from app.models import (
     College,
     OTP,
     RegistrationType,
+    SmsJob,
+    SmsJobStatus,
     Student,
     VerificationStatus,
 )
@@ -38,6 +41,15 @@ _PREFIX = "R"
 _OTP_EXPIRY_MINUTES = 10
 _MAX_OTP_ATTEMPTS = 5
 _MAX_RETRIES = 10  # الرموز العشوائية: التصادم نادر، بس مساحة أمان كافية
+
+
+def _sms_mode() -> str:
+    """
+    وضع إرسال SMS: 'queue' (إنتاج — تأجيل الإرسال لصف sms_jobs ويستلمه مُرسِل
+    محلي داخل سوريا لأن سيرياتيل ترفض IP أجنبي) أو 'sync' (الافتراضي — إرسال
+    فوري كما كان). تُقرأ عند كل نداء حتى تقدر الاختبارات تبدّله ميدجلس.
+    """
+    return os.getenv("SMS_MODE", "sync")
 
 def _generate_unique_code() -> str:
     """
@@ -154,6 +166,25 @@ def _create_otp(db: Session, student_id: int, unique_code: str, phone: str) -> d
         expires_at=expires_at,
     )
     db.add(otp)
+
+    if _sms_mode() == "queue":
+        # وضع الإنتاج: نخرّج الـ OTP + صف مهمة، ونرجع فوراً بدون إرسال —
+        # المُرسِل المحلي (داخل سوريا) بيرسل لاحقاً عبر /internal/sms.
+        # لا حذف عند فشل لاحق هنا — صف الـ SmsJob هو المسؤول عن التتبع.
+        # flush بيعطي otp.id بدون commit، ثم كتابة واحدة ذرّية للـ OTP + المهمة معاً
+        # (commit منفصل بينهما كان يترك OTP بلا مهمة لو انهار الاتصال بين الكتابتين).
+        db.flush()
+        db.add(
+            SmsJob(
+                otp_id=otp.id,
+                phone=phone,
+                otp_code=code,
+                status=SmsJobStatus.pending,
+            )
+        )
+        db.commit()
+        return expires_at
+
     db.commit()
 
     try:

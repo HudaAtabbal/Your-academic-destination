@@ -108,3 +108,10 @@ class CertificateType(str, enum.Enum):
     scientific = "scientific"  # علمي
     literary = "literary"  # أدبي
 
+
+class SmsJobStatus(str, enum.Enum):
+    pending = "pending"    # انخلق وبناطر المُرسِل
+    sending = "sending"    # مُسحوب من المُرسِل (بمرحلة الإرسال)
+    sent = "sent"          # تأكّد وصوله للمُرسِل وسيرياتيل
+    failed = "failed"      # استُنفدت المحاولات أو فشل دائم
+

@@ -6,6 +6,7 @@ Dependencies مشتركة عبر كل الروترات:
   العامة يلي بتعتمد على unique_code بس (بدون تسجيل دخول)
 """
 
+import hmac
 import os
 import time
 from collections import defaultdict
@@ -95,6 +96,33 @@ def require_role(*allowed_roles: AccountRole):
         return current_account
 
     return _checker
+
+
+def require_worker_token(
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer_scheme),
+) -> None:
+    """
+    توثيق المُرسِل الداخلي (لابتوب) بتوكن ثابت WORKER_TOKEN من البيئة —
+    مستقل تماماً عن حسابات الفريق و JWT. مقارنة ثابتة الزمن (hmac.compare_digest)
+    لتفادي هجوم التوقيت.
+
+    أمان افتراضي: لو WORKER_TOKEN غير مضبوط، كل الطلبات مرفوضة (401) —
+    بلا استثناء، فما في وضع "تفعيل سهو بدون توكن". يُقرأ عند كل نداء حتى
+    تقدر الاختبارات تبدّله ميدجلس.
+    """
+    expected = os.getenv("WORKER_TOKEN")
+    if not expected:
+        raise AppError(
+            status_code=401,
+            error_code="invalid_credentials",
+            message="توكن المُرسِل غير مضبوط بالخادم",
+        )
+    if credentials is None or not hmac.compare_digest(credentials.credentials, expected):
+        raise AppError(
+            status_code=401,
+            error_code="invalid_credentials",
+            message="توكن المُرسِل غير صالح",
+        )
 
 
 # --- Rate limiting للـ endpoints العامة (بدون تسجيل دخول) ---

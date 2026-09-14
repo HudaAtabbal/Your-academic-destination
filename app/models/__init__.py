@@ -17,6 +17,7 @@ from app.models.enums import (
     Lecture,
     OpinionChange,
     RegistrationType,
+    SmsJobStatus,
     StudentStatus,
     VerificationStatus,
 )
@@ -26,6 +27,8 @@ from app.models.booking import Booking
 from app.models.post_survey import PostSurvey
 from app.models.account import Account
 from app.models.otp import OTP
+from app.models.sms_job import SmsJob
+from app.models.sms_heartbeat import SmsHeartbeat
 
 __all__ = [
     "Student",
@@ -34,6 +37,8 @@ __all__ = [
     "PostSurvey",
     "Account",
     "OTP",
+    "SmsJob",
+    "SmsHeartbeat",
     "ContactPlatform",
     "VerificationStatus",
     "RegistrationType",
@@ -45,4 +50,5 @@ __all__ = [
     "Lecture",
     "AccountRole",
     "CertificateType",
+    "SmsJobStatus",
 ]

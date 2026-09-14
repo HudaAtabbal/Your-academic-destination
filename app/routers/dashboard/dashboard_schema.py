@@ -25,3 +25,16 @@ class RoomOccupancyItem(BaseModel):
 
 class RoomsOccupancyResponse(BaseModel):
     rooms: list[RoomOccupancyItem]
+
+
+class SmsCounts(BaseModel):
+    pending: int
+    sending: int
+    sent: int
+    failed: int
+
+
+class SmsStatusResponse(BaseModel):
+    counts: SmsCounts
+    last_heartbeat: datetime | None
+    worker_online: bool

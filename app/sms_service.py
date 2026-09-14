@@ -24,10 +24,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 _BASE_URL = "https://bms.syriatel.sy/API/SendTemplateSMS.aspx"
 
-_USERNAME = os.getenv("SYRIATEL_USERNAME")
-_PASSWORD = os.getenv("SYRIATEL_PASSWORD")
-_SENDER = os.getenv("SYRIATEL_SENDER")
-_TEMPLATE_CODE = os.getenv("SYRIATEL_TEMPLATE_CODE")
+# creds تُقرأ عند كل نداء (وليس عند الاستيراد) — لأن المُرسِل بملف مستقل على
+# اللابتوب يحمّل الـ .env الخاص فيه وقت التشغيل، وتسمح الاختبارات بتبديل env
+# بمنتصف الجلسة. السلوك ونوع الأخطاء ثابتان.
 
 # رسائل الخطأ الموثّقة رسمياً من سيرياتيل (BMS_API_EXTERNAL.pdf) — بنتحقق
 # منها بنص الرد لأنه الـ API بيرجع 200 OK دايماً حتى بحالة الفشل، والفرق
@@ -47,7 +46,7 @@ class SmsSendError(Exception):
     """بترمى لما سيرياتيل نفسها ترجع رسالة خطأ (مش مشكلة اتصال)."""
 
 
-def _to_international_format(phone: str) -> str:
+def to_international_format(phone: str) -> str:
     """يحوّل 0991234567 (صيغة محلية) لـ 963991234567 (صيغة دولية مطلوبة من سيرياتيل)."""
     digits = phone.strip()
     if digits.startswith("963"):
@@ -57,6 +56,16 @@ def _to_international_format(phone: str) -> str:
     return "963" + digits
 
 
+def _get_credentials() -> tuple[str | None, str | None, str | None, str | None]:
+    """بيانات حساب سيرياتيل BMS من البيئة، تُقرأ عند كل نداء (راجع التنويه أعلاه)."""
+    return (
+        os.getenv("SYRIATEL_USERNAME"),
+        os.getenv("SYRIATEL_PASSWORD"),
+        os.getenv("SYRIATEL_SENDER"),
+        os.getenv("SYRIATEL_TEMPLATE_CODE"),
+    )
+
+
 def send_otp_sms(phone: str, otp_code: str) -> None:
     """
     بتبعت رمز الـ OTP عبر SMS للرقم المُعطى. بترمي SmsSendError لو سيرياتيل
@@ -64,19 +73,20 @@ def send_otp_sms(phone: str, otp_code: str) -> None:
     (السيرفر واقف، انقطاع شبكة، إلخ) — الطبقة يلي فوق (registration_service)
     هي المسؤولة تقرر شو تسوي بكل حالة.
     """
-    if not all([_USERNAME, _PASSWORD, _SENDER, _TEMPLATE_CODE]):
+    username, password, sender, template_code = _get_credentials()
+    if not all([username, password, sender, template_code]):
         raise SmsSendError(
             "بيانات حساب سيرياتيل (SYRIATEL_*) مش معرّفة بالـ .env — "
             "راجعي .env.example"
         )
 
     params = {
-        "user_name": _USERNAME,
-        "password": _PASSWORD,
-        "template_code": _TEMPLATE_CODE,
+        "user_name": username,
+        "password": password,
+        "template_code": template_code,
         "param_list": otp_code,
-        "sender": _SENDER,
-        "to": _to_international_format(phone),
+        "sender": sender,
+        "to": to_international_format(phone),
     }
 
     # verify=False لازم — شهادة سيرياتيل self-signed (موثّق بآخر صفحة بالـ PDF)
