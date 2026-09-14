@@ -8,10 +8,63 @@ const mapStudentDetailToFormData = (detail) => ({
   fullName: detail.full_name || '',
   birthDate: detail.birth_date || '',
   certificateYear: detail.bacc_year != null ? String(detail.bacc_year) : '',
+  certificateType: detail.certificate_type || '',
   phoneNumber: detail.contact_id || '',
   verificationStatus: detail.verification_status || 'pending',
   baccalaureateScore: detail.bacc_average != null ? String(detail.bacc_average) : '',
 });
+
+// نفس فاليديشن التسجيل بالضبط — شكل النموذج هون (تاريخ + سنة + نوع الشهادة + معدل)
+// مطابق للنموذج اللي عبّاه الطالب وقت التسجيل، فالقواعد لازم تنطبق بنفس الشكل.
+const validateStudentForm = (formData) => {
+  const errors = {};
+
+  const name = (formData.fullName || '').trim();
+  if (!name) {
+    errors.fullName = 'الاسم الثلاثي مطلوب';
+  } else if (name.split(/\s+/).length < 3) {
+    errors.fullName = 'الرجاء إدخال الاسم الثلاثي كامل';
+  }
+
+  const birthDate = formData.birthDate || '';
+  if (!birthDate) {
+    errors.birthDate = 'تاريخ الميلاد مطلوب';
+  } else {
+    const parsed = new Date(birthDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (Number.isNaN(parsed.getTime()) || parsed > today) {
+      errors.birthDate = 'تاريخ الميلاد غير صحيح';
+    }
+  }
+
+  const year = Number(formData.certificateYear);
+  if (!formData.certificateYear) {
+    errors.certificateYear = 'سنة الشهادة مطلوبة';
+  } else if (![2024, 2025, 2026].includes(year)) {
+    errors.certificateYear = 'سنة الشهادة يجب أن تكون 2024 أو 2025 أو 2026';
+  }
+
+  if (!formData.certificateType) {
+    errors.certificateType = 'يرجى اختيار نوع الشهادة';
+  }
+
+  const phone = formData.phoneNumber || '';
+  if (!phone) {
+    errors.phoneNumber = 'رقم الهاتف مطلوب';
+  } else if (!/^09\d{8}$/.test(phone)) {
+    errors.phoneNumber = 'يرجى إدخال رقم صحيح مكون من 10 أرقام ويبدأ بـ 09';
+  }
+
+  const score = Number(formData.baccalaureateScore);
+  if (!String(formData.baccalaureateScore || '').trim()) {
+    errors.baccalaureateScore = 'المعدل مطلوب';
+  } else if (Number.isNaN(score) || score <= 0 || score > 100) {
+    errors.baccalaureateScore = 'الرجاء إدخال معدل صحيح بين 0 و100';
+  }
+
+  return errors;
+};
 
 const StudentDataManagerPage = () => {
   const navigate = useNavigate();
@@ -25,6 +78,7 @@ const StudentDataManagerPage = () => {
   const [formData, setFormData] = useState(null); // null = ما في طالب محمّل لسا
   const [searchError, setSearchError] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
+  const [formErrors, setFormErrors] = useState({});
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [stats, setStats] = useState({ total_registered: null, walkin_pending_count: null });
@@ -43,11 +97,35 @@ const StudentDataManagerPage = () => {
       ...prev,
       [name]: value,
     }));
+    setFormErrors((prev) => ({ ...prev, [name]: undefined }));
+  };
+
+  const handleFullNameChange = (e) => {
+    const value = e.target.value.replace(/[^a-zA-Zء-ي\s]/g, '');
+    setFormData((prev) => ({ ...prev, fullName: value }));
+    setFormErrors((prev) => ({ ...prev, fullName: undefined }));
+  };
+
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+    setFormData((prev) => ({ ...prev, phoneNumber: value }));
+    setFormErrors((prev) => ({ ...prev, phoneNumber: undefined }));
+  };
+
+  const handleBaccalaureateScoreChange = (e) => {
+    let value = e.target.value.replace(/[^0-9.]/g, '');
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('');
+    }
+    setFormData((prev) => ({ ...prev, baccalaureateScore: value }));
+    setFormErrors((prev) => ({ ...prev, baccalaureateScore: undefined }));
   };
 
   const handleCertificateYearChange = (e) => {
     const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
     setFormData((prev) => ({ ...prev, certificateYear: value }));
+    setFormErrors((prev) => ({ ...prev, certificateYear: undefined }));
   };
 
   const runSearch = async (code) => {
@@ -60,6 +138,7 @@ const StudentDataManagerPage = () => {
     setIsSearching(true);
     setSearchError('');
     setSaveMessage('');
+    setFormErrors({});
 
     try {
       const detail = await apiGet(`/admin/students/search?code=${encodeURIComponent(trimmed)}`);
@@ -106,6 +185,13 @@ const StudentDataManagerPage = () => {
     e.preventDefault();
     if (!studentDbId) return;
 
+    const validationErrors = validateStudentForm(formData);
+    setFormErrors(validationErrors);
+    if (Object.keys(validationErrors).length > 0) {
+      setSaveMessage('');
+      return;
+    }
+
     setIsSaving(true);
     setSaveMessage('');
 
@@ -119,6 +205,7 @@ const StudentDataManagerPage = () => {
     const payload = {
       full_name: formData.fullName,
       birth_date: formData.birthDate,
+      certificate_type: formData.certificateType || null,
       contact_id: formData.phoneNumber,
       bacc_year: toNumberOrNull(formData.certificateYear),
       bacc_average: toNumberOrNull(formData.baccalaureateScore),
@@ -211,8 +298,11 @@ const StudentDataManagerPage = () => {
                       id="fullName"
                       name="fullName"
                       value={formData.fullName}
-                      onChange={handleInputChange}
+                      onChange={handleFullNameChange}
                     />
+                    {formErrors.fullName && (
+                      <p className="field-error-message">{formErrors.fullName}</p>
+                    )}
                   </div>
                   <div className="input-group">
                     <label htmlFor="birthDate">تاريخ الميلاد</label>
@@ -224,6 +314,9 @@ const StudentDataManagerPage = () => {
                       onChange={handleInputChange}
                       dir="ltr"
                     />
+                    {formErrors.birthDate && (
+                      <p className="field-error-message">{formErrors.birthDate}</p>
+                    )}
                   </div>
                   
                 </div>
@@ -242,6 +335,9 @@ const StudentDataManagerPage = () => {
                       onChange={handleCertificateYearChange}
                       dir="ltr"
                     />
+                    {formErrors.certificateYear && (
+                      <p className="field-error-message">{formErrors.certificateYear}</p>
+                    )}
                   </div>
                   <div className="input-group">
                     <label htmlFor="phoneNumber">رقم الهاتف</label>
@@ -249,10 +345,14 @@ const StudentDataManagerPage = () => {
                       type="text"
                       id="phoneNumber"
                       name="phoneNumber"
+                      maxLength={10}
                       value={formData.phoneNumber}
-                      onChange={handleInputChange}
+                      onChange={handlePhoneChange}
                       dir="ltr"
                     />
+                    {formErrors.phoneNumber && (
+                      <p className="field-error-message">{formErrors.phoneNumber}</p>
+                    )}
                   </div>
                   
                 </div>
@@ -260,15 +360,35 @@ const StudentDataManagerPage = () => {
                 {/* Row 3 */}
                 <div className="form-row">
                   <div className="input-group">
+                    <label htmlFor="certificateType">نوع الشهادة</label>
+                    <select
+                      id="certificateType"
+                      name="certificateType"
+                      value={formData.certificateType}
+                      onChange={handleInputChange}
+                      className="select-field"
+                    >
+                      <option value="">اختر نوع الشهادة...</option>
+                      <option value="scientific">علمي</option>
+                      <option value="literary">أدبي</option>
+                    </select>
+                    {formErrors.certificateType && (
+                      <p className="field-error-message">{formErrors.certificateType}</p>
+                    )}
+                  </div>
+                  <div className="input-group">
                     <label htmlFor="baccalaureateScore">المعدل </label>
                     <input
                       type="text"
                       id="baccalaureateScore"
                       name="baccalaureateScore"
                       value={formData.baccalaureateScore}
-                      onChange={handleInputChange}
+                      onChange={handleBaccalaureateScoreChange}
                       dir="rtl"
                     />
+                    {formErrors.baccalaureateScore && (
+                      <p className="field-error-message">{formErrors.baccalaureateScore}</p>
+                    )}
                   </div>
                   
                 </div>

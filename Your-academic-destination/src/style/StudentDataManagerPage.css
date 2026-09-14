@@ -186,6 +186,14 @@
   text-align: center;
 }
 
+.field-error-message {
+  color: #B71C1C;
+  font-size: 0.8rem;
+  font-weight: 700;
+  margin: 4px 0 0 0;
+  text-align: right;
+  }
+
 .btn-search {
   background-color: #0E3E37;
   color: #FFFFFF;

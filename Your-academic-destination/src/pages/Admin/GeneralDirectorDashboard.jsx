@@ -21,6 +21,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
     { id: 'inside', label: 'داخل الحرم الآن', value: '—' },
     { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: '—' },
     { id: 'survey', label: 'أكملوا الاستبيان', value: '—' },
+    { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: '—', link: '/gate-incomplete' },
   ]);
   const [hallOccupancy, setHallOccupancy] = useState(null); // null = ما في بيانات قاعات لسا
   const [smsStatus, setSmsStatus] = useState(null); // null = ما في بيانات حالة المُرسِل لسا
@@ -36,6 +37,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             { id: 'inside', label: 'داخل الحرم الآن', value: res.campus_entries_count },
             { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: res.activities_today_cumulative },
             { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
+            { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: res.walkin_pending_count, link: '/gate-incomplete' },
           ]);
         })
         .catch(() => {});
@@ -132,7 +134,12 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
         {/* Metric Cards Row */}
         <section className="gd-dash-metrics-grid">
           {stats.map((stat) => (
-            <div key={stat.id} className="gd-dash-metric-card">
+            <div
+              key={stat.id}
+              className={`gd-dash-metric-card ${stat.link ? 'gd-dash-metric-card-clickable' : ''}`}
+              onClick={() => stat.link && navigate(stat.link)}
+              role={stat.link ? 'button' : undefined}
+            >
               <span className="gd-dash-metric-label">{stat.label}</span>
               <span className="gd-dash-metric-number">{stat.value}</span>
             </div>
