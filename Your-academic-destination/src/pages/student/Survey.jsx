@@ -10,32 +10,56 @@ import '../../style/Survey.css';
 const Survey = () => {
   const navigate = useNavigate();
   const [q1Option, setQ1Option] = useState('decided');
-  const [q2Major, setQ2Major] = useState('college_placeholder_1');
+  const [q2Major, setQ2Major] = useState('medicine');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ⚠️ مؤقت للتجربة فقط — القيم مطابقة لـ enum College بالباك (placeholders حالياً).
-  // لما يجهز enum الـ42 كلية الفعلي، بدّلي هون بس (name = القيمة الفعلية بالـ enum الجديد،
-  // ومنيح تضيفي حقل منفصل للعرض بالعربي إذا بدك تعرضي اسم الكلية الحقيقي بالواجهة).
- const majors = [
-    { id: 'medicine', name: 'طب البشري' },
+  // القيم (id) هون مطابقة بالحرف لـ enum College بالباك — نفس الترتيب المعتمد.
+  const majors = [
+    { id: 'medicine', name: 'الطب البشري' },
+    { id: 'pharmacy', name: 'الصيدلة' },
     { id: 'dentistry', name: 'طب الأسنان' },
-    { id: 'pharmacy', name: 'صيدلة' },
-    { id: 'health_sciences', name: 'علوم صحية' },
-    { id: 'informatics', name: 'هندسة المعلوماتية' },
-    { id: 'civil', name: 'هندسة مدنية' },
-    { id: 'architecture', name: 'هندسة معمارية' },
-    { id: 'agriculture', name: 'هندسة الزراعة' },
-    { id: 'electrical_mechanical_eng', name: 'هندسة كهربائية وميكانيكية' },
-    { id: 'chemical_food_eng', name: 'هندسة كيميائية وغذائية' },
-    { id: 'economics', name: 'اقتصاد' },
+    { id: 'health_labs', name: 'علوم صحيّة مخابر' },
+    { id: 'health_nutrition', name: 'علوم صحيّة تغذية' },
+    { id: 'health_physiotherapy', name: 'علوم صحية علاج فيزيائي' },
+    { id: 'mech_power_eng', name: 'هندسة قوى ميكانيكية' },
+    { id: 'control_computer_eng', name: 'هندسة تحكم آلي وحواسيب' },
+    { id: 'energy_eng', name: 'هندسة طاقة' },
+    { id: 'mechatronics', name: 'ميكاترونك' },
+    { id: 'telecom_eng', name: 'هندسة اتصالات' },
+    { id: 'metallurgy_eng', name: 'هندسة المعادن' },
+    { id: 'design_production_eng', name: 'هندسة التصميم والإنتاج' },
+    { id: 'petroleum_eng', name: 'هندسة بيتروليّة' },
+    { id: 'food_eng', name: 'هندسة غذائية' },
+    { id: 'chemical_eng', name: 'هندسة كيميائية' },
+    { id: 'textile_eng', name: 'هندسة الغزل والنسيج' },
+    { id: 'civil', name: 'هندسة مدنيّة' },
     { id: 'tourism', name: 'سياحة' },
-    { id: 'music', name: 'موسيقى' },
-    { id: 'literature', name: 'اداب' },
-    { id: 'education', name: 'تربية' },
-    { id: 'science', name: 'علوم' },
-    { id: 'applied_science', name: 'تطبيقية' },
+    { id: 'architecture', name: 'هندسة معماريّة' },
+    { id: 'music', name: 'موسيقا' },
+    { id: 'physics', name: 'فيزياء' },
+    { id: 'mathematics', name: 'رياضيات' },
+    { id: 'statistics', name: 'إحصاء' },
+    { id: 'biology', name: 'علم الحياة بيولوجيا' },
+    { id: 'geology', name: 'علم الحياة جيولوجيا' },
+    { id: 'chemistry', name: 'كيمياء' },
+    { id: 'economics', name: 'اقتصاد' },
+    { id: 'informatics', name: 'هندسة معلوماتية' },
+    { id: 'applied_science', name: 'كلية تطبيقية' },
+    { id: 'arabic', name: 'لغة عربية' },
+    { id: 'english', name: 'لغة انكليزية' },
+    { id: 'french', name: 'لغة فرنسية' },
+    { id: 'persian', name: 'لغة فارسية' },
+    { id: 'history', name: 'تاريخ' },
+    { id: 'philosophy', name: 'فلسفة' },
+    { id: 'agriculture', name: 'هندسة زراعية' },
     { id: 'law', name: 'حقوق' },
+    { id: 'curricula', name: 'مناهج وطرق تدريس' },
+    { id: 'psychology', name: 'علم نفس' },
+    { id: 'kindergarten', name: 'رياض أطفال' },
+    { id: 'psychological_counseling', name: 'إرشاد نفسي' },
+    { id: 'class_teacher', name: 'معلم صف' },
+    { id: 'sharia', name: 'شريعة' },
     { id: 'institute_agriculture', name: 'معهد تقاني زراعي' },
     { id: 'institute_desert_affairs', name: 'معهد تقاني لشؤون البادية والتصحر' },
     { id: 'institute_engineering', name: 'معهد تقاني هندسي' },

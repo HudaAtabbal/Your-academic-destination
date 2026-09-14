@@ -11,7 +11,7 @@ const SurveyQuestionTwo = ({ selectedMajor, onChange, majorsList }) => {
           className="custom-select"
         >
           {majorsList.map((major) => (
-            <option key={major.id} value={major.name}>
+            <option key={major.id} value={major.id}>
               {major.name}
             </option>
           ))}
