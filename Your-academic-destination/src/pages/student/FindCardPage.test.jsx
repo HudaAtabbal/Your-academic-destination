@@ -60,7 +60,7 @@ describe('FindCardPage', () => {
     expect(apiPost).not.toHaveBeenCalled();
   });
 
-  it('submits the lookup with whatsapp platform, phone and name', async () => {
+  it('submits the lookup with phone and name', async () => {
     apiPost.mockResolvedValue({
       unique_code: 'R-123456',
       full_name: 'خالد طليمات',
@@ -73,7 +73,6 @@ describe('FindCardPage', () => {
     await user.click(screen.getByRole('button', { name: 'استرجاع البطاقة' }));
 
     expect(apiPost).toHaveBeenCalledWith('/students/lookup-by-contact', {
-      contact_platform: 'whatsapp',
       contact_id: '0912345678',
       full_name: 'خالد طليمات',
     });

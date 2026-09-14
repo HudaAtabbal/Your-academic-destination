@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import HeaderStep from "../../components/HeaderStep";
 import StepProgress from '../../components/StepProgress';
 import { apiPost, ApiError } from '../../api/api';
-import { getRegistrationData, updateRegistrationData, clearRegistrationData } from '../../api/RegistrationStorage';
+import { getRegistrationData, updateRegistrationData } from '../../api/RegistrationStorage';
 import "../../style/RegisterStep3Page.css";
 
 const RegisterStep3Page = () => {
@@ -34,7 +34,7 @@ const RegisterStep3Page = () => {
   // حفظ تلقائي بكل تغيير بالرقم — بلا ما ننتظر ضغطة الإرسال
   useEffect(() => {
     if (phoneNumber) {
-      updateRegistrationData({ contactPlatform: "whatsapp", contactId: phoneNumber });
+      updateRegistrationData({ contactId: phoneNumber });
     }
   }, [phoneNumber]);
 
@@ -84,8 +84,11 @@ const RegisterStep3Page = () => {
       certificate_type: previousSteps.certificateType,
       average_score: Number(previousSteps.averageScore),
       initial_preferred_major: previousSteps.initialPreferredMajor,
-      contact_platform: "whatsapp",
       contact_id: value,
+      // لو الطالب عم يعدّل رقم هاتفه بعد إرسال OTP سابق (راجع "تعديل رقم
+      // الهاتف" بصفحة OTP)، بنبعت الكود القديم حتى الباك يحذف التسجيل المعلّق
+      // القديم مع مهام SMS اليتيمة المرتبطة به وبخلّصنا من التكرار.
+      previous_unique_code: localStorage.getItem("studentCode") || undefined,
     };
 
     try {
@@ -94,9 +97,8 @@ const RegisterStep3Page = () => {
       // بنخزّن الكود الفريد حتى صفحة OTP تقدر تتحقق منه، وMyCard تعرضه بعدين
       localStorage.setItem("studentCode", response.unique_code);
 
-      // خلصت مهمة السلة المؤقتة — منضفيها حتى ما تضل بيانات قديمة لو حدا رجع يسجّل من جديد
-      clearRegistrationData();
-
+      // السلة بتضل محفوظة من الآن حتى نجاح التحقق (verify) — مش من هنا:
+      // مشان لو الطالب رجع يعدّل رقم هاتفه من صفحة OTP، ما تنحذف بياناته.
       navigate("/otp");
     } catch (err) {
       if (err instanceof ApiError) {

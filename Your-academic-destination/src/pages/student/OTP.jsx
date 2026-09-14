@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import HeaderStep from "../../components/HeaderStep";
 import { apiPost, ApiError } from "../../api/api";
+import { clearRegistrationData } from "../../api/RegistrationStorage";
 import "../../style/OTP.css";
 
 const OTP = () => {
@@ -35,6 +36,11 @@ const OTP = () => {
 
       setStatus("success");
       setError("");
+
+      // انتهت مهمة السلة المؤقتة بعد التحقق الكامل — منضفيها حتى ما تضل
+      // بيانات قديمة لو الطالب رجع يسجّل من جديد، ولأنه من هاي اللحظة
+      // الطالب موثّق فعلياً ورقمه محجوز.
+      clearRegistrationData();
 
       // بنخزّن اسم الطالب كمان حتى صفحة البطاقة (MyCard) تعرضه الحقيقي بدل الموك
       if (response.full_name) {
@@ -181,11 +187,12 @@ const OTP = () => {
               </button>
             </p>
 
-            {/* زر تعديل رقم الهاتف — تحت أعد الإرسال */}
+            {/* زر تعديل رقم الهاتف — ننقل مباشرة لخطوة الرقم (البيانات السابقة
+                محفوظة بالسلة، ويرسل previous_unique_code عند إعادة الإرسال) */}
             <button
               type="button"
               className="otp-back-btn"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/register-step3")}
             >
               تعديل رقم الهاتف
             </button>

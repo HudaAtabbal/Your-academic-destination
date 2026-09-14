@@ -37,7 +37,6 @@ const FindCardPage = () => {
       // الباك بيرجع 404 بنفس الرسالة الموحّدة) — المقارنة بس على الفرونت
       // ما بتعتبر أمان، كان أي حدا بيعرف رقم الهاتف بيمشي عليها من غير متصفح.
       const result = await apiPost('/students/lookup-by-contact', {
-        contact_platform: 'whatsapp',
         contact_id: phone,
         full_name: name,
       });
