@@ -23,6 +23,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
     { id: 'survey', label: 'أكملوا الاستبيان', value: '—' },
   ]);
   const [hallOccupancy, setHallOccupancy] = useState(null); // null = ما في بيانات قاعات لسا
+  const [smsStatus, setSmsStatus] = useState(null); // null = ما في بيانات حالة المُرسِل لسا
 
   useEffect(() => {
     // حسابات فريق العمل
@@ -71,6 +72,20 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
       .catch(() => {});
   }, []);
 
+  // حالة إرسال الرسائل النصية — بتتحدث كل 15 ثانية عشان مؤشر المُرسِل يبقى صادق
+  useEffect(() => {
+    const fetchSmsStatus = () => {
+      apiGet('/admin/dashboard/sms-status')
+        .then((res) => setSmsStatus(res))
+        .catch(() => {});
+    };
+
+    fetchSmsStatus();
+    const interval = setInterval(fetchSmsStatus, 15000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const percentage = hallOccupancy
     ? Math.round((hallOccupancy.current / hallOccupancy.total) * 100)
     : 0;
@@ -112,6 +127,38 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
               <span className="gd-dash-metric-number">{stat.value}</span>
             </div>
           ))}
+        </section>
+
+        {/* SMS Sending Status */}
+        <section className="gd-dash-section-wrapper">
+          <h2 className="gd-dash-section-heading">حالة إرسال الرسائل النصية</h2>
+          {smsStatus ? (
+            <div className="gd-dash-sms-card">
+              <div className="gd-dash-sms-status-line">
+                <span
+                  className={`gd-dash-sms-dot ${
+                    smsStatus.worker_online ? 'gd-dash-sms-dot-online' : 'gd-dash-sms-dot-offline'
+                  }`}
+                ></span>
+                <span className="gd-dash-sms-worker-state">
+                  {smsStatus.worker_online ? 'المُرسِل متصل' : 'المُرسِل منقطع'}
+                </span>
+              </div>
+              <div className="gd-dash-sms-counts">
+                <span className="gd-dash-sms-count">
+                  بانتظار الإرسال: <strong>{smsStatus.counts?.pending ?? 0}</strong>
+                </span>
+                <span className="gd-dash-sms-count">
+                  مرسلة: <strong>{smsStatus.counts?.sent ?? 0}</strong>
+                </span>
+                <span className="gd-dash-sms-count">
+                  فاشلة: <strong>{smsStatus.counts?.failed ?? 0}</strong>
+                </span>
+              </div>
+            </div>
+          ) : (
+            <p className="gd-dash-empty-note">ما في بيانات عن حالة المُرسِل لسا</p>
+          )}
         </section>
 
         {/* Team Accounts Section */}

@@ -251,6 +251,65 @@
   border-radius: 50px;
 }
 
+/* SMS Sending Status Card */
+.gd-dash-sms-card {
+  background-color: #FFFFFF;
+  border-radius: 18px;
+  padding: 20px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 8px rgba(15, 59, 52, 0.03);
+}
+
+.gd-dash-sms-status-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gd-dash-sms-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.gd-dash-sms-dot-online {
+  background-color: #2E7D32;
+  box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.15);
+}
+
+.gd-dash-sms-dot-offline {
+  background-color: #B71C1C;
+  box-shadow: 0 0 0 4px rgba(183, 28, 28, 0.15);
+}
+
+.gd-dash-sms-worker-state {
+  color: #0F3B34;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.gd-dash-sms-counts {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.gd-dash-sms-count {
+  color: #7A6855;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.gd-dash-sms-count strong {
+  color: #0F3B34;
+}
+
 /* ============================================
    Responsive — تحويل شبكة الديسكتوب لعمود واحد
    وتخلية الجدول قابل للسكرول الأفقي عالموبايل
