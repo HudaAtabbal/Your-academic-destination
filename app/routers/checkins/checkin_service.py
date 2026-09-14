@@ -24,6 +24,32 @@ _ACTIVITY_LABELS = {
     ActivityType.consultation: "الاستشارة الفردية",
 }
 
+# الأسماء العربية للمحاضرات — مطابقة لقائمة LECTURES بالواجهة (StadiumPage).
+# قيمة enum Lecture (lecture_1..lecture_16) رمز تقني؛ الرسائل للمستخدم لازم
+# تعرض الاسم الرسمي العربي مش الرمز.
+_LECTURE_DISPLAY_NAMES = {
+    Lecture.lecture_1: "ندوة كليات العلوم الإنسانية",
+    Lecture.lecture_2: "ندوة مركزية: كيف تختار تخصصك الجامعي",
+    Lecture.lecture_3: "ندوة الكليات الطبية",
+    Lecture.lecture_4: "ندوة مركزية: اتجاهات سوق العمل والمهن الصاعدة",
+    Lecture.lecture_5: "ندوة أولياء الأمور",
+    Lecture.lecture_6: "ندوة كليات العلوم الأساسية والاقتصادية",
+    Lecture.lecture_7: "ندوة مركزية 2",
+    Lecture.lecture_8: "ندوة كلية الهندسة المعلوماتية مع نبذة عن الكلية التطبيقية",
+    Lecture.lecture_9: "ندوة الكليات: الهندسية المدنية · الهندسة المدنية · المعمارية · الزراعة",
+    Lecture.lecture_10: "ندوة مركزية: التخصصات المستجدة",
+    Lecture.lecture_11: "ندوة كلية الهندسة الميكانيكية",
+    Lecture.lecture_12: "ندوة كلية الهندسة الكيميائية والبترولية",
+    Lecture.lecture_13: "ندوة كلية الهندسة الكهربائية",
+    Lecture.lecture_14: "ندوة صناعة الحياة الجامعية",
+    Lecture.lecture_15: "ندوة المعاهد المتوسطة والعليا",
+    Lecture.lecture_16: "حفل الختام والتكريم وتوزيع جوائز النقاط",
+}
+
+
+def _lecture_label(lecture: Lecture) -> str:
+    return _LECTURE_DISPLAY_NAMES.get(lecture, lecture.value)
+
 
 def _today_range() -> tuple[datetime, datetime]:
     """
@@ -192,7 +218,7 @@ def create_lecture_checkin(
         student.full_name,
         unique_code,
         ActivityType.lecture,
-        f"محاضرة ({lecture_name.value})",
+        f"محاضرة ({_lecture_label(lecture_name)})",
     )
 
     checkin = Checkin(
@@ -205,7 +231,7 @@ def create_lecture_checkin(
         student,
         unique_code,
         ActivityType.lecture,
-        f"محاضرة ({lecture_name.value})",
+        f"محاضرة ({_lecture_label(lecture_name)})",
     )
     db.refresh(checkin)
     return checkin, student.full_name

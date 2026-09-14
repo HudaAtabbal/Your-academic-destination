@@ -50,6 +50,27 @@ def test_dashboard_stats(
     assert body["campus_entries_count"] == 1
     assert body["activities_today_cumulative"] == 2
     assert body["survey_completed_count"] == 1
+    assert body["walkin_pending_count"] == 0
+
+
+def test_dashboard_stats_walkin_pending_count(
+    client, student_factory, super_headers
+):
+    student_factory(  # walk-in pending — مكتمل ناقص بيانات، لازم يُحصى بانتظار الإكمال
+        "W-0001",
+        registration_type=RegistrationType.walk_in,
+        verification_status=VerificationStatus.pending,
+        status="pending",
+    )
+    student_factory(
+        "W-0002",
+        registration_type=RegistrationType.walk_in,
+        verification_status=VerificationStatus.verified,
+        status="complete",
+    )
+    resp = client.get("/admin/dashboard/stats", headers=super_headers)
+    assert resp.status_code == 200
+    assert resp.json()["walkin_pending_count"] == 1
 
 
 def test_dashboard_rooms_occupancy(

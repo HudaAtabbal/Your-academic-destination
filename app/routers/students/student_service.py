@@ -12,8 +12,8 @@ import math
 
 from sqlalchemy.orm import Session
 
-from app.errors import student_not_found
-from app.models import Checkin, RegistrationType, Student, StudentStatus
+from app.errors import duplicate_contact, student_not_found
+from app.models import Checkin, RegistrationType, Student, StudentStatus, VerificationStatus
 
 # حقول ما بينسمح تعديلها من هاد الروتر — registration_type ثابت بعد الإنشاء
 _IMMUTABLE_FIELDS = {"registration_type", "id", "unique_code", "created_at"}
@@ -41,6 +41,22 @@ def update_student(db: Session, student_id: int, updates: dict) -> Student:
     if student is None:
         raise student_not_found()
 
+    # فحص تكرار رقم التواصل عند تعديله — نفس قاعدة التسجيل: رقم مسجّل مسبقاً
+    # لطالب تاني ممنوع. الرقم نفسه للطالب الحالي مسموح.
+    new_contact = updates.get("contact_id")
+    if new_contact is not None:
+        existing = (
+            db.query(Student)
+            .filter(
+                Student.contact_id == new_contact,
+                Student.id != student_id,
+                Student.registration_type == RegistrationType.registered,
+            )
+            .first()
+        )
+        if existing is not None and existing.verification_status == VerificationStatus.verified:
+            raise duplicate_contact()
+
     for field, value in updates.items():
         if field in _IMMUTABLE_FIELDS:
             continue  # حماية إضافية — حتى لو انبعت الحقل، بيتجاهل بصمت
@@ -60,7 +76,17 @@ def update_student(db: Session, student_id: int, updates: dict) -> Student:
 
 
 def get_student_stats(db: Session) -> tuple[int, int]:
-    total_registered = db.query(Student).count()
+    # "إجمالي الطلاب المسجّلين" = اللي سجّلوا إلكترونياً + تحققوا (بعد OTP وظهور
+    # البطاقة) — مش كل الطلاب بما فيهم walk-in والمنتظرين، راجع نفس المنطق
+    # بـ dashboard_service (registered_online_count).
+    total_registered = (
+        db.query(Student)
+        .filter(
+            Student.registration_type == RegistrationType.registered,
+            Student.verification_status == VerificationStatus.verified,
+        )
+        .count()
+    )
     walkin_pending_count = (
         db.query(Student)
         .filter(

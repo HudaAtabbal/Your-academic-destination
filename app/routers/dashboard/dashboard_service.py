@@ -18,7 +18,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.models import ActivityType, Checkin, PostSurvey, RegistrationType, Student, VerificationStatus
+from app.models import ActivityType, Checkin, PostSurvey, RegistrationType, Student, StudentStatus, VerificationStatus
 from app.routers.internal import internal_service
 
 _HALL_LABEL = "المدرج الرئيسي"
@@ -46,11 +46,21 @@ def get_dashboard_stats(db: Session) -> dict:
 
     survey_completed_count = db.query(PostSurvey).count()
 
+    walkin_pending_count = (
+        db.query(Student)
+        .filter(
+            Student.registration_type == RegistrationType.walk_in,
+            Student.status == StudentStatus.pending,
+        )
+        .count()
+    )
+
     return {
         "registered_online_count": registered_online_count,
         "campus_entries_count": campus_entries_count,
         "activities_today_cumulative": activities_today_cumulative,
         "survey_completed_count": survey_completed_count,
+        "walkin_pending_count": walkin_pending_count,
     }
 
 

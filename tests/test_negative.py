@@ -157,6 +157,31 @@ def test_patch_student_bacc_average_out_of_bounds_422(client, student_factory, s
     assert resp.json()["error_code"] == "validation_error"
 
 
+def test_patch_student_duplicate_contact_409(client, student_factory, students_admin_headers):
+    """تعديل رقم التواصل لطالب تاني مسجّل مسبقاً → 409 duplicate_contact (نفس قاعدة التسجيل)."""
+    s1 = student_factory("R-9001", contact_id="0991111111")
+    s2 = student_factory("R-9002", contact_id="0992222222")
+    resp = client.patch(
+        f"/admin/students/{s2.id}",
+        json={"contact_id": "0991111111"},
+        headers=students_admin_headers,
+    )
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "duplicate_contact"
+    assert s1.contact_id == "0991111111"
+
+
+def test_patch_student_same_own_contact_ok(client, student_factory, students_admin_headers):
+    """تعديل حقول برقم التواصل نفسه للطالب الحالي → مسموح (مش تكرار)."""
+    s1 = student_factory("R-9001", contact_id="0991111111")
+    resp = client.patch(
+        f"/admin/students/{s1.id}",
+        json={"contact_id": "0991111111", "bacc_average": 90},
+        headers=students_admin_headers,
+    )
+    assert resp.status_code == 200, resp.text
+
+
 def test_staff_and_scanner_forbidden_on_admin_accounts(client, college_staff_headers, gate_scanner_headers):
     for headers in (college_staff_headers, gate_scanner_headers):
         resp = client.get("/admin/accounts", headers=headers)
