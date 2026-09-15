@@ -109,3 +109,102 @@
   font-weight: 700;
   white-space: nowrap;
 }
+
+/* ============================================
+   Responsive — الهيدر بيتلف لصفين على التابلت،
+   وبيصير مضغوط وقابل للسكرول الأفقي بالنافيغيشن
+   عالموبايل الصغير بدل ما ينكسر أو يفيض عن الشاشة
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .admin-header {
+    padding: 0 24px;
+  }
+
+  .admin-nav-link {
+    padding: 10px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 860px) {
+  .admin-header {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 14px 20px;
+    gap: 14px;
+    row-gap: 14px;
+  }
+
+  .admin-header-brand {
+    order: 1;
+  }
+
+  .admin-header-user {
+    order: 2;
+    margin-inline-start: auto;
+  }
+
+  /* النافيغيشن بتاخد سطر كامل تحت، وبتصير قابلة للسكرول الأفقي
+     بدل ما تتكسر الروابط أو تتراكب فوق بعضها */
+  .admin-nav {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .admin-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .admin-nav-link {
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-header {
+    padding: 12px 16px;
+  }
+
+  .admin-logo {
+    height: 32px;
+  }
+
+  .admin-brand-title {
+    font-size: 1.05rem;
+  }
+
+  .admin-brand-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .admin-nav-link {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+  }
+
+  .admin-header-user {
+    gap: 8px;
+  }
+
+  /* عالشاشة الضيقة جداً بنحدد أقصى عرض لاسم المستخدم حتى ما
+     يدفع زر الخروج برا الشاشة — تقدري تشيلي هاد لو بدك الاسم
+     يضل ظاهر كامل دايماً */
+  .admin-user-badge {
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    max-width: 110px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .admin-logout-btn {
+    padding: 7px 14px;
+    font-size: 0.8rem;
+  }
+}

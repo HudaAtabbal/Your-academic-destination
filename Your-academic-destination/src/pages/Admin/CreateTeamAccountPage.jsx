@@ -11,15 +11,15 @@ const KNOWN_COLLEGES = [
   { value: 'dentistry', label: 'طب الأسنان' },
   { value: 'pharmacy', label: 'الصيدلة' },
   { value: 'health_sciences', label: 'كلية العلوم الصحية' },
-  { value: 'informatics', label: 'كلية المعلوماتية' },
+  { value: 'informatics', label: 'كلية الهندسةالمعلوماتية' },
   { value: 'civil_engineering', label: 'كلية الهندسة المدنية' },
-  { value: 'architecture', label: 'كلية العمارة' },
+  { value: 'architecture', label: 'كلية الهندسة المعمارية' },
   { value: 'agriculture', label: 'كلية الهندسة الزراعية' },
   { value: 'electrical_mechanical', label: 'كلية الهندسة الكهربائية والميكانيكية' },
   { value: 'chemical_food', label: 'كلية الهندسة الكيميائية والغذائية' },
   { value: 'economics', label: 'كلية الاقتصاد' },
   { value: 'tourism', label: 'كلية السياحة' },
-  { value: 'music', label: 'كلية الموسيقا' },
+  { value: 'music', label: 'كلية الموسيقى' },
   { value: 'arts', label: 'كلية الآداب والعلوم الإنسانية' },
   { value: 'education', label: 'كلية التربية' },
   { value: 'sciences', label: 'كلية العلوم' },
@@ -61,6 +61,14 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
     { id: 'gate_scanner', label: 'مسؤول المسح' },
     { id: 'college_staff', label: 'مسؤول الكلية' },
   ];
+
+  // مثال اسم مستخدم مختلف حسب الدور المختار، حتى يبين الشكل المتوقع فوراً
+  const USERNAME_PLACEHOLDERS = {
+    super_admin: 'مثال: sara_super',
+    students_admin: 'مثال: sara_admin',
+    gate_scanner: 'مثال: sara_staff',
+    college_staff: 'مثال: sara_it',
+  };
 
   const handleBack = () => {
     navigate('/dashboard');
@@ -154,7 +162,7 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
                   id="cta-username"
                   type="text"
                   className="cta-input-field"
-                  placeholder="مثال: sara_staff"
+                  placeholder={USERNAME_PLACEHOLDERS[role]}
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={!!editMember}
@@ -164,13 +172,13 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
 
               <div className="cta-field-group">
                 <label className="cta-field-label" htmlFor="cta-password">
-                  {editMember ? 'كلمة سر جديدة' : 'كلمة السر المبدئية'}
+                  {editMember ? 'كلمة سر جديدة' : 'كلمة السر '}
                 </label>
                 <input
                   id="cta-password"
                   type="text"
                   className="cta-input-field"
-                  placeholder={editMember ? 'اتركها فارغة لعدم التغيير' : 'تُنشأ تلقائياً'}
+                  placeholder={editMember ? 'اتركها فارغة لعدم التغيير' : 'ادخل كلمة المرور  '}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />

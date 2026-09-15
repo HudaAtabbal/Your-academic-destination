@@ -15,7 +15,7 @@
 
 // العنوان الأساسي للباك اند — من متغير بيئة VITE_API_URL (ملف .env).
 // لو ما اتعرف، بنسقط على localhost للـ تطوير المحلي.
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://unpiloted-flannels-recast.ngrok-free.dev';
 
 // أقصى مدة انتظار لأي طلب قبل ما ننهيه تلقائياً (بالميلي ثانية).
 // بدونها، لو السيرفر أو الـ tunnel وقع، الطلب بيضل معلّق للأبد والواجهة
@@ -85,7 +85,7 @@ export async function apiRequest(path, options = {}) {
     if (networkErr.name === 'AbortError') {
       throw new ApiError(
         'timeout',
-        'استغرق الاتصال بالسيرفر وقتاً أطول من المتوقع، تأكدي من الإنترنت وحاولي مرة تانية',
+        'استغرق الاتصال بالسيرفر وقتاً أطول من المتوقع، تأكد من الإنترنت وحاول مرة اخرى',
         null
       );
     }
@@ -93,7 +93,7 @@ export async function apiRequest(path, options = {}) {
     // فشل الاتصال نفسه (السيرفر واقف، مافي إنترنت...) — قبل ما نوصل حتى لرد الباك
     throw new ApiError(
       'network_error',
-      'تعذّر الاتصال بالسيرفر، تأكدي من الإنترنت وحاولي مرة تانية',
+      'تعذّر الاتصال بالخادم تأكدي من الإنترنت وحاولي مرة تانية',
       null
     );
   } finally {
