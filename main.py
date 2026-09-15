@@ -6,6 +6,7 @@
 import json
 import os
 from contextlib import asynccontextmanager
+from typing import Any, cast
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import HTTPException as FastAPIHTTPException
@@ -132,11 +133,11 @@ def validation_exception_handler(request: Request, exc: RequestValidationError) 
     بدل الرسالة الحقيقية المفيدة (مثلاً "المعدل لازم يكون ≤100").
     """
     errors = exc.errors()
-    first = errors[0] if errors else {}
+    first: dict[str, Any] = dict(errors[0]) if errors else {}
     # loc بيكون مثلاً ["body", "average_score"] — بنشيل "body" ومنعرّب الباقي
-    field_path = [str(part) for part in first.get("loc", []) if part != "body"]
-    field = ".".join(field_path) if field_path else ""
-    field_ar = _FIELD_NAMES_AR.get(field, field)
+    field_path: list[str] = [str(part) for part in first.get("loc", []) if part != "body"]
+    field: str = ".".join(field_path) if field_path else ""
+    field_ar: str = _FIELD_NAMES_AR.get(field, field)
 
     message = f"خطأ بحقل '{field_ar}': {first.get('msg', 'قيمة غير صالحة')}" if field else "البيانات المُرسَلة غير صالحة"
 
@@ -150,7 +151,7 @@ def validation_exception_handler(request: Request, exc: RequestValidationError) 
     )
 
 
-def _make_json_safe(value):
+def _make_json_safe(value: Any) -> Any:
     """
     أخطاء الفاليديشن من Pydantic ممكن تحوي كائنات Python فعلية داخل ctx
     (مثلاً ctx.error وهو استثناء ValueError من field_validator/برا فيلد)
@@ -158,9 +159,11 @@ def _make_json_safe(value):
     أي قيمة مش قابلة للتسلسل إلى نصها، والأرقام/النصوص/البوليين عادي بتبقى.
     """
     if isinstance(value, dict):
-        return {key: _make_json_safe(item) for key, item in value.items()}
+        dict_value = cast("dict[Any, Any]", value)
+        return {key: _make_json_safe(item) for key, item in dict_value.items()}
     if isinstance(value, (list, tuple)):
-        return [_make_json_safe(item) for item in value]
+        seq_value = cast("list[Any] | tuple[Any, ...]", value)
+        return [_make_json_safe(item) for item in seq_value]
     try:
         json.dumps(value)
         return value
@@ -201,6 +204,6 @@ app.include_router(internal_router.router)
 
 
 @app.get("/health", tags=["health"])
-def health_check():
+def health_check() -> dict[str, str]:
     """endpoint بسيط للتأكد إنه السيرفر شغال — مش موثّق بالعقد، بس مفيد للتطوير."""
     return {"status": "ok"}
