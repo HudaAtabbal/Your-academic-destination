@@ -128,7 +128,7 @@ const OTP = () => {
 
     try {
       await apiPost("/students/otp/resend", { unique_code: uniqueCode });
-      setResendMessage("تم إرسال رمز جديد لواتسابك");
+      setResendMessage("تم ارسال رمز جديد عبر SMS");
     } catch (err) {
       setError(
         err instanceof ApiError

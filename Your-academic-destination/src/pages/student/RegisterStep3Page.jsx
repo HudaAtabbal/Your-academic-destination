@@ -45,14 +45,14 @@ const RegisterStep3Page = () => {
 
     // الحقل فارغ
     if (!value) {
-      setError("يرجى إدخال رقم الواتساب");
+      setError("يرجى إدخال رقم الهاتف");
       return;
     }
 
-    // التحقق من رقم الواتساب
+    // التحقق من رقم SMS
     const phoneRegex = /^09\d{8}$/;
     if (!phoneRegex.test(value)) {
-      setError("يرجى إدخال رقم واتساب صحيح مكون من 10 أرقام ويبدأ بـ 09");
+      setError("يرجى إدخال رقم الهاتف صحيح مكون من 10 أرقام ويبدأ بـ 09");
       return;
     }
 

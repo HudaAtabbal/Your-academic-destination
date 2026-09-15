@@ -114,7 +114,7 @@ const MyCard = () => {
           {/* Digital ID Card Section */}
           <div className="mc-id-card-box">
             <div className="mc-qr-wrapper" ref={qrWrapperRef}>
-              {/* الـ QR بيحمل بس unique_code تبع الطالب (زي R-0248)،
+              {/* الـ QR بيحمل بس unique_code تبع الطالب (زي R-024865)،
                   بدون أي بيانات شخصية زي الاسم. لما موظف السكانر يمسحه،
                   الباك اند هو يلي بيرجّع اسم الطالب وكل بياناته من قاعدة البيانات. */}
               <QRCode

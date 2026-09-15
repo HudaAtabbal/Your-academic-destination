@@ -50,7 +50,7 @@ const InWalkIncompletePage = () => {
         
         {/* Top Header */}
         <header className="page-header">
-          <div className="header-badge">مدير بيانات الطلاب</div>
+          
           
           <div className="header-brand">
             <div className="brand-text">
@@ -58,6 +58,7 @@ const InWalkIncompletePage = () => {
               <p className="brand-subtitle">لوحة التحكم</p>
             </div>
           </div>
+          <div className="header-badge">مدير بيانات الطلاب</div>
         </header>
 
         {/* Scrollable Main Body */}

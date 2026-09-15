@@ -268,7 +268,7 @@ const StudentDataManagerPage = () => {
                 type="text"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="R-0248"
+                placeholder="R-024865"
                 dir="rtl"
               />
               <button type="submit" className="btn-search" disabled={isSearching}>

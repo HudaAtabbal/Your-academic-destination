@@ -96,7 +96,7 @@ const TourPage = () => {
             <input
               type="text"
               className="manual-code-input"
-              placeholder="R-0248 (بديل يدوي لو تعطلت الكاميرا)"
+              placeholder="R-024865 (بديل يدوي لو تعطلت الكاميرا)"
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               dir="ltr"

@@ -131,9 +131,9 @@ const Survey = () => {
               <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
                 {isSubmitting ? 'جاري الإرسال...' : 'أرسل'}
               </button>
-              <button type="button" onClick={handleSkip} className="btn btn-secondary">
+              {/* <button type="button" onClick={handleSkip} className="btn btn-secondary">
                 لاحقاً
-              </button>
+              </button> */}
             </div>
 
             {error && <p className="survey-error-message">{error}</p>}

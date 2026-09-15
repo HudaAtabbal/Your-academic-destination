@@ -7,11 +7,11 @@ import '../../style/CreateTeamAccountPage.css';
 // قائمة "الكلية المرتبطة" لحسابات مسؤولي الكليات — نفس قيم (id) enum Faculty
 // بالباك وبنفس ترتيبه المعتمد (قائمة منفصلة عن اختيارات الطلاب).
 const KNOWN_COLLEGES = [
-  { value: 'medicine', label: 'الطب البشري' },
-  { value: 'dentistry', label: 'طب الأسنان' },
-  { value: 'pharmacy', label: 'الصيدلة' },
+  { value: 'medicine', label: ' كليةالطب البشري' },
+  { value: 'dentistry', label: ' كلية طب الأسنان' },
+  { value: 'pharmacy', label: 'كلية الصيدلة' },
   { value: 'health_sciences', label: 'كلية العلوم الصحية' },
-  { value: 'informatics', label: 'كلية الهندسةالمعلوماتية' },
+  { value: 'informatics', label: 'كلية الهندسة المعلوماتية' },
   { value: 'civil_engineering', label: 'كلية الهندسة المدنية' },
   { value: 'architecture', label: 'كلية الهندسة المعمارية' },
   { value: 'agriculture', label: 'كلية الهندسة الزراعية' },

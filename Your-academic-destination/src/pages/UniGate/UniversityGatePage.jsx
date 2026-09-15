@@ -124,7 +124,7 @@ const UniversityGatePage = () => {
             <input
               type="text"
               className="manual-code-input"
-              placeholder="R-0248 (بديل يدوي لو تعطلت الكاميرا)"
+              placeholder="R-024865 (بديل يدوي لو تعطلت الكاميرا)"
               value={manualCode}
               onChange={(e) => setManualCode(e.target.value)}
               dir="ltr"
@@ -150,7 +150,7 @@ const UniversityGatePage = () => {
               <input
                 type="text"
                 id="studentId"
-                placeholder="R-0248"
+                placeholder="R-024865"
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
                 dir="ltr"
