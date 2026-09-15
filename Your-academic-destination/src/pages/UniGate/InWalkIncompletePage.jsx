@@ -9,11 +9,14 @@ const STATUS_DISPLAY = {
   partial: { label: 'جزئي', type: 'partial' },
 };
 
+const PAGE_SIZE = 20;
+
 const InWalkIncompletePage = () => {
   const navigate = useNavigate();
 
   const [records, setRecords] = useState([]);
   const [totalIncomplete, setTotalIncomplete] = useState(null);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -22,7 +25,9 @@ const InWalkIncompletePage = () => {
       setIsLoading(true);
       setError('');
       try {
-        const response = await apiGet('/admin/students/walkin-incomplete?page=1&limit=20');
+        const response = await apiGet(
+          `/admin/students/walkin-incomplete?page=${page}&limit=${PAGE_SIZE}`
+        );
         setRecords(response.items);
         setTotalIncomplete(response.total);
       } catch (err) {
@@ -33,7 +38,9 @@ const InWalkIncompletePage = () => {
     };
 
     loadData();
-  }, []);
+  }, [page]);
+
+  const totalPages = totalIncomplete ? Math.max(1, Math.ceil(totalIncomplete / PAGE_SIZE)) : 1;
 
   const handleCompleteData = (uniqueCode) => {
     // بننقل لصفحة إدارة بيانات الطالب مع تمرير رقم السجل حتى تنعبى خانة البحث فيه تلقائياً
@@ -42,6 +49,14 @@ const InWalkIncompletePage = () => {
 
   const handleBack = () => {
     navigate('/gate-manage');
+  };
+
+  const handlePrevPage = () => {
+    setPage((p) => Math.max(1, p - 1));
+  };
+
+  const handleNextPage = () => {
+    setPage((p) => Math.min(totalPages, p + 1));
   };
 
   return (
@@ -97,48 +112,80 @@ const InWalkIncompletePage = () => {
             {isLoading && <p className="table-loading-message">جاري التحميل...</p>}
 
             {!isLoading && !error && (
-              <div className="table-wrapper">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>الرمز</th>
-                      <th>الاسم الثلاثي</th>
-                      <th>رقم التواصل</th>
-                      <th>الحالة</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {records.map((item) => {
-                      const statusInfo = STATUS_DISPLAY[item.status] || {
-                        label: item.status,
-                        type: 'empty',
-                      };
-                      return (
-                        <tr key={item.unique_code}>
-                          <td className="code-cell" dir="ltr">{item.unique_code}</td>
-                          <td className="name-cell">{item.full_name || 'لم يُدخل بعد'}</td>
-                          <td className="phone-cell" dir="ltr">{item.contact_id || '—'}</td>
-                          <td>
-                            <span className={`status-badge ${statusInfo.type}`}>
-                              {statusInfo.label}
-                            </span>
-                          </td>
-                          <td className="action-cell">
-                            <button
-                              type="button"
-                              className="btn-action"
-                              onClick={() => handleCompleteData(item.unique_code)}
-                            >
-                              أكمل البيانات
-                            </button>
-                          </td>
+              <>
+                <div className="table-wrapper">
+                  <table className="data-table">
+                    <thead>
+                      <tr>
+                        <th>الرمز</th>
+                        <th>الاسم الثلاثي</th>
+                        <th>رقم التواصل</th>
+                        <th>الحالة</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {records.map((item) => {
+                        const statusInfo = STATUS_DISPLAY[item.status] || {
+                          label: item.status,
+                          type: 'empty',
+                        };
+                        return (
+                          <tr key={item.unique_code}>
+                            <td className="code-cell" dir="ltr">{item.unique_code}</td>
+                            <td className="name-cell">{item.full_name || 'لم يُدخل بعد'}</td>
+                            <td className="phone-cell" dir="ltr">{item.contact_id || '—'}</td>
+                            <td>
+                              <span className={`status-badge ${statusInfo.type}`}>
+                                {statusInfo.label}
+                              </span>
+                            </td>
+                            <td className="action-cell">
+                              <button
+                                type="button"
+                                className="btn-action"
+                                onClick={() => handleCompleteData(item.unique_code)}
+                              >
+                                أكمل البيانات
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      {records.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="empty-cell">لا يوجد سجلات بهاي الصفحة</td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="pagination-row">
+                    <button
+                      type="button"
+                      className="pagination-btn"
+                      onClick={handlePrevPage}
+                      disabled={page <= 1}
+                    >
+                      السابق
+                    </button>
+                    <span className="pagination-info">
+                      صفحة {page} من {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      className="pagination-btn"
+                      onClick={handleNextPage}
+                      disabled={page >= totalPages}
+                    >
+                      التالي
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </section>
 

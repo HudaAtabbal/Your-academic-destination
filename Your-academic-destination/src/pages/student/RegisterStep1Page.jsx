@@ -195,7 +195,7 @@ const RegisterStep1Page = () => {
                 id="fullName"
                 name="fullName"
                 type="text"
-                placeholder="مثال: عمر أحمد العسورة"
+                placeholder="مثال: طارق الاسود"
                 value={formData.fullName}
                 onChange={handleNameChange}
                 className={`custom-input ${errors.fullName ? 'input-error' : ''}`}

@@ -100,6 +100,10 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
           payload.password = password;
         }
         await apiPatch(`/admin/accounts/${editMember.username}`, payload);
+
+        // بوضع التعديل منرجع عاللوحة متل ما كان قبل
+        if (onSubmit) onSubmit();
+        navigate('/dashboard');
       } else {
         const payload = {
           username: username.trim(),
@@ -114,13 +118,22 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
           setSuccessInfo(
             `تم إنشاء الحساب. كلمة السر: ${response.generated_password} — احفظيها الآن، ما رح ترجع تظهر تاني`
           );
-          setIsSubmitting(false);
-          return; // ما بننقل تلقائياً حتى تضمن إنها شافت/نسخت كلمة السر
+        } else {
+          setSuccessInfo('تم إنشاء الحساب بنجاح');
         }
-      }
 
-      if (onSubmit) onSubmit();
-      navigate('/dashboard');
+        // منفضّي الفورم حتى تصير جاهزة لإنشاء حساب جديد، وما منعمل تنقّل عاللوحة
+        setUsername('');
+        setPassword('');
+        setRole('gate_scanner');
+        setFaculty('');
+
+        // منبلّغ الأب (مثلاً لتحديث لستة الحسابات بالخلفية) بدون أي تنقّل
+        if (onSubmit) onSubmit();
+
+        setIsSubmitting(false);
+        return;
+      }
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
     } finally {

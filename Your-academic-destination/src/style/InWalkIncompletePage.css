@@ -270,14 +270,53 @@
   text-decoration: underline;
 }
 
-/* Footer Warning Notice */
-.footer-warning {
+/* Empty State Row (no records on current page) */
+.empty-cell {
+  text-align: center !important;
   color: #7A6953;
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 600;
-  line-height: 1.5;
-  margin: 4px 0 0 0;
-  text-align: justify;
+  padding: 20px 12px !important;
+  white-space: normal !important;
+}
+
+/* Pagination Controls */
+.pagination-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 4px 0 2px;
+}
+
+.pagination-btn {
+  background-color: #0E3E37;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.pagination-btn:disabled {
+  background-color: #D9CDBB;
+  color: #FFFFFF;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  color: #7A6953;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .card-wrapper {

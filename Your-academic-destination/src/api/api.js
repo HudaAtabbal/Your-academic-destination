@@ -15,7 +15,7 @@
 
 // العنوان الأساسي للباك اند — من متغير بيئة VITE_API_URL (ملف .env).
 // لو ما اتعرف، بنسقط على localhost للـ تطوير المحلي.
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://unpiloted-flannels-recast.ngrok-free.dev';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://barmaid-marigold-bust.ngrok-free.dev';
 
 // أقصى مدة انتظار لأي طلب قبل ما ننهيه تلقائياً (بالميلي ثانية).
 // بدونها، لو السيرفر أو الـ tunnel وقع، الطلب بيضل معلّق للأبد والواجهة
