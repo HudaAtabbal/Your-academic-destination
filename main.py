@@ -179,6 +179,22 @@ def unexpected_exception_handler(request: Request, exc: Exception) -> JSONRespon
     بلا أي تفاصيل داخلية. المعالجات الأخص (AppError / HTTPException /
     RequestValidationError) بتسبقه بالترتيب، فهاد بيلتقط الباقي بس.
     """
+    import logging, os, traceback
+    logging.getLogger("wijhatak").error(
+        "Unexpected error on %s %s:\n%s",
+        request.method,
+        request.url.path,
+        traceback.format_exc(),
+    )
+    try:
+        with open(
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_errors.log"),
+            "a",
+            errors="replace",
+        ) as _f:
+            _f.write("[%s] %s %s\n%s\n" % (request.method, request.url.path, exc, traceback.format_exc()))
+    except Exception:
+        pass
     return JSONResponse(
         status_code=500,
         content={

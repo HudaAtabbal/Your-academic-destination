@@ -36,6 +36,14 @@ for _candidate in (_HERE, os.path.dirname(_HERE)):
 
 from app.sms_service import SmsSendError, send_otp_sms  # noqa: E402
 
+# تحميل متغيرات البيئة من ملف .env (في مجلد العمل أو أحد المجلدات الأب)
+# إذا كان python-dotenv متوفراً؛ وإلا نكتفي بمتغيرات بيئة الشل (تعمل كما هي)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 _BASE_URL = os.getenv("API_BASE_URL", "https://api.example.com").rstrip("/")
 _WORKER_TOKEN = os.getenv("WORKER_TOKEN", "")
 _POLL_INTERVAL = float(os.getenv("SMS_POLL_INTERVAL", "1"))
@@ -54,6 +62,7 @@ def _setup_logger() -> logging.Logger:
         os.path.join(os.path.dirname(os.path.abspath(__file__)), "sms_worker.log"),
         maxBytes=1_000_000,
         backupCount=3,
+        encoding="utf-8",
     )
     handler.setFormatter(
         logging.Formatter("%(asctime)s | %(levelname)s | %(message)s")

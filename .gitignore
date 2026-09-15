@@ -6,3 +6,6 @@ __pycache__/
 .DS_Store
 *.log
 .env.sms
+# SMS worker runtime logs
+worker/sms_worker.log*
+passenger_wsgi.log
