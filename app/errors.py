@@ -13,7 +13,7 @@
 """
 
 from typing import Any
-
+from datetime import datetime
 
 class AppError(Exception):
     def __init__(
@@ -79,8 +79,8 @@ def duplicate_checkin(
     unique_code: str,
     activity_type: str,
     activity_label: str,
-    first_occurred_at,
-) -> AppError:
+    first_occurred_at: datetime,
+    ) -> AppError:
     time_str = first_occurred_at.strftime("%H:%M")
     return AppError(
         status_code=409,
