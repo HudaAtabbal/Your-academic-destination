@@ -21,7 +21,7 @@ const MajorSearchList = ({
       <input
         type="text"
         className="custom-input major-search-input"
-        placeholder="دوّري عن تخصصك..."
+        placeholder="ابحث عن اختصاص..."
         value={searchTerm}
         onChange={(e) => onSearchChange(e.target.value)}
       />
@@ -172,8 +172,8 @@ const RegisterStep2Page = () => {
               className={`undecided-box ${isUndecided ? 'active' : ''}`}
               onClick={handleToggleUndecided}
             >
-              <span className="undecided-title">لسّا ما قرّرت</span>
-              <span className="undecided-subtitle">منرتّبلك جولة عامة على كل التجمّعات</span>
+              <span className="undecided-title">لم اتخذ قراري بعد </span>
+              <span className="undecided-subtitle">نرتب لك جولة عامة على كل التجمّعات</span>
             </div>
 
             <div className="actions">

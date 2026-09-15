@@ -17,12 +17,12 @@ const WelcomePage = () => {
           <span className="wp-badge">النسخة الثانية</span>
 
           <p className="wp-description">
-            ثلاثة أيام تتعرّف فيها على كل كلية في الجامعة، وتسأل من درسها قبلك.
+            ثلاثة أيام تتعرّف فيها على كل كلية في الجامعة، وتسأل من دَرسها قَبلك.
           </p>
 
           <InfoCard
-            title="سجّل من البيت، واخل من الخط السريع"
-            text="التسجيل شرط الدخول. بتاخد بطاقة برمز QR خاص فيك، وبتربطك بكل نشاط تحضره."
+            title="سجّل من البيت، وادخل من الخط السريع"
+            text="التسجيل شرط الدخول. تحصل على  بطاقة برمز QR خاص بك تربطك بكل نشاط تحضره."
           />
 
           <div className="wp-actions">
@@ -36,7 +36,7 @@ const WelcomePage = () => {
               className="wp-btn wp-btn-secondary"
               onClick={() => navigate("/find-card")}
             >
-              عندي بطاقة من قبل
+             لديَّ بطاقة 
             </button>
           </div>
         </main>

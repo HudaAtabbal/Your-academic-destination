@@ -55,8 +55,8 @@ const FindCardPage = () => {
     <div className="fcp-wrapper">
       <div className="fcp-container">
         <HeaderStep
-          title="بطاقتي من قبل"
-          stepText="دخّلي بياناتك لاسترجاع بطاقتك"
+          title="بطاقتي  "
+          stepText="ادخل بياناتك لاسترجاع بطاقتك"
           onBack={() => window.history.back()}
         />
 

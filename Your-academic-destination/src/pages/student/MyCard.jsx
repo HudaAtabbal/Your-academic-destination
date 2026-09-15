@@ -1,9 +1,9 @@
-import React, { useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import QRCode from 'react-qr-code'; // يمكنك استخدام مكتبة react-qr-code أو صورة QR جاهزة
-import HeaderStep from '../../components/HeaderStep';
-import BottomNav from '../../components/BottomNav';
-import '../../style/MyCard.css';
+import React, { useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import QRCode from "react-qr-code"; // يمكنك استخدام مكتبة react-qr-code أو صورة QR جاهزة
+import HeaderStep from "../../components/HeaderStep";
+import BottomNav from "../../components/BottomNav";
+import "../../style/MyCard.css";
 
 const MyCard = () => {
   const qrWrapperRef = useRef(null);
@@ -11,12 +11,12 @@ const MyCard = () => {
 
   // بنقرأ الكود من localStorage (اتخزن هناك بصفحة OTP بعد نجاح التحقق)
   // ما في قيمة احتياطية للكود لأنها بتشبه كود طالب حقيقي وممكن تسجّل حضور غلط
-  const studentCode = localStorage.getItem('studentCode');
-  const studentName = localStorage.getItem('studentName') || '';
+  const studentCode = localStorage.getItem("studentCode");
+  const studentName = localStorage.getItem("studentName") || "";
 
   // لو ما في كود مخزّن، منوجّه المستخدم لصفحة استرجاع الكود بدل ما نعرض بطاقة موك
   useEffect(() => {
-    if (!studentCode) navigate('/find-card', { replace: true });
+    if (!studentCode) navigate("/find-card", { replace: true });
   }, [studentCode, navigate]);
 
   if (!studentCode) return null;
@@ -24,39 +24,45 @@ const MyCard = () => {
   const cardData = {
     name: studentName,
     code: studentCode,
-    status: 'بطاقتك جاهزة',
+    status: "بطاقتك جاهزة",
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('studentCode');
-    localStorage.removeItem('studentName');
-    window.location.href = '/';
+    localStorage.removeItem("studentCode");
+    localStorage.removeItem("studentName");
+    window.location.href = "/";
   };
 
   const handleSaveCard = () => {
     try {
       // بنلاقي الـ SVG يلي مكتبة react-qr-code رندرته جوا qr-wrapper
-      const svg = qrWrapperRef.current?.querySelector('svg');
+      const svg = qrWrapperRef.current?.querySelector("svg");
       if (!svg) {
-        console.error('ما تم إيجاد عنصر الـ SVG جوا qr-wrapper');
+        console.error("ما تم إيجاد عنصر الـ SVG جوا qr-wrapper");
+        toast.error(
+          "تعذر تحميل رمز الـ QR، الرجاء تحديث الصفحة والمحاولة مجدداً",
+        );
         return;
       }
 
       // بعض المتصفحات محتاجة width/height صريحة على الـ SVG
       // (بدون هيك الصورة بتطلع بحجم 0 والكانفاس بيصير فاضي)
       const qrSize = 140; // نفس القيمة يلي مررناها لـ <QRCode size={140} />
-      svg.setAttribute('width', qrSize);
-      svg.setAttribute('height', qrSize);
+      svg.setAttribute("width", qrSize);
+      svg.setAttribute("height", qrSize);
 
       const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const svgBlob = new Blob([svgData], {
+        type: "image/svg+xml;charset=utf-8",
+      });
       const svgUrl = URL.createObjectURL(svgBlob);
 
       const img = new Image();
 
       img.onerror = (err) => {
-        console.error('فشل تحميل صورة الـ SVG', err);
+        console.error("فشل تحميل صورة الـ SVG", err);
         URL.revokeObjectURL(svgUrl);
+        toast.error("حدث خطأ أثناء تحميل رمز الـ QR، الرجاء المحاولة مرة أخرى");
       };
 
       img.onload = () => {
@@ -69,40 +75,39 @@ const MyCard = () => {
           const qrPixelSize = (img.width || qrSize) * scale;
           const padding = Math.round(qrPixelSize * quietZoneRatio);
 
-          const canvas = document.createElement('canvas');
+          const canvas = document.createElement("canvas");
           canvas.width = qrPixelSize + padding * 2;
           canvas.height = qrPixelSize + padding * 2;
 
-          const ctx = canvas.getContext('2d');
-          ctx.fillStyle = '#FFFFFF';
+          const ctx = canvas.getContext("2d");
+          ctx.fillStyle = "#FFFFFF";
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, padding, padding, qrPixelSize, qrPixelSize);
 
           URL.revokeObjectURL(svgUrl);
 
-          const pngUrl = canvas.toDataURL('image/png');
+          const pngUrl = canvas.toDataURL("image/png");
 
-          const link = document.createElement('a');
+          const link = document.createElement("a");
           link.href = pngUrl;
           link.download = `${cardData.code}-QR.png`;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
         } catch (err) {
-          console.error('فشل تحويل الصورة أو تنزيلها', err);
+          console.error("فشل تحويل الصورة أو تنزيلها", err);
         }
       };
 
       img.src = svgUrl;
     } catch (err) {
-      console.error('خطأ عام أثناء حفظ البطاقة', err);
+      console.error("خطأ عام أثناء حفظ البطاقة", err);
     }
   };
 
   return (
     <div className="mc-card-wrapper">
       <div className="mc-card-container">
-
         <HeaderStep
           title="بطاقتي"
           stepText="وجهتك الأكاديمية 2 • جامعة حمص"
@@ -110,7 +115,6 @@ const MyCard = () => {
         />
 
         <main className="mc-card-body">
-
           {/* Digital ID Card Section */}
           <div className="mc-id-card-box">
             <div className="mc-qr-wrapper" ref={qrWrapperRef}>
@@ -127,9 +131,7 @@ const MyCard = () => {
             </div>
             <h2 className="mc-user-name">{cardData.name}</h2>
             <p className="mc-user-code">{cardData.code}</p>
-            <div className="mc-status-badge">
-              {cardData.status}
-            </div>
+            <div className="mc-status-badge">{cardData.status}</div>
           </div>
 
           {/* Features Info Box */}
@@ -144,22 +146,28 @@ const MyCard = () => {
 
           {/* Action Button */}
           <div className="mc-actions">
-            <button type="button" onClick={handleSaveCard} className="mc-btn mc-btn-primary">
+            <button
+              type="button"
+              onClick={handleSaveCard}
+              className="mc-btn mc-btn-primary"
+            >
               احفظ البطاقة
             </button>
           </div>
 
           {/* Logout Button */}
           <div className="mc-logout-actions">
-            <button type="button" onClick={handleLogout} className="mc-btn mc-btn-logout">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="mc-btn mc-btn-logout"
+            >
               تسجيل خروج
             </button>
           </div>
-
         </main>
 
         <BottomNav />
-
       </div>
     </div>
   );

@@ -133,7 +133,7 @@ const OTP = () => {
       setError(
         err instanceof ApiError
           ? err.message
-          : "تعذّر إعادة الإرسال، حاولي مرة تانية",
+          : "تعذّر إعادة الإرسال، حاول مرة أخرى",
       );
     }
   };

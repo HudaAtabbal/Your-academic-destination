@@ -24,14 +24,14 @@ const MyPointsPage = ({
   useEffect(() => {
     const studentCode = localStorage.getItem('studentCode');
     if (!studentCode) {
-      setError('في مشكلة بجلستك، يرجى الرجوع والتسجيل من جديد');
+      setError('يوجد مشكلة في جلستك، يرجى الرجوع والتسجيل من جديد');
       return;
     }
 
     apiGet(`/students/${studentCode}/points`)
       .then((res) => setPoints(res.total_points))
       .catch((err) => {
-        setError(err instanceof ApiError ? err.message : 'صار خطأ بتحميل نقاطك');
+        setError(err instanceof ApiError ? err.message : 'حدث خطأ اثناء تحميل نقاطك');
       });
   }, []);
 
