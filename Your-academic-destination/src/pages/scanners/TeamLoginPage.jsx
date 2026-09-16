@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../../assets/English logo colored-02.png';
+import logo from '../../assets/colored-logo.png';
 import { apiPost, setAuthToken, ApiError } from '../../api/api';
 import '../../style/TeamLoginPage.css';
 

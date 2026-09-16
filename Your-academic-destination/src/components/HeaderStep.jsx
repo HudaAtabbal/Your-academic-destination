@@ -1,5 +1,5 @@
 import React from 'react';
-import logo from '../assets/English logo white-01.png';
+import logo from '../assets/whited-logo-1.png';
 import '../style/HeaderStep.css';
 
 const HeaderStep = ({ title, stepText, onBack }) => {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import logo from '../assets/English logo white-01.png';
+import logo from '../assets/whited-logo-1.png';
 import { clearAuthToken } from '../api/api';
 import '../style/AdminHeader.css';
 

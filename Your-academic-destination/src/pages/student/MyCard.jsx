@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code"; // يمكنك استخدام مكتبة react-qr-code أو صورة QR جاهزة
 import HeaderStep from "../../components/HeaderStep";
 import BottomNav from "../../components/BottomNav";
+import { showToast } from "../../api/toast";
 import "../../style/MyCard.css";
 
 const MyCard = () => {
@@ -34,14 +35,20 @@ const MyCard = () => {
   };
 
   const handleSaveCard = () => {
+    const failSave = (msg, err) => {
+      if (err) console.error(msg, err);
+      else console.error(msg);
+      showToast(
+        "تعذّر حفظ البطاقة، الرجاء تحديث الصفحة والمحاولة مجدداً",
+        "error",
+      );
+    };
+
     try {
       // بنلاقي الـ SVG يلي مكتبة react-qr-code رندرته جوا qr-wrapper
       const svg = qrWrapperRef.current?.querySelector("svg");
       if (!svg) {
-        console.error("ما تم إيجاد عنصر الـ SVG جوا qr-wrapper");
-        toast.error(
-          "تعذر تحميل رمز الـ QR، الرجاء تحديث الصفحة والمحاولة مجدداً",
-        );
+        failSave("ما تم إيجاد عنصر الـ SVG جوا qr-wrapper");
         return;
       }
 
@@ -60,9 +67,8 @@ const MyCard = () => {
       const img = new Image();
 
       img.onerror = (err) => {
-        console.error("فشل تحميل صورة الـ SVG", err);
         URL.revokeObjectURL(svgUrl);
-        toast.error("حدث خطأ أثناء تحميل رمز الـ QR، الرجاء المحاولة مرة أخرى");
+        failSave("فشل تحميل صورة الـ SVG", err);
       };
 
       img.onload = () => {
@@ -84,8 +90,6 @@ const MyCard = () => {
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, padding, padding, qrPixelSize, qrPixelSize);
 
-          URL.revokeObjectURL(svgUrl);
-
           const pngUrl = canvas.toDataURL("image/png");
 
           const link = document.createElement("a");
@@ -95,13 +99,15 @@ const MyCard = () => {
           link.click();
           document.body.removeChild(link);
         } catch (err) {
-          console.error("فشل تحويل الصورة أو تنزيلها", err);
+          failSave("فشل تحويل الصورة أو تنزيلها", err);
+        } finally {
+          URL.revokeObjectURL(svgUrl);
         }
       };
 
       img.src = svgUrl;
     } catch (err) {
-      console.error("خطأ عام أثناء حفظ البطاقة", err);
+      failSave("خطأ عام أثناء حفظ البطاقة", err);
     }
   };
 

@@ -1,31 +1,32 @@
-/* Mobile Screen Centering Wrapper */
+/* ===== Mobile Screen Wrapper ===== */
 .ssp-mobile-wrapper {
-  min-height: 100vh;
   width: 100%;
-  background-color: #E2D2BC;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: #FFF6E5;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px 12px;
+  align-items: stretch;
+  justify-content: stretch;
+  padding: 0;
   box-sizing: border-box;
-  direction: ltr;
+  direction: rtl;
   font-family: 'Ghroob', 'Segoe UI', Tahoma, sans-serif;
 }
 
-/* Outer Frame for Mobile Interface */
+/* ===== Outer Frame ===== */
 .ssp-mobile-card {
   width: 100%;
-  max-width: 440px;
+  max-width: none;
+  min-height: 100vh;
+  min-height: 100dvh;
   background-color: #FFF6E5;
-  border-radius: 36px;
+  border-radius: 0;
   overflow: hidden;
-  box-shadow: 0 12px 32px rgba(15, 59, 52, 0.12);
   display: flex;
   flex-direction: column;
-  min-height: 720px;
 }
 
-/* Application Mobile Header */
+/* ===== Header ===== */
 .ssp-header {
   background-color: #0F3B34;
   padding: 24px 28px;
@@ -60,6 +61,7 @@
   height: 32px;
   color: #FFFFFF;
   margin-top: 4px;
+  flex-shrink: 0;
 }
 
 .ssp-logo-svg {
@@ -67,7 +69,7 @@
   height: 100%;
 }
 
-/* Main Cards Area */
+/* ===== Content ===== */
 .ssp-content {
   padding: 28px 20px;
   flex: 1;
@@ -79,6 +81,7 @@
   gap: 16px;
 }
 
+/* ===== Option Cards ===== */
 .ssp-option-card {
   width: 100%;
   background-color: #FFFFFF;
@@ -89,6 +92,7 @@
   align-items: center;
   justify-content: space-between;
   text-align: right;
+  font-family: inherit;
   cursor: pointer;
   box-shadow: 0 4px 12px rgba(15, 59, 52, 0.03);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -103,17 +107,11 @@
   transform: translateY(0);
 }
 
-.ssp-option-arrow {
-  color: #A39685;
-  font-size: 1.2rem;
-  font-weight: 700;
-}
-
 .ssp-option-details {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding-left: 12px;
+  padding-inline-start: 12px;
 }
 
 .ssp-option-title {
@@ -131,20 +129,9 @@
   line-height: 1.45;
 }
 
-/* الكرت بياخد الشاشة كاملة دايماً — بلا حواف wrapper ظاهرة إطلاقاً */
-.ssp-mobile-wrapper {
-  padding: 0 !important;
-  align-items: stretch !important;   /* بيلغي التوسيط العمودي — كان سبب فراغ فوق وتحت */
-  justify-content: stretch !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;     /* نفس وحدة القياس المستخدمة بالكرت تحت */
-  background-color: #FFF6E5 !important; /* نفس لون الكرت، حتى ما يبين أي فرق لون خلفها */
-}
-
-.ssp-mobile-card {
-  max-width: none !important;
-  width: 100% !important;
-  min-height: 100vh !important;
-  min-height: 100dvh !important;
-  border-radius: 0 !important;
+.ssp-option-arrow {
+  color: #A39685;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }

@@ -150,6 +150,40 @@
   color: #E65100;
 }
 
+/* Tabs — غير مكتملة / مكتملة
+   مبنية بنفس منطق pagination-btn (كبسولة معبّاة بالأخضر الغامق وقت التفعيل)
+   بدل ستايل الخط التحتي الأزرق يلي ما بينتمي لهوية التصميم */
+.tabs-row {
+  display: flex;
+  gap: 8px;
+  background-color: #F7ECD9;
+  border-radius: 20px;
+  padding: 4px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  padding: 8px 14px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #7A6953;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tab-btn:hover {
+  color: #0E3E37;
+}
+
+.tab-btn-active {
+  background-color: #0E3E37;
+  color: #FFFFFF;
+}
+
 /* Table Section */
 .table-section {
   display: flex;
@@ -252,6 +286,13 @@
 .status-badge.partial {
   background-color: #E0F2F1;
   color: #00796B;
+}
+
+/* حالة "مكتمل" — نفس عائلة الألوان الدافئة المستخدمة ببقية البادجات
+   (خلفية فاتحة + نص مشبّع بنفس درجة الأخضر الأساسي للهوية) */
+.status-badge.complete {
+  background-color: #E3EFE9;
+  color: #0E3E37;
 }
 
 /* Action Button */

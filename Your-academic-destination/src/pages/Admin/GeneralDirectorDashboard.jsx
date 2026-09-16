@@ -174,7 +174,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
               </div>
             </div>
           ) : (
-            <p className="gd-dash-empty-note">ما في بيانات عن حالة المُرسِل لسا</p>
+            <p className="gd-dash-empty-note">ما في بيانات عن حالة المُرسِل للآن</p>
           )}
         </section>
 

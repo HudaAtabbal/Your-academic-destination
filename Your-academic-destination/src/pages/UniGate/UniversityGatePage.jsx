@@ -6,8 +6,23 @@ import { showToast } from '../../api/toast';
 import '../../style/UniversityGatePage.css';
 import '../../style/StaffScan.css'; // فيها ستايل ScanBox (الكاميرا) المشترك
 
+// أسماء الأدوار بالعربي — نفس الماب المستخدم بباقي الصفحات
+const ROLE_LABELS = {
+  super_admin: 'المدير العام',
+  students_admin: 'مدير بيانات الطلاب',
+  gate_scanner: 'مسؤول المسح',
+  college_staff: 'مسؤول الكلية',
+};
+
 const UniversityGatePage = () => {
   const navigate = useNavigate();
+
+  // اسم المستخدم والدور محفوظين بالـ localStorage وقت تسجيل الدخول
+  // (accountUsername / accountRole) — منقرأهن هون مباشرة بدل ما نثبّتهن بالكود
+  const accountUsername = localStorage.getItem('accountUsername') || '—';
+  const accountRole = localStorage.getItem('accountRole');
+  const roleLabel = ROLE_LABELS[accountRole] || 'مدير بيانات الطلاب';
+
   const [studentId, setStudentId] = useState('');
   const [manualCode, setManualCode] = useState('');
   const [todayCount, setTodayCount] = useState(null);
@@ -91,7 +106,7 @@ const UniversityGatePage = () => {
           <div className="uniGate-userInfo">
             <h1 className="uniGate-headerTitle">بوابة الجامعة</h1>
             <p className="uniGate-headerSubtitle">
-              sedra_admin <span className="uniGate-dot">•</span> مدير بيانات الطلاب
+              {accountUsername} <span className="uniGate-dot">•</span> {roleLabel}
             </p>
           </div>
           <button type="button" className="uniGate-logoutBtn" onClick={handleLogout}>

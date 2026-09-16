@@ -14,6 +14,18 @@ const mapStudentDetailToFormData = (detail) => ({
   baccalaureateScore: detail.bacc_average != null ? String(detail.bacc_average) : '',
 });
 
+// ⚠️ الباك لسا ما بيرجّع حقل اكتمال جاهز (is_complete / completion_status) —
+// طلبناه منهم (راجعي رسالة الباك إند). لما يجهز، هاي الدالة بتقرأه مباشرة
+// وبترجّع true/false/null. null يعني "الباك لسا ما بيرجّع هالحقل"، وبهاي
+// الحالة منرجع نعتمد على الحساب المحلي (fallback) كحل مؤقت بس.
+const readBackendCompletionFlag = (detail) => {
+  if (typeof detail.is_complete === 'boolean') return detail.is_complete;
+  if (typeof detail.completion_status === 'string') {
+    return detail.completion_status === 'complete';
+  }
+  return null; // الباك لسا ما بيدعم هالحقل
+};
+
 // نفس فاليديشن التسجيل بالضبط — شكل النموذج هون (تاريخ + سنة + نوع الشهادة + معدل)
 // مطابق للنموذج اللي عبّاه الطالب وقت التسجيل، فالقواعد لازم تنطبق بنفس الشكل.
 const validateStudentForm = (formData) => {
@@ -76,6 +88,8 @@ const StudentDataManagerPage = () => {
   const [activeId, setActiveId] = useState('');
   const [studentDbId, setStudentDbId] = useState(null); // id الداخلي بقاعدة البيانات، لازم للـ PATCH لاحقاً
   const [formData, setFormData] = useState(null); // null = ما في طالب محمّل لسا
+  // قيمة الاكتمال الجاية من الباك مباشرة (لما يضيفوها) — null لسا ما وصلت/مدعومة
+  const [backendCompletion, setBackendCompletion] = useState(null);
   const [searchError, setSearchError] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
   const [formErrors, setFormErrors] = useState({});
@@ -145,10 +159,12 @@ const StudentDataManagerPage = () => {
       setStudentDbId(detail.id);
       setActiveId(detail.unique_code);
       setFormData(mapStudentDetailToFormData(detail));
+      setBackendCompletion(readBackendCompletionFlag(detail));
     } catch (err) {
       setFormData(null);
       setStudentDbId(null);
       setActiveId('');
+      setBackendCompletion(null);
       setSearchError(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
     } finally {
       setIsSearching(false);
@@ -169,9 +185,12 @@ const StudentDataManagerPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // بيانات السجل "مكتملة" فقط إذا الحقول الأساسية معبّأة فعلاً وحالة التحقق مفعّلة —
-  // بدل ما نعرض "سجل مكتمل" بشكل ثابت بغض النظر عن محتوى البيانات الحقيقي
-  const isRecordComplete = Boolean(
+  // بيانات السجل "مكتملة" فقط إذا الحقول الأساسية معبّأة فعلاً وحالة التحقق مفعّلة.
+  // هاد حساب محلي مؤقت (fallback) بس — بمجرد ما الباك يرجّع حقل is_complete/
+  // completion_status (راجعي رسالة الباك إند)، منعتمد عليه هو كمصدر الحقيقة
+  // الوحيد بدل هالحساب، لأنه هو الوحيد المضمون إنه متطابق مع باقي الشاشات
+  // (زي /gate-incomplete) اللي بتقرأ نفس الحالة من مكان تاني.
+  const localComputedComplete = Boolean(
     formData &&
       formData.fullName &&
       formData.phoneNumber &&
@@ -180,6 +199,9 @@ const StudentDataManagerPage = () => {
       formData.baccalaureateScore &&
       formData.verificationStatus === 'verified'
   );
+
+  const isRecordComplete =
+    backendCompletion !== null ? backendCompletion : localComputedComplete;
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -215,6 +237,7 @@ const StudentDataManagerPage = () => {
     try {
       const updated = await apiPatch(`/admin/students/${studentDbId}`, payload);
       setFormData(mapStudentDetailToFormData(updated));
+      setBackendCompletion(readBackendCompletionFlag(updated));
       setSaveMessage('تم حفظ التعديلات بنجاح');
     } catch (err) {
       setSaveMessage(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
@@ -393,8 +416,11 @@ const StudentDataManagerPage = () => {
                   
                 </div>
 
-                {/* Row 4 */}
-                {/* <div className="form-row">
+                {/* Row 4 — كانت معطّلة سابقاً، وهاد كان سبب مشكلة "بلا بيانات": 
+                    isRecordComplete كان بيشترط verificationStatus === 'verified'،
+                    بس ما في طريقة كانت موجودة بالواجهة لتغيير هالقيمة، فكانت تضل
+                    عالقة على "pending" دايماً حتى لو باقي الحقول انعبّت بالكامل */}
+                <div className="form-row">
                   <div className="input-group">
                     <label htmlFor="verificationStatus">حالة التحقق</label>
                     <div className="verified-input-wrapper">
@@ -416,7 +442,7 @@ const StudentDataManagerPage = () => {
                     </div>
                   </div>
                   
-                </div> */}
+                </div>
 
                 {saveMessage && <p className="save-feedback-message">{saveMessage}</p>}
 

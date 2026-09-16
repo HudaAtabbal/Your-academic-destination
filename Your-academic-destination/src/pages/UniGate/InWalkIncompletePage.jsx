@@ -3,33 +3,80 @@ import { useNavigate } from 'react-router-dom';
 import { apiGet, ApiError } from '../../api/api';
 import '../../style/InWalkIncompletePage.css';
 
-// تحويل status الراجعة من الباك ("no_data" | "partial") لشكل العرض العربي
+// تحويل status الراجعة من الباك لشكل العرض العربي — للتاب الأول (غير مكتملة)
 const STATUS_DISPLAY = {
   no_data: { label: 'بلا بيانات', type: 'empty' },
   partial: { label: 'جزئي', type: 'partial' },
+  complete: { label: 'مكتمل', type: 'complete' },
+};
+
+// أسماء الأدوار بالعربي — نفس الماب المستخدم بباقي الصفحات
+const ROLE_LABELS = {
+  super_admin: 'المدير العام',
+  students_admin: 'مدير بيانات الطلاب',
 };
 
 const PAGE_SIZE = 20;
 
+// إعدادات كل تاب: قيمة الـ status المرسلة للباك + النصوص المرتبطة فيه
+const TABS = [
+  {
+    id: 'incomplete',
+    label: 'غير مكتملة',
+    statusParam: 'incomplete',
+    sectionTitle: 'السجلات بانتظار الإكمال',
+    statCardLabel: 'سجلات in-walk غير مكتملة',
+    statCardClass: 'orange-text',
+    emptyTableMessage: 'لا يوجد سجلات بهاي الصفحة',
+    showCompleteAction: true,
+  },
+  {
+    id: 'complete',
+    label: 'مكتملة',
+    statusParam: 'complete',
+    sectionTitle: 'السجلات المكتملة',
+    statCardLabel: 'سجلات in-walk مكتملة',
+    statCardClass: 'dark-green-text',
+    emptyTableMessage: 'لا يوجد سجلات مكتملة بهاي الصفحة',
+    showCompleteAction: false,
+  },
+];
+
 const InWalkIncompletePage = () => {
   const navigate = useNavigate();
 
+  // الدور محفوظ بالـ localStorage وقت تسجيل الدخول (accountRole) — منقرأه هون
+  // مباشرة بدل ما نعتمد على تمريره كـ prop، لأنه التنقّل بالمشروع كله
+  // عن طريق navigate() ومافي تمرير props بين الصفحات
+  const userRole = localStorage.getItem('accountRole');
+
+  const [activeTab, setActiveTab] = useState('incomplete');
   const [records, setRecords] = useState([]);
-  const [totalIncomplete, setTotalIncomplete] = useState(null);
+  const [totalCount, setTotalCount] = useState(null);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const currentTab = TABS.find((t) => t.id === activeTab) || TABS[0];
+
+  const handleTabChange = (tabId) => {
+    if (tabId === activeTab) return;
+    setActiveTab(tabId);
+    setPage(1); // بنرجع لأول صفحة كل ما بنبدّل تاب حتى ما نضل واقفين بصفحة مش موجودة بالقائمة التانية
+  };
 
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       setError('');
       try {
+        // ⚠️ الباراميتر status=complete/incomplete لسا قيد التنفيذ من الباك،
+        // فيك تعدّلي اسم الـ endpoint أو الباراميتر هون بسطر واحد لما يجهز فعلياً
         const response = await apiGet(
-          `/admin/students/walkin-incomplete?page=${page}&limit=${PAGE_SIZE}`
+          `/admin/students/walkin-incomplete?status=${currentTab.statusParam}&page=${page}&limit=${PAGE_SIZE}`
         );
         setRecords(response.items);
-        setTotalIncomplete(response.total);
+        setTotalCount(response.total);
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'صار خطأ بتحميل السجلات');
       } finally {
@@ -38,17 +85,13 @@ const InWalkIncompletePage = () => {
     };
 
     loadData();
-  }, [page]);
+  }, [page, activeTab, currentTab.statusParam]);
 
-  const totalPages = totalIncomplete ? Math.max(1, Math.ceil(totalIncomplete / PAGE_SIZE)) : 1;
+  const totalPages = totalCount ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : 1;
 
   const handleCompleteData = (uniqueCode) => {
     // بننقل لصفحة إدارة بيانات الطالب مع تمرير رقم السجل حتى تنعبى خانة البحث فيه تلقائياً
     navigate('/gate-manage', { state: { presetId: uniqueCode } });
-  };
-
-  const handleBack = () => {
-    navigate('/gate-manage');
   };
 
   const handlePrevPage = () => {
@@ -73,40 +116,39 @@ const InWalkIncompletePage = () => {
               <p className="brand-subtitle">لوحة التحكم</p>
             </div>
           </div>
-          <div className="header-badge">مدير بيانات الطلاب</div>
+          <div className="header-badge">{ROLE_LABELS[userRole] || 'مدير بيانات الطلاب'}</div>
         </header>
 
         {/* Scrollable Main Body */}
         <main className="page-body">
           
-          {/* Back Navigation Link */}
-          <div className="back-link-container">
-            <button type="button" onClick={handleBack} className="back-link">
-              ← رجوع للبحث عن طالب
-            </button>
+          {/* Top Stat Card — بيتبدّل رقمه وعنوانه حسب التاب المفعّل */}
+          <div className="stats-row">
+            <div className="stat-card">
+              <span className="stat-label">{currentTab.statCardLabel}</span>
+              <span className={`stat-value ${currentTab.statCardClass}`}>{totalCount ?? '—'}</span>
+            </div>
           </div>
 
-          {/* Top 3 Stat Cards */}
-          <div className="stats-row">
-            {/* ⚠️ هالكرتين (حضرت نشاط واحد / بلا أي بيانات) ما عندهن endpoint مخصص بالباك لسا،
-                فضلين موك مؤقتاً — لازم نطلب من الباك إضافتهن لـ StudentStatsResponse */}
-            {/* <div className="stat-card">
-              <span className="stat-label">حضرت نشاط واحد على الأقل</span>
-              <span className="stat-value dark-green-text">١٥</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-label">بلا أي بيانات مدوّنة</span>
-              <span className="stat-value reddish-text">٢٢</span>
-            </div> */}
-            <div className="stat-card">
-              <span className="stat-label">سجلات in-walk غير مكتملة</span>
-              <span className="stat-value orange-text">{totalIncomplete ?? '—'}</span>
-            </div>
+          {/* Tabs — غير مكتملة / مكتملة */}
+          <div className="tabs-row" role="tablist" aria-label="تبويب السجلات">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                className={`tab-btn ${activeTab === tab.id ? 'tab-btn-active' : ''}`}
+                onClick={() => handleTabChange(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
 
           {/* Table Container Section */}
           <section className="table-section">
-            <h2 className="section-title">السجلات بانتظار الإكمال</h2>
+            <h2 className="section-title">{currentTab.sectionTitle}</h2>
 
             {error && <p className="table-error-message">{error}</p>}
             {isLoading && <p className="table-loading-message">جاري التحميل...</p>}
@@ -121,7 +163,7 @@ const InWalkIncompletePage = () => {
                         <th>الاسم الثلاثي</th>
                         <th>رقم التواصل</th>
                         <th>الحالة</th>
-                        <th></th>
+                        {currentTab.showCompleteAction && <th></th>}
                       </tr>
                     </thead>
                     <tbody>
@@ -140,21 +182,25 @@ const InWalkIncompletePage = () => {
                                 {statusInfo.label}
                               </span>
                             </td>
-                            <td className="action-cell">
-                              <button
-                                type="button"
-                                className="btn-action"
-                                onClick={() => handleCompleteData(item.unique_code)}
-                              >
-                                أكمل البيانات
-                              </button>
-                            </td>
+                            {currentTab.showCompleteAction && (
+                              <td className="action-cell">
+                                <button
+                                  type="button"
+                                  className="btn-action"
+                                  onClick={() => handleCompleteData(item.unique_code)}
+                                >
+                                  أكمل البيانات
+                                </button>
+                              </td>
+                            )}
                           </tr>
                         );
                       })}
                       {records.length === 0 && (
                         <tr>
-                          <td colSpan={5} className="empty-cell">لا يوجد سجلات بهاي الصفحة</td>
+                          <td colSpan={currentTab.showCompleteAction ? 5 : 4} className="empty-cell">
+                            {currentTab.emptyTableMessage}
+                          </td>
                         </tr>
                       )}
                     </tbody>
@@ -189,10 +235,12 @@ const InWalkIncompletePage = () => {
             )}
           </section>
 
-          {/* Footer Warning Notice */}
-          <p className="footer-warning">
-            سجل بلا أي نشاط حضور ولم يُستخدم إطلاقاً يُعتبر فارغاً ويُحذف ضمن التنظيف اللاحق للحدث. أما أي سجل عليه نشاط واحد على الأقل، فلا يُحذف أبداً حتى لو ظلّت بياناته الشخصية ناقصة.
-          </p>
+          {/* Footer Warning Notice — بتخص سياسة حذف السجلات غير المكتملة فقط، فما إلها معنى بتاب "مكتملة" */}
+          {activeTab === 'incomplete' && (
+            <p className="footer-warning">
+              سجل بلا أي نشاط حضور ولم يُستخدم إطلاقاً يُعتبر فارغاً ويُحذف ضمن التنظيف اللاحق للحدث. أما أي سجل عليه نشاط واحد على الأقل، فلا يُحذف أبداً حتى لو ظلّت بياناته الشخصية ناقصة.
+            </p>
+          )}
 
         </main>
       </div>
