@@ -195,7 +195,7 @@ const RegisterStep1Page = () => {
                 id="fullName"
                 name="fullName"
                 type="text"
-                placeholder="مثال: طارق الاسود"
+                placeholder="مثال: هادي ثابت الجندي"
                 value={formData.fullName}
                 onChange={handleNameChange}
                 className={`custom-input ${errors.fullName ? 'input-error' : ''}`}
@@ -210,7 +210,7 @@ const RegisterStep1Page = () => {
                   ref={dayRef}
                   type="text"
                   inputMode="numeric"
-                  placeholder="يوم"
+                  placeholder="01"
                   maxLength={2}
                   value={formData.birthDay}
                   onChange={handleDayChange}
@@ -220,7 +220,7 @@ const RegisterStep1Page = () => {
                   ref={monthRef}
                   type="text"
                   inputMode="numeric"
-                  placeholder="شهر"
+                  placeholder="01"
                   maxLength={2}
                   value={formData.birthMonth}
                   onChange={handleMonthChange}
@@ -231,7 +231,7 @@ const RegisterStep1Page = () => {
                   ref={yearRef}
                   type="text"
                   inputMode="numeric"
-                  placeholder="سنة"
+                  placeholder="2008"
                   maxLength={4}
                   value={formData.birthYear}
                   onChange={handleYearChange}

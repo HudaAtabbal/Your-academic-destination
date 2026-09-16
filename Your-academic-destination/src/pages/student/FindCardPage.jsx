@@ -67,7 +67,7 @@ const FindCardPage = () => {
               <input
                 id="fullName"
                 type="text"
-                placeholder="مثال: خالد غيث طليمات"
+                placeholder="مثال: هادي ثابت الجندي"
                 value={fullName}
                 onChange={(e) => {
                   setFullName(e.target.value);
