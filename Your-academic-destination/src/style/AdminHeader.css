@@ -5,6 +5,9 @@
    ============================================ */
 
 .admin-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
   height: 80px;
   background-color: #0F3B34;
   padding: 0 48px;

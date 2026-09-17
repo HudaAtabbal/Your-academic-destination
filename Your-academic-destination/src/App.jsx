@@ -4,6 +4,7 @@ import ToastContainer from "./components/ToastContainer";
 import TeamPrivateRoute from "./components/TeamPrivateRoute";
 import StudentPrivateRoute from "./components/StudentPrivateRoute";
 import GuestOnlyRoute from "./components/GuestOnlyRoute";
+import OtpRoute from "./components/OtpRoute";
 
 import WelcomePage from "./pages/student/WelcomePage";
 import FindCardPage from "./pages/student/FindCardPage"
@@ -15,7 +16,6 @@ import OTP from "./pages/student/OTP";
 
 import MyCard from "./pages/student/MyCard";
 import AcademicGuide from "./pages/student/AcademicGuide";
-import MapPage from "./pages/student/MapPage";
 import Survey from "./pages/student/Survey";
 import MyPointsPage from "./pages/student/MyPointsPage";
 
@@ -53,16 +53,15 @@ function App() {
         <Route path="/register-step1" element={<GuestOnlyRoute><RegisterStep1Page /></GuestOnlyRoute>} />
         <Route path="/register-step2" element={<GuestOnlyRoute><RegisterStep2Page /></GuestOnlyRoute>} />
         <Route path="/register-step3" element={<GuestOnlyRoute><RegisterStep3Page /></GuestOnlyRoute>} />
-        <Route path="/otp" element={<OTP />} />
+        <Route path="/otp" element={<OtpRoute><OTP /></OtpRoute>} />
         
         <Route path="/team-log" element={<TeamLoginPage/>}/>
 
 
-        {/* صفحات الطالب الشخصية — محتاجة studentCode (بعد تسجيل+تحقق ناجح) */}
+        {/* صفحات الطالب الشخصية — محتاجة studentCode + studentName (بعد تسجيل+تحقق ناجح) */}
         <Route path="/my-card" element={<StudentPrivateRoute><MyCard/></StudentPrivateRoute>}/>
-        {/* /academic-guide و /map عامتان عمداً: محتوى أكاديمي ثابت، لا يقرآن studentCode */}
-        <Route path="/academic-guide" element={<AcademicGuide/>}/>
-        <Route path="/map" element={<MapPage/>}/>
+        {/* الدليل الأكاديمي محمي كمان — ما في أي مسار داخل التطبيق مفتوح بلا تسجيل */}
+        <Route path="/academic-guide" element={<StudentPrivateRoute><AcademicGuide/></StudentPrivateRoute>}/>
         <Route path="/survey" element={<StudentPrivateRoute><Survey/></StudentPrivateRoute>}/>
         <Route path="/my-points" element={<StudentPrivateRoute><MyPointsPage/></StudentPrivateRoute>}/>
 

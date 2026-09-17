@@ -17,7 +17,7 @@ const OTP = () => {
 
   // منطق التحقق نفسه، منفصل حتى يستخدم تلقائياً وبالزر كمان
   const verifyCode = async (fullCode) => {
-    const uniqueCode = localStorage.getItem("studentCode");
+    const uniqueCode = localStorage.getItem("pendingStudentCode");
 
     if (!uniqueCode) {
       // ما في كود مخزّن أصلاً — يعني الطالب وصل لهون بدون ما يخلّص التسجيل
@@ -41,6 +41,11 @@ const OTP = () => {
       // بيانات قديمة لو الطالب رجع يسجّل من جديد، ولأنه من هاي اللحظة
       // الطالب موثّق فعلياً ورقمه محجوز.
       clearRegistrationData();
+
+      // صار الطالب موثّقاً فعلياً: نرقّي الكود من pending إلى studentCode
+      // الرسمي، وهيك بس من هاي اللحظة بتصير صفحاته المحمية مسموحة.
+      localStorage.setItem("studentCode", uniqueCode);
+      localStorage.removeItem("pendingStudentCode");
 
       // بنخزّن اسم الطالب كمان حتى صفحة البطاقة (MyCard) تعرضه الحقيقي بدل الموك
       if (response.full_name) {
@@ -114,7 +119,7 @@ const OTP = () => {
   };
 
   const handleResend = async () => {
-    const uniqueCode = localStorage.getItem("studentCode");
+    const uniqueCode = localStorage.getItem("pendingStudentCode");
     if (!uniqueCode) {
       setError("في مشكلة بجلسة التسجيل، يرجى الرجوع والتسجيل من جديد");
       return;

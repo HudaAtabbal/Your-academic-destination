@@ -45,8 +45,25 @@ describe('StudentPrivateRoute', () => {
     expect(screen.queryByText('PROTECTED_CONTENT')).not.toBeInTheDocument();
   });
 
-  it('renders the protected children when studentCode exists', () => {
+  it('redirects to home when only studentCode exists without studentName', () => {
     localStorage.setItem('studentCode', 'R-123456');
+    renderRoute();
+
+    expect(screen.getByText('HOME_PAGE')).toBeInTheDocument();
+    expect(screen.queryByText('PROTECTED_CONTENT')).not.toBeInTheDocument();
+  });
+
+  it('redirects to home when only studentName exists without studentCode', () => {
+    localStorage.setItem('studentName', 'طالب');
+    renderRoute();
+
+    expect(screen.getByText('HOME_PAGE')).toBeInTheDocument();
+    expect(screen.queryByText('PROTECTED_CONTENT')).not.toBeInTheDocument();
+  });
+
+  it('renders the protected children when both studentCode and studentName exist', () => {
+    localStorage.setItem('studentCode', 'R-123456');
+    localStorage.setItem('studentName', 'طالب');
     renderRoute();
 
     expect(screen.getByText('PROTECTED_CONTENT')).toBeInTheDocument();

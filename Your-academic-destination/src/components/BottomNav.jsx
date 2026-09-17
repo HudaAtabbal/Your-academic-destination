@@ -5,7 +5,6 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const TAB_ROUTES = {
   card: '/my-card',
   guide: '/academic-guide',
-  map: '/map',          // TODO: بدّليه إذا المسار الفعلي مختلف
   survey: '/survey',    // TODO: بدّليه إذا المسار الفعلي مختلف
   points: '/my-points', // TODO: بدّليه إذا المسار الفعلي مختلف
 };

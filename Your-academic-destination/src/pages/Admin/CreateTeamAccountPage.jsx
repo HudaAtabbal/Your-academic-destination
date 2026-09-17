@@ -2,37 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import AdminHeader from '../../components/AdminHeader';
 import { apiPost, apiPatch, ApiError } from '../../api/api';
+import { FACULTY_OPTIONS } from '../../api/faculties';
 import '../../style/CreateTeamAccountPage.css';
-
-// قائمة "الكلية المرتبطة" لحسابات مسؤولي الكليات — نفس قيم (id) enum Faculty
-// بالباك وبنفس ترتيبه المعتمد (قائمة منفصلة عن اختيارات الطلاب).
-const KNOWN_COLLEGES = [
-  { value: 'medicine', label: ' كليةالطب البشري' },
-  { value: 'dentistry', label: ' كلية طب الأسنان' },
-  { value: 'pharmacy', label: 'كلية الصيدلة' },
-  { value: 'health_sciences', label: 'كلية العلوم الصحية' },
-  { value: 'informatics', label: 'كلية الهندسة المعلوماتية' },
-  { value: 'civil_engineering', label: 'كلية الهندسة المدنية' },
-  { value: 'architecture', label: 'كلية الهندسة المعمارية' },
-  { value: 'agriculture', label: 'كلية الهندسة الزراعية' },
-  { value: 'electrical_mechanical', label: 'كلية الهندسة الكهربائية والميكانيكية' },
-  { value: 'chemical_food', label: 'كلية الهندسة الكيميائية والغذائية' },
-  { value: 'economics', label: 'كلية الاقتصاد' },
-  { value: 'tourism', label: 'كلية السياحة' },
-  { value: 'music', label: 'كلية الموسيقى' },
-  { value: 'arts', label: 'كلية الآداب والعلوم الإنسانية' },
-  { value: 'education', label: 'كلية التربية' },
-  { value: 'sciences', label: 'كلية العلوم' },
-  { value: 'applied', label: 'الكلية التطبيقية' },
-  { value: 'law', label: 'كلية الحقوق' },
-  { value: 'institute_agriculture', label: 'معهد تقاني زراعي' },
-  { value: 'institute_desert_affairs', label: 'معهد تقاني لشؤون البادية والتصحر' },
-  { value: 'institute_engineering', label: 'معهد تقاني هندسي' },
-  { value: 'institute_health', label: 'معهد تقاني صحي' },
-  { value: 'institute_dentistry', label: 'معهد تقاني طب اسنان' },
-  { value: 'institute_applied_industries', label: 'معهد تقاني صناعات تطبيقية' },
-  { value: 'institute_computer', label: 'معهد تقاني حاسوب' },
-];
 
 const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit }) => {
   const navigate = useNavigate();
@@ -47,7 +18,7 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
   const [role, setRole] = useState(editMember?.roleType || 'gate_scanner'); // 'super_admin', 'students_admin', 'gate_scanner', 'college_staff'
   const [faculty, setFaculty] = useState(
     editMember?.roleType === 'college_staff' &&
-    KNOWN_COLLEGES.some((c) => c.value === editMember.faculty)
+    FACULTY_OPTIONS.some((c) => c.value === editMember.faculty)
       ? editMember.faculty
       : ''
   );
@@ -66,8 +37,8 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
   const USERNAME_PLACEHOLDERS = {
     super_admin: 'مثال: sara_super',
     students_admin: 'مثال: sara_admin',
-    gate_scanner: 'مثال: sara_staff',
-    college_staff: 'مثال: sara_it',
+    gate_scanner: 'مثال: sara_gate',
+    college_staff: 'مثال: sara_college',
   };
 
   const handleBack = () => {
@@ -199,54 +170,48 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
 
             </div>
 
-            {/* Inputs Row 2: Role Selector */}
-            <div className="cta-field-group">
-              <label className="cta-field-label">
-                الدور
-                {editMember && (
-                  <span className="cta-label-hint">
-                    {' '}(ثابت بعد الإنشاء — لأنو اسم المستخدم مبني عليه، وتغييره بيسبب عدم تطابق)
-                  </span>
-                )}
-              </label>
-              <div className="cta-roles-selector">
-                {rolesList.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={`cta-role-btn ${role === item.id ? 'active' : ''} ${editMember ? 'locked' : ''}`}
-                    onClick={() => {
-                      if (!editMember) setRole(item.id);
-                    }}
-                    disabled={!!editMember}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Inputs Row 2: Role Selector — مخفي بوضع التعديل (الدور والكلية غير قابلين للتغيير) */}
+            {!editMember && (
+              <>
+                <div className="cta-field-group">
+                  <label className="cta-field-label">الدور</label>
+                  <div className="cta-roles-selector">
+                    {rolesList.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={`cta-role-btn ${role === item.id ? 'active' : ''}`}
+                        onClick={() => setRole(item.id)}
+                      >
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Inputs Row 3: Faculty Selection (Active only for 'college_staff' role) */}
-            <div className="cta-field-group">
-              <label className="cta-field-label">
-                الكلية المرتبطة <span className="cta-label-hint">(يظهر فقط لدور "مسؤول الكلية")</span>
-              </label>
-              <select
-                className={`cta-input-field cta-select-field ${role !== 'college_staff' ? 'disabled' : ''}`}
-                value={role === 'college_staff' ? faculty : ''}
-                onChange={(e) => setFaculty(e.target.value)}
-                disabled={role !== 'college_staff'}
-              >
-                <option value="" disabled>
-                  {role === 'college_staff' ? 'اختر الكلية...' : '— غير مطلوب لهذا الدور —'}
-                </option>
-                {KNOWN_COLLEGES.map((college) => (
-                  <option key={college.value} value={college.value}>
-                    {college.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+                {/* Inputs Row 3: Faculty Selection (Active only for 'college_staff' role) */}
+                <div className="cta-field-group">
+                  <label className="cta-field-label">
+                    الكلية المرتبطة <span className="cta-label-hint">(يظهر فقط لدور "مسؤول الكلية")</span>
+                  </label>
+                  <select
+                    className={`cta-input-field cta-select-field ${role !== 'college_staff' ? 'disabled' : ''}`}
+                    value={role === 'college_staff' ? faculty : ''}
+                    onChange={(e) => setFaculty(e.target.value)}
+                    disabled={role !== 'college_staff'}
+                  >
+                    <option value="" disabled>
+                      {role === 'college_staff' ? 'اختر الكلية...' : '— غير مطلوب لهذا الدور —'}
+                    </option>
+                    {FACULTY_OPTIONS.map((college) => (
+                      <option key={college.value} value={college.value}>
+                        {college.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
 
             {error && <p className="cta-error-message">{error}</p>}
             {successInfo && <p className="cta-success-message">{successInfo}</p>}

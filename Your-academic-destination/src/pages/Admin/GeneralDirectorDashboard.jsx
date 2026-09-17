@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminHeader from '../../components/AdminHeader';
 import { apiGet, apiRequest, ApiError } from '../../api/api';
 import { ROLE_LABELS } from '../../api/roles';
+import { FACULTY_LABELS } from '../../api/faculties';
 import '../../style/GeneralDirectorDashboard.css';
 
 const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
@@ -72,7 +73,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             username: account.username,
             role: ROLE_LABELS[account.role] || account.role,
             roleType: account.role,
-            faculty: account.college || '—',
+            faculty: FACULTY_LABELS[account.college] || account.college || '—',
           }))
         );
       })

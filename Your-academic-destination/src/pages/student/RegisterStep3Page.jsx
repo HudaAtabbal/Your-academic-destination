@@ -88,14 +88,16 @@ const RegisterStep3Page = () => {
       // لو الطالب عم يعدّل رقم هاتفه بعد إرسال OTP سابق (راجع "تعديل رقم
       // الهاتف" بصفحة OTP)، بنبعت الكود القديم حتى الباك يحذف التسجيل المعلّق
       // القديم مع مهام SMS اليتيمة المرتبطة به وبخلّصنا من التكرار.
-      previous_unique_code: localStorage.getItem("studentCode") || undefined,
+      previous_unique_code: localStorage.getItem("pendingStudentCode") || undefined,
     };
 
     try {
       const response = await apiPost("/students/register", payload);
 
-      // بنخزّن الكود الفريد حتى صفحة OTP تقدر تتحقق منه، وMyCard تعرضه بعدين
-      localStorage.setItem("studentCode", response.unique_code);
+      // بنخزّن الكود الفريد بـ pendingStudentCode (مش studentCode) حتى صفحة OTP
+      // تقدر تتحقق منه. studentCode الرسمي ما بينكتب إلا بعد نجاح التحقق فعلياً،
+      // وهيك ما بيقدر حدا يفتح صفحات الطالب المحمية قبل الـ OTP.
+      localStorage.setItem("pendingStudentCode", response.unique_code);
 
       // السلة بتضل محفوظة من الآن حتى نجاح التحقق (verify) — مش من هنا:
       // مشان لو الطالب رجع يعدّل رقم هاتفه من صفحة OTP، ما تنحذف بياناته.
