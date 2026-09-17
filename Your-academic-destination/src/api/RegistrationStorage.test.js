@@ -28,16 +28,16 @@ describe('RegistrationStorage', () => {
     expect(getRegistrationData()).toEqual({});
   });
 
-  it('clears stored data if updatedAt is missing (old-format data)', () => {
+  it('clears stored data if createdAt is missing (old-format data)', () => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ fullName: 'خالد' }));
     expect(getRegistrationData()).toEqual({});
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
-  it('strips updatedAt from returned data', () => {
+  it('strips createdAt and updatedAt from returned data', () => {
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ fullName: 'خالد', updatedAt: Date.now() })
+      JSON.stringify({ fullName: 'خالد', createdAt: Date.now(), updatedAt: Date.now() })
     );
     expect(getRegistrationData()).toEqual({ fullName: 'خالد' });
   });
@@ -46,7 +46,7 @@ describe('RegistrationStorage', () => {
     const now = Date.now();
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ fullName: 'قديم', updatedAt: now - 25 * 60 * 60 * 1000 })
+      JSON.stringify({ fullName: 'قديم', createdAt: now - 25 * 60 * 60 * 1000 })
     );
     expect(getRegistrationData()).toEqual({});
     expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
@@ -56,7 +56,7 @@ describe('RegistrationStorage', () => {
     const now = Date.now();
     localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ fullName: 'خالد', updatedAt: now - 60 * 60 * 1000 })
+      JSON.stringify({ fullName: 'خالد', createdAt: now - 60 * 60 * 1000 })
     );
     expect(getRegistrationData()).toEqual({ fullName: 'خالد' });
   });

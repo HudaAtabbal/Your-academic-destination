@@ -23,6 +23,8 @@ const STATS = {
   campus_entries_count: 2,
   activities_today_cumulative: 3,
   survey_completed_count: 4,
+  walkin_pending_count: 5,
+  walkin_completed_count: 6,
 };
 
 function mockEndpoints(smsStatus) {

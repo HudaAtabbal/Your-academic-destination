@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiGet, ApiError } from '../../api/api';
+import { ROLE_LABELS } from '../../api/roles';
 import '../../style/InWalkIncompletePage.css';
 
 // تحويل status الراجعة من الباك لشكل العرض العربي — للتاب الأول (غير مكتملة)
@@ -8,12 +9,6 @@ const STATUS_DISPLAY = {
   no_data: { label: 'بلا بيانات', type: 'empty' },
   partial: { label: 'جزئي', type: 'partial' },
   complete: { label: 'مكتمل', type: 'complete' },
-};
-
-// أسماء الأدوار بالعربي — نفس الماب المستخدم بباقي الصفحات
-const ROLE_LABELS = {
-  super_admin: 'المدير العام',
-  students_admin: 'مدير بيانات الطلاب',
 };
 
 const PAGE_SIZE = 20;
@@ -70,8 +65,6 @@ const InWalkIncompletePage = () => {
       setIsLoading(true);
       setError('');
       try {
-        // ⚠️ الباراميتر status=complete/incomplete لسا قيد التنفيذ من الباك،
-        // فيك تعدّلي اسم الـ endpoint أو الباراميتر هون بسطر واحد لما يجهز فعلياً
         const response = await apiGet(
           `/admin/students/walkin-incomplete?status=${currentTab.statusParam}&page=${page}&limit=${PAGE_SIZE}`
         );

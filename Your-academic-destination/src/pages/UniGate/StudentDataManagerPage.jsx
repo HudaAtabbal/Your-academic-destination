@@ -95,7 +95,7 @@ const StudentDataManagerPage = () => {
   const [formErrors, setFormErrors] = useState({});
   const [isSearching, setIsSearching] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [stats, setStats] = useState({ total_registered: null, walkin_pending_count: null });
+  const [stats, setStats] = useState({ total_registered: null, walkin_pending_count: null, walkin_completed_count: null });
 
   useEffect(() => {
     apiGet('/admin/students/stats')
@@ -276,6 +276,10 @@ const StudentDataManagerPage = () => {
               <span className="stat-label">سجلات in-walk تنتظر الإكمال</span>
               <span className="stat-value orange-text">{stats.walkin_pending_count ?? '—'}</span>
             </button>
+            <div className="stat-card">
+              <span className="stat-label">سجلات in-walk مكتملة</span>
+              <span className="stat-value dark-green-text">{stats.walkin_completed_count ?? '—'}</span>
+            </div>
             <div className="stat-card">
               <span className="stat-label">إجمالي الطلاب المسجّلين</span>
               <span className="stat-value primary-text">{stats.total_registered ?? '—'}</span>

@@ -133,6 +133,10 @@
   color: #E65100;
 }
 
+.stat-value.dark-green-text {
+  color: #0E3E37;
+}
+
 .stat-value.primary-text {
   color: #3B0D23;
 }

@@ -4,15 +4,8 @@ import ScanBox from '../../components/ScanBox';
 import ScanResultCard from '../../components/ScanResultCard';
 import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
+import { ROLE_LABELS } from '../../api/roles';
 import '../../style/StaffScan.css';
-
-// أسماء الأدوار بالعربي — نفس الماب المستخدم بصفحة اختيار المحطة
-const ROLE_LABELS = {
-  super_admin: 'المدير العام',
-  students_admin: 'مدير بيانات الطلاب',
-  gate_scanner: 'مسؤول المسح',
-  college_staff: 'مسؤول الكلية',
-};
 
 const TourPage = () => {
   const [manualCode, setManualCode] = useState('');

@@ -2,15 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminHeader from '../../components/AdminHeader';
 import { apiGet, apiRequest, ApiError } from '../../api/api';
+import { ROLE_LABELS } from '../../api/roles';
 import '../../style/GeneralDirectorDashboard.css';
-
-// أسماء الأدوار بالعربي — الباك بيرجّع القيمة enum بس (زي college_staff)، مش النص العربي
-const ROLE_LABELS = {
-  super_admin: 'المدير العام',
-  students_admin: 'مدير بيانات الطلاب',
-  gate_scanner: 'مسؤول المسح',
-  college_staff: 'مسؤول الكلية',
-};
 
 const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
   const navigate = useNavigate();
@@ -22,6 +15,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
     { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: '—' },
     { id: 'survey', label: 'أكملوا الاستبيان', value: '—' },
     { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: '—', link: '/gate-incomplete' },
+    { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: '—' },
   ]);
   const [hallOccupancy, setHallOccupancy] = useState(null); // null = ما في بيانات قاعات لسا
   const [smsStatus, setSmsStatus] = useState(null); // null = ما في بيانات حالة المُرسِل لسا
@@ -38,6 +32,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: res.activities_today_cumulative },
             { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
             { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: res.walkin_pending_count, link: '/gate-incomplete' },
+            { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: res.walkin_completed_count },
           ]);
         })
         .catch(() => {});

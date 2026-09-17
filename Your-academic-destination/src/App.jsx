@@ -60,6 +60,7 @@ function App() {
 
         {/* صفحات الطالب الشخصية — محتاجة studentCode (بعد تسجيل+تحقق ناجح) */}
         <Route path="/my-card" element={<StudentPrivateRoute><MyCard/></StudentPrivateRoute>}/>
+        {/* /academic-guide و /map عامتان عمداً: محتوى أكاديمي ثابت، لا يقرآن studentCode */}
         <Route path="/academic-guide" element={<AcademicGuide/>}/>
         <Route path="/map" element={<MapPage/>}/>
         <Route path="/survey" element={<StudentPrivateRoute><Survey/></StudentPrivateRoute>}/>

@@ -1,14 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ROLE_LABELS } from '../../api/roles';
 import '../../style/SelectStationPage.css';
-
-// أسماء الأدوار بالعربي — لبناء نص المستخدم (userInfo) من بيانات الحساب المخزّنة فعلياً
-const ROLE_LABELS = {
-  super_admin: 'المدير العام',
-  students_admin: 'مدير بيانات الطلاب',
-  gate_scanner: 'مسؤول المسح',
-  college_staff: 'مسؤول الكلية',
-};
 
 // كل محطة بتودّي على شاشة حقيقية بالراوتر
 const STATION_ROUTES = {

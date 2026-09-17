@@ -4,15 +4,8 @@ import ScanBox from '../../components/ScanBox';
 import ScanResultCard from '../../components/ScanResultCard';
 import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
+import { ROLE_LABELS } from '../../api/roles';
 import '../../style/StaffScan.css';
-
-// أسماء الأدوار بالعربي — لبناء نص المستخدم من بيانات الحساب المخزّنة فعلياً
-const ROLE_LABELS = {
-  super_admin: 'المدير العام',
-  students_admin: 'مدير بيانات الطلاب',
-  gate_scanner: 'مسؤول المسح',
-  college_staff: 'مسؤول الكلية',
-};
 
 // مطابقة لـ enum Lecture بالباك (id = اسم القيمة بالـ enum، name = النص الفعلي).
 // ⚠️ القاعة (hall) مش موجودة بالـ enum — لسا لازم نحددها مع الباك أو نضيفها لاحقاً.
@@ -97,11 +90,6 @@ const StadiumPage = () => {
 
   const handleResumeCamera = () => {
     setIsCameraPaused(false);
-  };
-
-  const handleQuickRegister = () => {
-    // ⚠️ ما في endpoint مخصص لهاد الزر لسا — لازم نحدد مع الباك شو المفروض يصير هون بالضبط
-    console.log('فتح تسجيل سريع بدون بطاقة للمحاضرة:', selectedLecture.name);
   };
 
   return (

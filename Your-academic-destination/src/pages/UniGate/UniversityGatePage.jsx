@@ -3,16 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import ScanBox from '../../components/ScanBox';
 import { apiGet, apiPost, ApiError, clearAuthToken } from '../../api/api';
 import { showToast } from '../../api/toast';
+import { ROLE_LABELS } from '../../api/roles';
 import '../../style/UniversityGatePage.css';
 import '../../style/StaffScan.css'; // فيها ستايل ScanBox (الكاميرا) المشترك
-
-// أسماء الأدوار بالعربي — نفس الماب المستخدم بباقي الصفحات
-const ROLE_LABELS = {
-  super_admin: 'المدير العام',
-  students_admin: 'مدير بيانات الطلاب',
-  gate_scanner: 'مسؤول المسح',
-  college_staff: 'مسؤول الكلية',
-};
 
 const UniversityGatePage = () => {
   const navigate = useNavigate();

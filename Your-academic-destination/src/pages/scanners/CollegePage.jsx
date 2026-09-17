@@ -5,19 +5,12 @@ import ScanResultCard from '../../components/ScanResultCard';
 import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
 import { showToast } from '../../api/toast';
+import { ROLE_LABELS } from '../../api/roles';
 import '../../style/StaffScan.css';
 
 const OPTION_LABELS = {
   tour: 'جولة الكلية',
   consultation: 'استشارة فردية',
-};
-
-// أسماء الأدوار بالعربي — نفس الماب المستخدم بصفحة اختيار المحطة
-const ROLE_LABELS = {
-  super_admin: 'المدير العام',
-  students_admin: 'مدير بيانات الطلاب',
-  gate_scanner: 'مسؤول المسح',
-  college_staff: 'مسؤول الكلية',
 };
 
 const CollegePage = () => {

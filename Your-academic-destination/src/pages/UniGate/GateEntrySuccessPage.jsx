@@ -1,10 +1,17 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { ROLE_LABELS } from '../../api/roles';
 import '../../style/GateEntrySuccessPage.css';
 
 const GateEntrySuccessPage = ({ onNextScan }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // اسم المستخدم والدور محفوظين بالـ localStorage وقت تسجيل الدخول
+  // (accountUsername / accountRole) — منقرأهن هون مباشرة بدل ما نثبّتهن بالكود
+  const accountUsername = localStorage.getItem('accountUsername') || '—';
+  const accountRole = localStorage.getItem('accountRole');
+  const roleLabel = ROLE_LABELS[accountRole] || 'مدير بيانات الطلاب';
 
   // البيانات الحقيقية بتوصل عبر location.state من UniversityGatePage بعد نجاح المسح.
   // القيم الافتراضية هون بس fallback بحال حدا فتح الصفحة مباشرة بدون مسح فعلي.
@@ -32,7 +39,7 @@ const GateEntrySuccessPage = ({ onNextScan }) => {
           <div className="user-info">
             <h1 className="header-title">تسجيل الدخول</h1>
             <p className="header-subtitle">
-              sedra_admin <span className="dot">•</span> مدير بيانات الطلاب
+              {accountUsername} <span className="dot">•</span> {roleLabel}
             </p>
           </div>
         </header>
