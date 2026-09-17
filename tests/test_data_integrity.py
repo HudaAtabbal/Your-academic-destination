@@ -285,6 +285,8 @@ def test_dashboard_counter_accuracy(
     assert stats.status_code == 200
     body = stats.json()
     assert body["registered_online_count"] == 3
-    assert body["campus_entries_count"] == 3  # 2 اليوم + 1 أمس (تراكمي بكل التواريخ)
-    assert body["activities_today_cumulative"] == 3  # 2 حضور + 1 محاضرة
+    # طالبان مميزان دخلا الحرم (R-9001 و R-9002) — R-9001 تكرر دخوله أمس
+    # لكنه يبقى طالباً واحداً سواء باليوم أو بكل الأيام (distinct).
+    assert body["students_inside_today"] == 2
+    assert body["students_inside_all_days"] == 2
     assert body["survey_completed_count"] == 1

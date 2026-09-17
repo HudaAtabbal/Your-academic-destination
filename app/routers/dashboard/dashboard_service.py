@@ -5,8 +5,10 @@
 - registered_online_count: بس registration_type=registered (الاسم "إلكترونياً"
   بيقصد المسجّلين أونلاين تحديداً، مش كل الطلاب — تصحيح عن النسخة الأولى
   بالعقد يلي كانت COUNT(students) بدون فلترة).
-- campus_entries_count: عدّاد تراكمي بسيط (بدون فلترة تاريخ) — بدون أي مفهوم
-  دخول/خروج، راجع Business Rules #6.
+- students_inside_today: طلاب مميزون (distinct) دخلوا الحرم اليوم — يصفّر كل
+  يوم، بدون مفهوم دخول/خروج لحظي (راجع Business Rules #6).
+- students_inside_all_days: طلاب مميزون (distinct) دخلوا الحرم على مدار كل
+  الأيام — تراكمي بدون فلترة تاريخ.
 - hall_label: قيمة ثابتة — مدرج واحد بس رح يستضيف كل المحاضرات، فما في داعي
   mapping أو عمود جديد بالـ DB (راجع Business Rules #12). لسبب مشابه، ما في
   عمود يربط أي كلية بأي محاضرة بالسكيما الحالية، فحقل "college" اتشال من
@@ -33,15 +35,27 @@ def get_dashboard_stats(db: Session) -> dict:
         ).count()
     )
 
-    campus_entries_count = (
-        db.query(Checkin).filter(Checkin.activity_type == ActivityType.campus_entry).count()
-    )
-
+    # "داخل الحرم اليوم": طلاب مميزون (distinct) سجّلوا دخول حرم اليوم
+    # — يصفّر كل يوم، ولا يُعدّ نفس الطالب أكثر من مرة باليوم الواحد.
     today_start = time_utils.today_start()
     today_end = today_start + timedelta(days=1)
-    activities_today_cumulative = (
-        db.query(Checkin)
-        .filter(Checkin.checked_in_at >= today_start, Checkin.checked_in_at < today_end)
+    students_inside_today = (
+        db.query(Checkin.student_id)
+        .filter(
+            Checkin.activity_type == ActivityType.campus_entry,
+            Checkin.checked_in_at >= today_start,
+            Checkin.checked_in_at < today_end,
+        )
+        .distinct()
+        .count()
+    )
+
+    # "إجمالي الطلاب داخل الجامعة": طلاب مميزون دخلوا الحرم على مدار كل
+    # الأيام — تراكمي بدون فلترة تاريخ.
+    students_inside_all_days = (
+        db.query(Checkin.student_id)
+        .filter(Checkin.activity_type == ActivityType.campus_entry)
+        .distinct()
         .count()
     )
 
@@ -67,8 +81,8 @@ def get_dashboard_stats(db: Session) -> dict:
 
     return {
         "registered_online_count": registered_online_count,
-        "campus_entries_count": campus_entries_count,
-        "activities_today_cumulative": activities_today_cumulative,
+        "students_inside_today": students_inside_today,
+        "students_inside_all_days": students_inside_all_days,
         "survey_completed_count": survey_completed_count,
         "walkin_pending_count": walkin_pending_count,
         "walkin_completed_count": walkin_completed_count,

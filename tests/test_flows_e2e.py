@@ -389,9 +389,9 @@ def test_f4_full_admin_session(
     assert stats.status_code == 200
     body = stats.json()
     assert body["registered_online_count"] == 1
-    assert body["campus_entries_count"] == 1
-    # campus(1) + lecture(1) + tour(1) = 3 cumulative activities
-    assert body["activities_today_cumulative"] == 3
+    # طالب واحد مميز دخله حرم اليوم (R-9001) — يُحسب مرة واحدة distinct
+    assert body["students_inside_today"] == 1
+    assert body["students_inside_all_days"] == 1
 
 
 # ---------------------------------------------------------------------------

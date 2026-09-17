@@ -256,7 +256,7 @@ def test_walkin_partial_patch_then_full_complete(
 
 
 def test_patch_response_has_completion_fields(client, student_factory, students_admin_headers):
-    """كل استجابة PATCH تحمل حقلي الاكتمال (عقد الواجهة الجديدة)."""
+    """كل استجابة PATCH تحمل حقلي الاكتمال، وverification_status محصّن ضد التعديل."""
     student = student_factory(
         "R-5005",
         registration_type=RegistrationType.registered,
@@ -266,12 +266,17 @@ def test_patch_response_has_completion_fields(client, student_factory, students_
     resp = client.patch(
         f"/admin/students/{student.id}",
         headers=students_admin_headers,
-        json={"verification_status": "verified"},
+        json={"verification_status": "verified", "full_name": "اسم محدّث"},
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert data["completion_status"] == "complete"
-    assert data["is_complete"] is True
+    assert "completion_status" in data
+    assert "is_complete" in data
+    assert data["full_name"] == "اسم محدّث"
+    # verification_status محصّن: الحقل يُتجاهل بصمت فلا يُختَم الطالب كموثّق
+    assert data["verification_status"] == "pending"
+    assert data["completion_status"] == "incomplete"
+    assert data["is_complete"] is False
 
 
 def test_walkin_complete_tab_lists_completed_records(

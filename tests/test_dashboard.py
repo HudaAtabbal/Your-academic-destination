@@ -47,8 +47,10 @@ def test_dashboard_stats(
     assert resp.status_code == 200
     body = resp.json()
     assert body["registered_online_count"] == 2
-    assert body["campus_entries_count"] == 1
-    assert body["activities_today_cumulative"] == 2
+    # الطالب الوحيد اللي عنده campus_entry اليوم هو R-9001 (مرة واحدة) —
+    # يُحسب مرة واحدة (distinct) سواء باليوم أو بكل الأيام.
+    assert body["students_inside_today"] == 1
+    assert body["students_inside_all_days"] == 1
     assert body["survey_completed_count"] == 1
     assert body["walkin_pending_count"] == 0
 

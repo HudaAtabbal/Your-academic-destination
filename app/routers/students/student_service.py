@@ -16,7 +16,7 @@ from app.errors import duplicate_contact, student_not_found
 from app.models import Checkin, RegistrationType, Student, StudentStatus, VerificationStatus
 
 # حقول ما بينسمح تعديلها من هاد الروتر — registration_type ثابت بعد الإنشاء
-_IMMUTABLE_FIELDS = {"registration_type", "id", "unique_code", "created_at"}
+_IMMUTABLE_FIELDS = {"registration_type", "id", "unique_code", "created_at", "verification_status"}
 
 _WALKIN_REQUIRED_FIELDS = (
     "full_name",

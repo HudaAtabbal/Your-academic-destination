@@ -11,8 +11,8 @@ from app.models.enums import Lecture
 
 class DashboardStatsResponse(BaseModel):
     registered_online_count: int
-    campus_entries_count: int
-    activities_today_cumulative: int
+    students_inside_today: int
+    students_inside_all_days: int
     survey_completed_count: int
     walkin_pending_count: int
     walkin_completed_count: int

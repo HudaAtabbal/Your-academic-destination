@@ -66,8 +66,8 @@ def test_stats_empty_db_all_zeros(client, super_headers):
     assert resp.status_code == 200
     body = resp.json()
     assert body["registered_online_count"] == 0
-    assert body["campus_entries_count"] == 0
-    assert body["activities_today_cumulative"] == 0
+    assert body["students_inside_today"] == 0
+    assert body["students_inside_all_days"] == 0
     assert body["survey_completed_count"] == 0
     assert body["walkin_pending_count"] == 0
 
