@@ -20,8 +20,8 @@ vi.mock('../../api/api.js', () => ({
 
 const STATS = {
   registered_online_count: 1,
-  campus_entries_count: 2,
-  activities_today_cumulative: 3,
+  students_inside_today: 2,
+  students_inside_all_days: 3,
   survey_completed_count: 4,
   walkin_pending_count: 5,
   walkin_completed_count: 6,

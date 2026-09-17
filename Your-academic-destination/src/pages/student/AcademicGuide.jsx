@@ -5,9 +5,8 @@ import '../../style/AcademicGuide.css';
 
 // ⚠️ هاد الدليل مبني بالكامل كملف HTML/CSS/JS مستقل (فيه نظام رسوم SVG متحركة،
 // كروت تنقلب، نوافذ منبثقة...) — بدل ما "نترجمه" يدوياً لـ React (خطر كبير نكسر
-// شي بالنقل)، بنستضيفه كما هو بالضبط جوا iframe. لازم تحطي ملف major-guide.html
-// (يلي بعتّلك ياه لحاله) داخل مجلد public/ بمشروعك، بحيث يصير الرابط:
-// public/major-guide.html
+// شي بالنقل)، بنستضيفه كما هو بالضبط جوا iframe. الملف مستضاف على السيرفر ضمن
+// مجلد /guide/index.html
 const AcademicGuide = () => {
   return (
     <div className="ag-card-wrapper">
@@ -20,7 +19,7 @@ const AcademicGuide = () => {
         />
 
         <iframe
-          src="/major-guide.html"
+          src="/guide/"
           title="الدليل الأكاديمي"
           className="ag-guide-iframe"
         />

@@ -5,6 +5,7 @@ import SurveyQuestionOne from "../../components/SurveyQuestionOne";
 import SurveyQuestionTwo from "../../components/SurveyQuestionTwo";
 import BottomNav from "../../components/BottomNav";
 import { apiPost, ApiError } from "../../api/api";
+import { showToast } from "../../api/toast";
 import { COLLEGE_OPTIONS } from "../../api/colleges";
 import "../../style/Survey.css";
 
@@ -38,6 +39,7 @@ const Survey = () => {
         preferred_major: isUndecided ? null : q2Major,
       });
 
+      showToast("شكراً! تم تسجيل إجاباتك بنجاح", "success");
       navigate("/my-card");
     } catch (err) {
       setError(

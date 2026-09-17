@@ -258,6 +258,9 @@
 /* Bottom Status Bar */
 .uniGate-statusBar {
   margin-top: auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
   background-color: #0E3E37;
   border-radius: 16px;
   padding: 12px 18px;

@@ -8,7 +8,7 @@ import '../../style/MyPointsPage.css';
 // الباك بيرجّع بس total_points النهائي، مش تفصيل كل محطة، فهاد الجدول للعرض بس
 const STATIONS = [
   { name: 'دخول البوابة (مرة يومياً)', points: '5' },
-  { name: 'حضور ندوة', points: '10' },
+  { name: 'حضور محاضرة', points: '10' },
   { name: 'جولة كلية', points: '10' },
   { name: 'استشارة فردية', points: '15' },
   { name: 'الاستبيان البعدي', points: '20' },

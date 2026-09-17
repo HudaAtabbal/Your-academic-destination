@@ -94,6 +94,20 @@
   border-radius: 20px;
 }
 
+.mc-loading-text {
+  color: #134F47;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.mc-load-error {
+  color: #B4690E;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
 /* Features Info Box */
 .mc-info-card-box {
   background-color: #FFFFFF;

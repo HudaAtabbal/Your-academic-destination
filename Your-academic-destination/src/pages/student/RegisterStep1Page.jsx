@@ -146,11 +146,10 @@ const RegisterStep1Page = () => {
       }
     }
 
-    const certYear = Number(formData.certificateYear);
     if (!formData.certificateYear.trim()) {
       newErrors.certificateYear = 'سنة الشهادة مطلوبة';
-    } else if (![2024, 2025, 2026].includes(certYear)) {
-      newErrors.certificateYear = 'سنة الشهادة يجب أن تكون 2024 أو 2025 أو 2026';
+    } else if (!/^\d{4}$/.test(formData.certificateYear.trim())) {
+      newErrors.certificateYear = 'سنة الشهادة يجب أن تكون 4 أرقام';
     }
 
     if (!formData.certificateType) {

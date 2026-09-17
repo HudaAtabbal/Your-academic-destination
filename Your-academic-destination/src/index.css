@@ -1,3 +1,13 @@
+:root {
+  color-scheme: light;
+}
+
+html,
+body,
+#root {
+  background-color: #f3f4f6;
+}
+
 .back-btn-logo {
   height: 28px;
   width: auto;
@@ -41,4 +51,19 @@
 
 input, button, textarea, select {
   font-family: inherit !important;
+}
+
+/* BottomNav — تعريف عام حتى كل الصفحات تظهر الناف السفلية مثبّتة ومنسّقة،
+   بغض النظر إن كانت تستورد ستيال الدليل أم لا */
+.ag-bottom-nav {
+  background-color: #FFFFFF;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 12px 14px;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
 }

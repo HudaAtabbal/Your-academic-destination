@@ -1,8 +1,9 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import QRCode from "react-qr-code"; // يمكنك استخدام مكتبة react-qr-code أو صورة QR جاهزة
 import HeaderStep from "../../components/HeaderStep";
 import BottomNav from "../../components/BottomNav";
+import { apiGet, ApiError } from "../../api/api";
 import { showToast } from "../../api/toast";
 import "../../style/MyCard.css";
 
@@ -15,18 +16,28 @@ const MyCard = () => {
   const studentCode = localStorage.getItem("studentCode");
   const studentName = localStorage.getItem("studentName") || "";
 
+  // null = عم نتحقق، "pending" = ما انفعّل بعد، "verified" = مفعّل
+  const [cardStatus, setCardStatus] = useState(null);
+  const [loadError, setLoadError] = useState("");
+
   // لو ما في كود مخزّن، منوجّه المستخدم لصفحة استرجاع الكود بدل ما نعرض بطاقة موك
   useEffect(() => {
     if (!studentCode) navigate("/find-card", { replace: true });
   }, [studentCode, navigate]);
 
-  if (!studentCode) return null;
+  // بنسأل الباك عن حالة التحقق الحقيقية (فقط المفعل بيشوف الـ QR)
+  useEffect(() => {
+    if (!studentCode) return;
 
-  const cardData = {
-    name: studentName,
-    code: studentCode,
-    status: "بطاقتك جاهزة",
-  };
+    apiGet(`/students/card/${studentCode}`)
+      .then((res) => {
+        setCardStatus(res.verification_status === "verified" ? "verified" : "pending");
+      })
+      .catch((err) => {
+        setLoadError(err instanceof ApiError ? err.message : "تعذّر التحقق من حالة بطاقتك");
+        setCardStatus("pending");
+      });
+  }, [studentCode]);
 
   const handleLogout = () => {
     localStorage.removeItem("studentCode");
@@ -109,6 +120,86 @@ const MyCard = () => {
     } catch (err) {
       failSave("خطأ عام أثناء حفظ البطاقة", err);
     }
+  };
+
+  // لو عم ننتظر جواب الباك — شاشة تحميل خفيفة
+  if (cardStatus === null) {
+    return (
+      <div className="mc-card-wrapper">
+        <div className="mc-card-container">
+          <HeaderStep
+            title="بطاقتي"
+            stepText="وجهتك الأكاديمية 2 • جامعة حمص"
+            onBack={() => window.history.back()}
+          />
+
+          <main className="mc-card-body">
+            <div className="mc-id-card-box">
+              <p className="mc-loading-text">جاري التحقق من حالة بطاقتك...</p>
+            </div>
+          </main>
+
+          <BottomNav />
+        </div>
+      </div>
+    );
+  }
+
+  // لو الطالب ما انفعّلت بطاقته بعد — ما منعرض QR، وبنوجهه لتأكيد رمز التحقق
+  if (cardStatus === "pending") {
+    return (
+      <div className="mc-card-wrapper">
+        <div className="mc-card-container">
+          <HeaderStep
+            title="بطاقتي"
+            stepText="وجهتك الأكاديمية 2 • جامعة حمص"
+            onBack={() => window.history.back()}
+          />
+
+          <main className="mc-card-body">
+            <div className="mc-id-card-box">
+              <h2 className="mc-user-name">{studentName || "بطاقتي"}</h2>
+              {studentCode && <p className="mc-user-code">{studentCode}</p>}
+              <div className="mc-status-badge">بانتظار التفعيل</div>
+            </div>
+
+            <div className="mc-info-card-box">
+              <h3 className="mc-info-box-title">بطاقتك ما انفعّلت بعد</h3>
+              <ul className="mc-info-list">
+                <li>أدخل رمز التحقق الذي وُصل إلى هاتفك</li>
+                <li>بعد التفعيل ستظهر بطاقتك مع رمز QR للدخول</li>
+              </ul>
+              {loadError && <p className="mc-load-error">{loadError}</p>}
+            </div>
+
+            <div className="mc-actions">
+              <button
+                type="button"
+                onClick={() => navigate("/otp")}
+                className="mc-btn mc-btn-primary"
+              >
+                تأكيد رمز التحقق
+              </button>
+            </div>
+
+            <div className="mc-logout-actions">
+              <button type="button" onClick={handleLogout} className="mc-btn mc-btn-logout">
+                تسجيل خروج
+              </button>
+            </div>
+          </main>
+
+          <BottomNav />
+        </div>
+      </div>
+    );
+  }
+
+  // مفعّل — البطاقة الحقيقية مع رمز QR
+  const cardData = {
+    name: studentName,
+    code: studentCode,
+    status: "بطاقتك جاهزة",
   };
 
   return (

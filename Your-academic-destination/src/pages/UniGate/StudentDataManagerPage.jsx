@@ -10,7 +10,6 @@ const mapStudentDetailToFormData = (detail) => ({
   certificateYear: detail.bacc_year != null ? String(detail.bacc_year) : '',
   certificateType: detail.certificate_type || '',
   phoneNumber: detail.contact_id || '',
-  verificationStatus: detail.verification_status || 'pending',
   baccalaureateScore: detail.bacc_average != null ? String(detail.bacc_average) : '',
 });
 
@@ -185,7 +184,7 @@ const StudentDataManagerPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // بيانات السجل "مكتملة" فقط إذا الحقول الأساسية معبّأة فعلاً وحالة التحقق مفعّلة.
+  // بيانات السجل "مكتملة" إذا الحقول الأساسية معبّأة فعلاً —
   // هاد حساب محلي مؤقت (fallback) بس — بمجرد ما الباك يرجّع حقل is_complete/
   // completion_status (راجعي رسالة الباك إند)، منعتمد عليه هو كمصدر الحقيقة
   // الوحيد بدل هالحساب، لأنه هو الوحيد المضمون إنه متطابق مع باقي الشاشات
@@ -196,8 +195,7 @@ const StudentDataManagerPage = () => {
       formData.phoneNumber &&
       formData.birthDate &&
       formData.certificateYear &&
-      formData.baccalaureateScore &&
-      formData.verificationStatus === 'verified'
+      formData.baccalaureateScore
   );
 
   const isRecordComplete =
@@ -231,7 +229,6 @@ const StudentDataManagerPage = () => {
       contact_id: formData.phoneNumber,
       bacc_year: toNumberOrNull(formData.certificateYear),
       bacc_average: toNumberOrNull(formData.baccalaureateScore),
-      verification_status: formData.verificationStatus,
     };
 
     try {
@@ -426,24 +423,7 @@ const StudentDataManagerPage = () => {
                     عالقة على "pending" دايماً حتى لو باقي الحقول انعبّت بالكامل */}
                 <div className="form-row">
                   <div className="input-group">
-                    <label htmlFor="verificationStatus">حالة التحقق</label>
-                    <div className="verified-input-wrapper">
-                      {formData.verificationStatus === 'verified' && (
-                        <span className="check-mark">✓</span>
-                      )}
-                      <select
-                        id="verificationStatus"
-                        name="verificationStatus"
-                        value={formData.verificationStatus}
-                        onChange={handleInputChange}
-                        className={`select-field verified-text ${
-                          formData.verificationStatus === 'verified' ? 'is-verified' : ''
-                        }`}
-                      >
-                        <option value="pending">بانتظار التفعيل</option>
-                        <option value="verified">مفعّل</option>
-                      </select>
-                    </div>
+                    {/* verification_status صار غير قابل للتعديل من الخادم — أخفينا الحقل */}
                   </div>
                   
                 </div>

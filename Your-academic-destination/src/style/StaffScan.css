@@ -396,6 +396,9 @@
   font-size: 0.9rem;
   font-weight: 700;
   flex-shrink: 0;
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
 }
 
 .connection-status.connected {

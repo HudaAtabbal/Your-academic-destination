@@ -11,8 +11,8 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [stats, setStats] = useState([
     { id: 'registered', label: 'مسجّلون إلكترونياً', value: '—' },
-    { id: 'inside', label: 'داخل الحرم الآن', value: '—' },
-    { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: '—' },
+    { id: 'inside', label: 'داخل الحرم اليوم', value: '—' },
+    { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: '—' },
     { id: 'survey', label: 'أكملوا الاستبيان', value: '—' },
     { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: '—', link: '/gate-incomplete' },
     { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: '—' },
@@ -23,13 +23,13 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
   // الإحصاءات + إشغال القاعات — بتتحدث كل 15 ثانية مثل حالة المُرسِل
   useEffect(() => {
     const fetchStats = () => {
-      // الإحصاءات الأربع — endpoint جديد مخصص للداشبورد صار متوفر
+      // الإحصاءات الست — endpoint جديد مخصص للداشبورد صار متوفر
       apiGet('/admin/dashboard/stats')
         .then((res) => {
           setStats([
             { id: 'registered', label: 'مسجّلون إلكترونياً', value: res.registered_online_count },
-            { id: 'inside', label: 'داخل الحرم الآن', value: res.campus_entries_count },
-            { id: 'cumulative', label: 'حضروا اليوم تراكمياً', value: res.activities_today_cumulative },
+            { id: 'inside', label: 'داخل الحرم اليوم', value: res.students_inside_today },
+            { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: res.students_inside_all_days },
             { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
             { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: res.walkin_pending_count, link: '/gate-incomplete' },
             { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: res.walkin_completed_count },
