@@ -340,3 +340,75 @@ def test_count_invalid_college_422_after_fix(client, super_headers):
         )
     assert resp.status_code == 422
     assert resp.json()["error_code"] == "validation_error"
+
+
+# ---------- tour+consultation coexisting ----------
+
+
+def test_tour_and_consultation_coexist(
+    client, student_factory, students_admin_headers, college_staff_headers
+):
+    """جولة + استشارة لنفس الطالب كليهما ينجح (10 + 15 = 25 نقطة)."""
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    assert _tour_booking(client, college_staff_headers).status_code == 201
+    assert _consultation_booking(client, college_staff_headers).status_code == 201
+
+    tour_resp = client.post(
+        "/checkins/tour", json={"unique_code": STUDENT}, headers=college_staff_headers
+    )
+    assert tour_resp.status_code == 201
+
+    cons_resp = client.post(
+        "/checkins/consultation",
+        json={"unique_code": STUDENT},
+        headers=college_staff_headers,
+    )
+    assert cons_resp.status_code == 201
+
+    pts = client.get(f"/students/{STUDENT}/points")
+    assert pts.json()["total_points"] == 30
+
+
+# ---------- cross-college tours ----------
+
+
+def test_cross_college_tours_different_staff(
+    client, student_factory, students_admin_headers,
+    create_custom_staff, auth_headers,
+):
+    """طالب يحجز جولة في كلية مختلفة — الكوليج يُحدّد حسب من يسجّل لا حسب الحجز."""
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+
+    create_custom_staff("dent_staff", "pw456", Faculty.dentistry)
+    dent_headers = auth_headers("dent_staff", "pw456")
+
+    # حجز جولة بـ dentistry staff → college = dentistry
+    tour_book = client.post(
+        "/bookings/tour", json={"unique_code": STUDENT}, headers=dent_headers
+    )
+    assert tour_book.status_code == 201
+
+    tour_check = client.post(
+        "/checkins/tour", json={"unique_code": STUDENT}, headers=dent_headers
+    )
+    assert tour_check.status_code == 201
+    assert tour_check.json()["college"] == "dentistry"
+
+    pts = client.get(f"/students/{STUDENT}/points")
+    assert pts.json()["total_points"] == 15
+
+
+# ---------- walkin pending (status=pending, verification=verified) ----------
+
+
+def test_walkin_pending_campus_entry(
+    client, student_factory, students_admin_headers, super_headers
+):
+    """طالب walk-in بحالة pending (ما عبيتو معلومات) — campus-entry ينجح."""
+    student_factory("W-7777")
+    resp = _campus_entry(client, students_admin_headers, code="W-7777")
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["student_name"] == "طالب تجريبي"

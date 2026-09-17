@@ -1,4 +1,4 @@
-"""
+﻿"""
 منطق العمل للاستبيان البعدي — راجع قسم 5 بملف wijhatak_api_contract.md.
 
 ملاحظة مهمة: زر "لاحقاً" بالفرونت ما بينادي هاد الـ endpoint إطلاقاً — الطالب
@@ -9,20 +9,14 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.errors import duplicate_survey, student_not_found
-from app.models import College, OpinionChange, PostSurvey, Student
+from app.errors import duplicate_survey
+from app.models import College, OpinionChange, PostSurvey
 from app.routers.points import point_service
-
-
-def _get_student_or_raise(db: Session, unique_code: str) -> Student:
-    student = db.query(Student).filter(Student.unique_code == unique_code).first()
-    if student is None:
-        raise student_not_found()
-    return student
+from app.student_lookup import get_student_or_raise
 
 
 def get_survey_status(db: Session, unique_code: str) -> bool:
-    student = _get_student_or_raise(db, unique_code)
+    student = get_student_or_raise(db, unique_code)
     existing = db.query(PostSurvey).filter(PostSurvey.student_id == student.id).first()
     return existing is not None
 
@@ -30,7 +24,7 @@ def get_survey_status(db: Session, unique_code: str) -> bool:
 def submit_survey(
     db: Session, unique_code: str, opinion_change: OpinionChange, preferred_major: College
 ) -> PostSurvey:
-    student = _get_student_or_raise(db, unique_code)
+    student = get_student_or_raise(db, unique_code)
 
     existing = db.query(PostSurvey).filter(PostSurvey.student_id == student.id).first()
     if existing is not None:

@@ -64,7 +64,7 @@ SEED_ACCOUNTS = [
 # طالب تجريبي واحد "نظامي" (registered) — verified وbالكامل مكتمل البيانات،
 # مشان يصير فيك تجرّبي عليه checkins/bookings مباشرة
 SEED_STUDENT = {
-    "unique_code": "R-9001",
+    "unique_code": "R-009001",
     "full_name": "طالب تجريبي",
     "contact_id": "0999999999",
     "birth_date": date(2008, 1, 1),

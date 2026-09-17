@@ -53,7 +53,6 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)) -> Registe
 def resend_otp(
     payload: ResendOtpRequest,
     db: Session = Depends(get_db),
-    _: None = Depends(rate_limit_public_lookup),
 ) -> ResendOtpResponse:
     rate_limit_student_otp(payload.unique_code, max_requests=2)  # مهلة resend: 2/دقيقة لكل طالب
     expires_at = registration_service.resend_otp(db, payload.unique_code)
@@ -68,7 +67,6 @@ def resend_otp(
 def verify_otp(
     payload: VerifyOtpRequest,
     db: Session = Depends(get_db),
-    _: None = Depends(rate_limit_public_lookup),
 ) -> VerifyOtpResponse:
     rate_limit_student_otp(payload.unique_code)  # 5 محاولات لكل طالب (محدد في الـ limiter)
     student = registration_service.verify_otp(db, payload.unique_code, payload.otp)

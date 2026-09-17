@@ -18,6 +18,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
+from app import time_utils
 from app.models import ActivityType, Checkin, PostSurvey, RegistrationType, Student, StudentStatus, VerificationStatus
 from app.routers.internal import internal_service
 
@@ -36,7 +37,7 @@ def get_dashboard_stats(db: Session) -> dict:
         db.query(Checkin).filter(Checkin.activity_type == ActivityType.campus_entry).count()
     )
 
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = time_utils.today_start()
     today_end = today_start + timedelta(days=1)
     activities_today_cumulative = (
         db.query(Checkin)
@@ -55,23 +56,45 @@ def get_dashboard_stats(db: Session) -> dict:
         .count()
     )
 
+    walkin_completed_count = (
+        db.query(Student)
+        .filter(
+            Student.registration_type == RegistrationType.walk_in,
+            Student.status == StudentStatus.complete,
+        )
+        .count()
+    )
+
     return {
         "registered_online_count": registered_online_count,
         "campus_entries_count": campus_entries_count,
         "activities_today_cumulative": activities_today_cumulative,
         "survey_completed_count": survey_completed_count,
         "walkin_pending_count": walkin_pending_count,
+        "walkin_completed_count": walkin_completed_count,
     }
 
 
 def get_rooms_occupancy(db: Session) -> list[dict]:
+    """
+    إشغال المدرج — محاضرات اليوم فقط (بتوقيت سوريا عبر time_utils).
+    محدّث: سابقاً كان يعدّ أياماً كلها بلا فلترة تاريخ تحت تسمية current_count؛
+    الآن العداد يقتصر على اليوم، لأن عنوان الحقل الحالي يدل على إشغال لحظي.
+    """
+    today_start = time_utils.today_start()
+    today_end = today_start + timedelta(days=1)
+
     rows = (
         db.query(
             Checkin.lecture_name,
             func.count(Checkin.id),
             func.max(Checkin.checked_in_at),
         )
-        .filter(Checkin.activity_type == ActivityType.lecture)
+        .filter(
+            Checkin.activity_type == ActivityType.lecture,
+            Checkin.checked_in_at >= today_start,
+            Checkin.checked_in_at < today_end,
+        )
         .group_by(Checkin.lecture_name)
         .all()
     )

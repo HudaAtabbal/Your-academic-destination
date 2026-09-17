@@ -15,9 +15,11 @@ from datetime import datetime, timedelta
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.errors import duplicate_checkin, missing_booking, missing_campus_entry, student_not_found
+from app import time_utils
+from app.errors import duplicate_checkin, missing_booking, missing_campus_entry
 from app.models import ActivityType, Booking, BookingType, Checkin, Faculty, Lecture, Student
 from app.routers.points import point_service
+from app.student_lookup import get_student_or_raise
 
 _ACTIVITY_LABELS = {
     ActivityType.campus_entry: "الدخول من بوابة الجامعة اليوم",
@@ -52,19 +54,9 @@ def _lecture_label(lecture: Lecture) -> str:
 
 
 def _today_range() -> tuple[datetime, datetime]:
-    """
-    حدود "اليوم" — بتستخدم توقيت السيرفر المحلي حالياً (قرار مؤجّل، راجع
-    Business Rules #11 بالعقد: بنحدد الـ timezone بدقة قبل يوم الفعالية).
-    """
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    return today_start, today_start + timedelta(days=1)
-
-
-def _get_student_or_raise(db: Session, unique_code: str) -> Student:
-    student = db.query(Student).filter(Student.unique_code == unique_code).first()
-    if student is None:
-        raise student_not_found()
-    return student
+    """حدود "اليوم" — بتوقيت سوريا عبر time_utils."""
+    start = time_utils.today_start()
+    return start, start + timedelta(days=1)
 
 
 def _has_campus_entry_today(db: Session, student_id: int) -> bool:
@@ -177,7 +169,7 @@ def _flush_commit_checkin(
 
 
 def create_campus_entry_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | None]:
-    student = _get_student_or_raise(db, unique_code)
+    student = get_student_or_raise(db, unique_code)
 
     existing = _find_existing_campus_entry_today(db, student.id)
     _raise_if_duplicate(
@@ -205,7 +197,7 @@ def create_campus_entry_checkin(db: Session, unique_code: str) -> tuple[Checkin,
 def create_lecture_checkin(
     db: Session, unique_code: str, lecture_name: Lecture
 ) -> tuple[Checkin, str | None]:
-    student = _get_student_or_raise(db, unique_code)
+    student = get_student_or_raise(db, unique_code)
 
     if not _has_campus_entry_today(db, student.id):
         raise missing_campus_entry()
@@ -240,7 +232,7 @@ def create_lecture_checkin(
 def create_tour_checkin(
     db: Session, unique_code: str, college: Faculty
 ) -> tuple[Checkin, str | None]:
-    student = _get_student_or_raise(db, unique_code)
+    student = get_student_or_raise(db, unique_code)
 
     if not _has_campus_entry_today(db, student.id):
         raise missing_campus_entry()
@@ -272,7 +264,7 @@ def create_tour_checkin(
 
 
 def create_consultation_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | None]:
-    student = _get_student_or_raise(db, unique_code)
+    student = get_student_or_raise(db, unique_code)
 
     if not _has_campus_entry_today(db, student.id):
         raise missing_campus_entry()
@@ -310,10 +302,9 @@ def count_checkins_today(
     lecture_name: Lecture | None = None,
 ) -> int:
     """
-    عدّاد "اليوم" — بيستخدم توقيت السيرفر المحلي حالياً (قرار مؤجّل، راجع
-    Business Rules #11 بالعقد: بنحدد الـ timezone بدقة قبل يوم الفعالية).
+    عدّاد "اليوم" — بتوقيت سوريا عبر time_utils.
     """
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = time_utils.today_start()
     today_end = today_start + timedelta(days=1)
 
     query = db.query(Checkin).filter(

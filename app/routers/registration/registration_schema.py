@@ -4,6 +4,7 @@ Pydantic schemas لروتر registration (تسجيل الطالب العام + O
 """
 
 from datetime import date, datetime
+import re
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -38,6 +39,15 @@ class RegisterRequest(BaseModel):
         if v > date.today():
             raise ValueError("تاريخ الميلاد لا يمكن أن يكون في المستقبل")
         return v
+
+    @field_validator("contact_id", mode="after")
+    @classmethod
+    def validate_contact_format(cls, v: str) -> str:
+        """رقم الهاتف لازم يكون 10 أرقام تبدأ بـ 09 بعد تجريد المسافات."""
+        clean = v.replace(" ", "") if isinstance(v, str) else v
+        if not re.fullmatch(r"09\d{8}", clean):
+            raise ValueError("رقم الهاتف لازم يكون 10 أرقام تبدأ بـ 09")
+        return clean
 
 
 class RegisterResponse(BaseModel):
@@ -74,6 +84,14 @@ class StudentCardResponse(BaseModel):
 class LookupByContactRequest(BaseModel):
     contact_id: str
     full_name: str = Field(min_length=1)
+
+    @field_validator("contact_id", mode="after")
+    @classmethod
+    def validate_contact_format(cls, v: str) -> str:
+        clean = v.replace(" ", "") if isinstance(v, str) else v
+        if not re.fullmatch(r"09\d{8}", clean):
+            raise ValueError("رقم الهاتف لازم يكون 10 أرقام تبدأ بـ 09")
+        return clean
 
 
 class LookupByContactResponse(BaseModel):

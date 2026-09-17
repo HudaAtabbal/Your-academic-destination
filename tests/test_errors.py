@@ -76,3 +76,68 @@ def test_shape_staff_without_college(
     _assert_shape(
         client.post("/bookings/tour", json={"unique_code": "R-9001"}, headers=headers)
     )
+
+
+def test_shape_502_sms_send_failed(client, monkeypatch):
+    monkeypatch.delenv("SMS_MODE", raising=False)
+    from app import sms_service as sms_service_module
+
+    def _boom(*a, **k):
+        raise sms_service_module.SmsSendError("User isn't active")
+
+    monkeypatch.setattr(
+        "app.routers.registration.registration_service.sms_service.send_otp_sms", _boom
+    )
+    resp = client.post(
+        "/students/register",
+        json={
+            "full_name": "طالب",
+            "birth_date": "2000-01-01",
+            "certificate_year": 2025,
+            "certificate_type": "scientific",
+            "average_score": 90.0,
+            "initial_preferred_major": ["medicine"],
+            "contact_id": "0912345678",
+        },
+    )
+    _assert_shape(resp)
+    assert resp.json()["error_code"] == "sms_send_failed"
+
+
+def test_shape_429_too_many_requests(client, monkeypatch):
+    monkeypatch.setattr("app.dependencies._RATE_LIMIT_MAX_REQUESTS", 1)
+    client.post(
+        "/students/lookup-by-contact",
+        json={"contact_id": "0911111111", "full_name": "x"},
+    )
+    resp = client.post(
+        "/students/lookup-by-contact",
+        json={"contact_id": "0911111111", "full_name": "x"},
+    )
+    _assert_shape(resp)
+    assert resp.json()["error_code"] == "too_many_requests"
+
+
+def test_duplicate_checkin_rich_details(
+    client, student_factory, students_admin_headers
+):
+    student_factory("R-8888")
+    client.post(
+        "/checkins/campus-entry",
+        json={"unique_code": "R-8888"},
+        headers=students_admin_headers,
+    )
+    resp = client.post(
+        "/checkins/campus-entry",
+        json={"unique_code": "R-8888"},
+        headers=students_admin_headers,
+    )
+    assert resp.status_code == 409
+    body = resp.json()
+    _assert_shape(resp)
+    assert body["error_code"] == "duplicate_checkin"
+    details = body["details"]
+    assert details["unique_code"] == "R-8888"
+    assert details["activity_type"] == "campus_entry"
+    assert "student_name" in details
+    assert "first_occurred_at" in details

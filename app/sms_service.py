@@ -22,6 +22,17 @@ from requests.exceptions import RequestException
 # بما إنه verify=False قرار مقصود، مش نسيان
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
+def _verify_ssl() -> bool:
+    """
+    قرار التحقق من شهادة SSL لواجهة سيرياتيل.
+
+    الافتراضي: verify=False (شهادة سيرياتيل self-signed — إلزامي عملياً).
+    تجاوز اختياري للأمان في بيئات لا تعتمد ذلك (مثلاً عبر بوابة/proxy موثوقة):
+    اضبط SMS_VERIFY_SSL=1 في الـ .env لإجبار فحص الشهادة الحقيقي.
+    """
+    return os.getenv("SMS_VERIFY_SSL", "").strip() in ("1", "true", "True", "yes")
+
 _BASE_URL = "https://bms.syriatel.sy/API/SendTemplateSMS.aspx"
 
 # creds تُقرأ عند كل نداء (وليس عند الاستيراد) — لأن المُرسِل بملف مستقل على
@@ -89,8 +100,9 @@ def send_otp_sms(phone: str, otp_code: str) -> None:
         "to": to_international_format(phone),
     }
 
-    # verify=False لازم — شهادة سيرياتيل self-signed (موثّق بآخر صفحة بالـ PDF)
-    response = requests.get(_BASE_URL, params=params, verify=False, timeout=15)
+    # verify=False لازم افتراضياً — شهادة سيرياتيل self-signed (موثّق بآخر صفحة
+    # بالـ PDF). ممكن يتفعل الفحص الحقيقي عبر env: SMS_VERIFY_SSL=1.
+    response = requests.get(_BASE_URL, params=params, verify=_verify_ssl(), timeout=15)
     response.raise_for_status()  # بيرمي RequestException لو الرد نفسه HTTP error (500/404 إلخ)
 
     body_text = response.text.strip()

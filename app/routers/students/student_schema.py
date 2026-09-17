@@ -3,6 +3,7 @@ Pydantic schemas لروتر admin/students — مطابقة لقسم 6 بملف 
 """
 
 from datetime import date, datetime
+import re
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -28,6 +29,8 @@ class StudentDetail(BaseModel):
     verification_status: VerificationStatus
     registration_type: RegistrationType
     status: StudentStatus
+    is_complete: bool
+    completion_status: str
     created_at: datetime
 
     class Config:
@@ -64,6 +67,17 @@ class StudentUpdateRequest(BaseModel):
             raise ValueError("تاريخ الميلاد لا يمكن أن يكون في المستقبل")
         return v
 
+    @field_validator("contact_id", mode="after")
+    @classmethod
+    def validate_contact_format(cls, v: str | None) -> str | None:
+        """رقم الهاتف لازم يكون 10 أرقام تبدأ بـ 09."""
+        if v is None:
+            return None
+        clean = v.replace(" ", "") if isinstance(v, str) else v
+        if not re.fullmatch(r"09\d{8}", clean):
+            raise ValueError("رقم الهاتف لازم يكون 10 أرقام تبدأ بـ 09")
+        return clean
+
     @model_validator(mode="after")
     def require_at_least_one_field(self):
         """منع طلب تحديث فارغ — {} يُرفض بـ 422 بدل تحديث صامت بلا تأثير."""
@@ -88,13 +102,14 @@ class StudentUpdateRequest(BaseModel):
 class StudentStatsResponse(BaseModel):
     total_registered: int
     walkin_pending_count: int
+    walkin_completed_count: int
 
 
 class WalkinIncompleteItem(BaseModel):
     unique_code: str
     full_name: str | None = None
     contact_id: str | None = None
-    status: str  # "no_data" | "partial"
+    status: str  # "no_data" | "partial" | "complete"
 
 
 class WalkinIncompleteListResponse(BaseModel):

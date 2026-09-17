@@ -435,3 +435,65 @@ def test_sync_mode_default_still_fails_with_502_when_send_raises(
     resp = client.post("/students/register", json=_REGISTER_PAYLOAD)
     assert resp.status_code == 502
     assert resp.json()["error_code"] == "sms_send_failed"
+
+
+# ---------------------------------------------------------------------------
+# Q11: report لعملية غير موجودة → 404 job_not_found
+# ---------------------------------------------------------------------------
+
+
+def test_report_nonexistent_job_404(client, monkeypatch):
+    monkeypatch.setenv("SMS_MODE", "queue")
+    resp = client.post(
+        "/internal/sms/report",
+        json={"job_id": 999999, "success": True},
+        headers=_worker_headers(),
+    )
+    assert resp.status_code == 404
+    assert resp.json()["error_code"] == "job_not_found"
+
+
+# ---------------------------------------------------------------------------
+# Q12: dequeue batch=0 و batch=11 → 422
+# ---------------------------------------------------------------------------
+
+
+def test_dequeue_batch_zero_422(client, monkeypatch):
+    monkeypatch.setenv("SMS_MODE", "queue")
+    resp = client.post(
+        "/internal/sms/dequeue", params={"batch": 0}, headers=_worker_headers()
+    )
+    assert resp.status_code == 422
+
+
+def test_dequeue_batch_eleven_422(client, monkeypatch):
+    monkeypatch.setenv("SMS_MODE", "queue")
+    resp = client.post(
+        "/internal/sms/dequeue", params={"batch": 11}, headers=_worker_headers()
+    )
+    assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# Q13: report على صف pending (مش sending) → idempotent (يترجع كما هو)
+# ---------------------------------------------------------------------------
+
+
+def test_report_pending_job_idempotent(
+    client, db, student_factory, monkeypatch
+):
+    monkeypatch.setenv("SMS_MODE", "queue")
+    student = student_factory("R-9001", contact_id="0912345678")
+    otp, job = _add_job(db, student=student, status=SmsJobStatus.pending)
+
+    resp = client.post(
+        "/internal/sms/report",
+        json={"job_id": job.id, "success": True},
+        headers=_worker_headers(),
+    )
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "pending"
+
+    db.refresh(job)
+    assert job.status == SmsJobStatus.pending
+    assert job.sent_at is None

@@ -127,6 +127,8 @@ class TestVerifiedBlocksReuse:
 
 class TestSmsFailureCleanup:
     def test_sms_failure_does_not_leave_orphan(self, client, db, monkeypatch):
+        monkeypatch.setenv("SMS_MODE", "sync")
+
         def _boom(phone, code):
             raise sms_service.SmsSendError("SYRIATEL_USERNAME غير معرف")
 
@@ -139,6 +141,7 @@ class TestSmsFailureCleanup:
         assert db.query(OTP).count() == 0
 
     def test_sms_failure_then_retry_succeeds(self, client, db, monkeypatch):
+        monkeypatch.setenv("SMS_MODE", "sync")
         attempts = {"n": 0}
 
         def _flaky(phone, code):
@@ -248,3 +251,81 @@ class TestLookupByNameMatch:
             },
         )
         assert ok.status_code == 200, ok.text
+
+
+class TestPreviousUniqueCode:
+    def test_previous_unique_code_deletes_old_pending(self, client, db, monkeypatch):
+        monkeypatch.setattr(registration_service.sms_service, "send_otp_sms", lambda *a, **k: None)
+        r1 = client.post("/students/register", json=_register_payload(full_name="الاسم الأول"))
+        assert r1.status_code == 201, r1.text
+        code1 = r1.json()["unique_code"]
+
+        r2 = client.post(
+            "/students/register",
+            json={
+                **_register_payload(full_name="الاسم الجديد"),
+                "previous_unique_code": code1,
+            },
+        )
+        assert r2.status_code == 201, r2.text
+        code2 = r2.json()["unique_code"]
+        assert code2 != code1
+
+        old = db.query(Student).filter(Student.unique_code == code1).first()
+        assert old is None
+        assert db.query(Student).filter(Student.unique_code == code2).count() == 1
+
+
+class TestResendQueueMode:
+    def test_resend_creates_new_sms_job(self, client, db, monkeypatch):
+        from app.models import SmsJob, SmsJobStatus
+
+        monkeypatch.setenv("SMS_MODE", "queue")
+        monkeypatch.setattr(
+            registration_service.sms_service, "send_otp_sms", lambda *a, **k: None
+        )
+        r = client.post("/students/register", json=_register_payload())
+        assert r.status_code == 201, r.text
+        code = r.json()["unique_code"]
+        assert db.query(SmsJob).count() == 1
+
+        first_job_id = db.query(SmsJob).order_by(SmsJob.id).first().id
+
+        r2 = client.post("/students/otp/resend", json={"unique_code": code})
+        assert r2.status_code == 200, r2.text
+
+        # الـ resend يُبطل OTP القديم (cascade على sms_jobs) وينشئ OTP + مهمة جديدة —
+        # فتبقى مهمة واحدة pending واحدة للرمز الجديد، والمهمة القديمة تختفي.
+        jobs = db.query(SmsJob).order_by(SmsJob.id).all()
+        assert len(jobs) == 1
+        assert jobs[0].id != first_job_id
+        assert jobs[0].status == SmsJobStatus.pending
+
+
+class TestOtpConsumption:
+    def test_otp_not_reusable_after_successful_verify(
+        self, client, db, monkeypatch
+    ):
+        """الرمز يُستهلك بعد التحقق مرة واحدة — إعادة استخدامه → 400 otp_invalid."""
+        monkeypatch.setenv("WORKER_TOKEN", "test-worker")
+        worker = {"Authorization": "Bearer test-worker"}
+        r = client.post("/students/register", json=_register_payload())
+        assert r.status_code == 201, r.text
+        code = r.json()["unique_code"]
+
+        item = client.post(
+            "/internal/sms/dequeue", params={"batch": 10}, headers=worker
+        ).json()[0]
+        otp_plaintext = item["otp_code"]
+
+        first = client.post(
+            "/students/otp/verify", json={"unique_code": code, "otp": otp_plaintext}
+        )
+        assert first.status_code == 200
+        assert first.json()["verification_status"] == "verified"
+
+        replay = client.post(
+            "/students/otp/verify", json={"unique_code": code, "otp": otp_plaintext}
+        )
+        assert replay.status_code == 400
+        assert replay.json()["error_code"] == "otp_invalid"

@@ -1,5 +1,7 @@
 """اختبارات الحجوزات (bookings) — زج جولة / استشارة."""
 
+from datetime import datetime
+
 from fastapi.testclient import TestClient
 
 import main as main_module
@@ -108,6 +110,28 @@ def test_consultation_booking_duplicate_409(
 
 
 # ---------- auth / roles ----------
+
+
+def test_booking_requires_campus_entry_same_day(
+    client, student_factory, students_admin_headers, college_staff_headers, monkeypatch
+):
+    """محدّث بعد تجانس _has_campus_entry: دخول أمس لا يبرر حجز اليوم."""
+    student_factory(STUDENT)
+
+    day1 = datetime(2025, 6, 15, 10, 0, 0)
+    day2 = datetime(2025, 6, 16, 9, 0, 0)
+
+    monkeypatch.setattr("app.time_utils.now_naive", lambda: day1)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+
+    monkeypatch.setattr("app.time_utils.now_naive", lambda: day2)
+    resp = client.post("/bookings/tour", json={"unique_code": STUDENT}, headers=college_staff_headers)
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "missing_campus_entry"
+
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    resp = client.post("/bookings/tour", json={"unique_code": STUDENT}, headers=college_staff_headers)
+    assert resp.status_code == 201
 
 
 def test_booking_forbidden_for_students_admin(client, students_admin_headers):

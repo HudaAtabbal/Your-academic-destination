@@ -1,11 +1,11 @@
 """
 منطق العمل للوحة مدير بيانات الطلاب — راجع قسم 6 بملف wijhatak_api_contract.md.
 
-قاعدة تصنيف السجلات الناقصة (walk-in):
-- "no_data" (بلا بيانات): بلا أي نشاط حضور إطلاقاً.
-- "partial" (جزئي): عليه نشاط واحد على الأقل، بس بياناته الشخصية لسا ناقصة
-  (status = pending).
-السجلات status=complete ما بتظهر بهاد الجدول إطلاقاً.
+قاعدة تصنيف السجلات (walk-in):
+- تبويب "غير مكتملة" (status=incomplete): سجلات status=pending.
+  - "no_data" (بلا بيانات): بلا أي نشاط حضور إطلاقاً.
+  - "partial" (جزئي): عليه نشاط واحد على الأقل، بس بياناته الشخصية لسا ناقصة.
+- تبويب "مكتملة" (status=complete): سجلات status=complete.
 """
 
 import math
@@ -25,7 +25,6 @@ _WALKIN_REQUIRED_FIELDS = (
     "bacc_year",
     "bacc_average",
     "certificate_type",
-    "initial_preferred_major",
 )
 
 
@@ -75,7 +74,7 @@ def update_student(db: Session, student_id: int, updates: dict) -> Student:
     return student
 
 
-def get_student_stats(db: Session) -> tuple[int, int]:
+def get_student_stats(db: Session) -> tuple[int, int, int]:
     # "إجمالي الطلاب المسجّلين" = اللي سجّلوا إلكترونياً + تحققوا (بعد OTP وظهور
     # البطاقة) — مش كل الطلاب بما فيهم walk-in والمنتظرين، راجع نفس المنطق
     # بـ dashboard_service (registered_online_count).
@@ -95,13 +94,26 @@ def get_student_stats(db: Session) -> tuple[int, int]:
         )
         .count()
     )
-    return total_registered, walkin_pending_count
+    walkin_completed_count = (
+        db.query(Student)
+        .filter(
+            Student.registration_type == RegistrationType.walk_in,
+            Student.status == StudentStatus.complete,
+        )
+        .count()
+    )
+    return total_registered, walkin_pending_count, walkin_completed_count
 
 
-def list_walkin_incomplete(db: Session, page: int, limit: int) -> tuple[list[dict], int]:
+def list_walkin_incomplete(
+    db: Session, page: int, limit: int, status: str = "incomplete"
+) -> tuple[list[dict], int]:
+    is_complete_tab = status == "complete"
+    target_status = StudentStatus.complete if is_complete_tab else StudentStatus.pending
+
     base_query = db.query(Student).filter(
         Student.registration_type == RegistrationType.walk_in,
-        Student.status == StudentStatus.pending,
+        Student.status == target_status,
     )
     total = base_query.count()
 
@@ -114,6 +126,18 @@ def list_walkin_incomplete(db: Session, page: int, limit: int) -> tuple[list[dic
 
     if not students:
         return [], total
+
+    if is_complete_tab:
+        items = [
+            {
+                "unique_code": s.unique_code,
+                "full_name": s.full_name,
+                "contact_id": s.contact_id,
+                "status": "complete",
+            }
+            for s in students
+        ]
+        return items, total
 
     # استعلام واحد لكل الصفحة بدل N+1 (استعلام لكل طالب على حدة)
     active_ids = {

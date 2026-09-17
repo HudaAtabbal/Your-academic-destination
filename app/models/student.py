@@ -3,7 +3,7 @@
 مطابق تماماً لجدول students بـ wijhatak_schema_v2.sql.
 """
 
-from sqlalchemy import ARRAY, BigInteger, Column, Date, DateTime, Index, Numeric, SmallInteger, String
+from sqlalchemy import ARRAY, BigInteger, CheckConstraint, Column, Date, DateTime, Index, Numeric, SmallInteger, String
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -71,8 +71,36 @@ class Student(Base):
     )
     otps = relationship("OTP", back_populates="student", cascade="all, delete-orphan")
 
+    @property
+    def completion_status(self) -> str:
+        """حالة اكتمال بيانات الطالب — نفس المفهوم الذي تعرضه /gate-incomplete.
+
+        registered مكتمل عندما verification_status == verified (تحقّق OTP)،
+        و walk_in مكتمل عندما status == complete (مكتمل بالبيانات عبر مدير البيانات).
+        """
+        if self.registration_type == RegistrationType.registered:
+            return (
+                "complete"
+                if self.verification_status == VerificationStatus.verified
+                else "incomplete"
+            )
+        if self.registration_type == RegistrationType.walk_in:
+            return "complete" if self.status == StudentStatus.complete else "incomplete"
+        return "incomplete"
+
+    @property
+    def is_complete(self) -> bool:
+        return self.completion_status == "complete"
+
     __table_args__ = (
         Index("idx_students_registration_status", "registration_type", "status"),
+        # رقم التواصل إلزامي النمط: 10 أرقام تبدأ بـ 09 (للسجلات الجديدة/القواعد
+        # المبنية من الصفر — التحقق الفعلي اليومي يتم بمستوى الـ API عبر
+        # validators يلي respondent schemas)
+        CheckConstraint(
+            r"contact_id IS NULL OR contact_id ~ '^09[0-9]{8}$'",
+            name="ck_students_contact_id_format",
+        ),
         # يمنع تسجيل نفس رقم التواصل مرتين لطلاب التسجيل المسبق فقط
         Index(
             "unique_contact_per_registration",

@@ -190,18 +190,28 @@ def test_staff_and_scanner_forbidden_on_admin_accounts(client, college_staff_hea
 
 
 def test_sql_injection_strings_stored_verbatim(client, db, _no_sms):
-    """التسجيل يستخدم استعلامات مقيّدة: نصوص إدخال ضارة تُخزَّن نصاً حرفياً دون تنفيذ."""
+    """التسجيل يستخدم استعلامات مقيّدة: النصوص الضارة تُخزَّن حرفياً دون تنفيذ (أمان المعاملات)."""
     evil_name = "x'; DROP TABLE students;--"
-    evil_contact = "091' OR '1'='1"
     resp = client.post(
         "/students/register",
-        json=_register_payload(full_name=evil_name, contact_id=evil_contact),
+        json=_register_payload(full_name=evil_name),
     )
     assert resp.status_code == 201, resp.text
     assert db.query(Student).count() == 1
     st = db.query(Student).first()
     assert st.full_name == evil_name
-    assert st.contact_id == evil_contact
+
+
+def test_sql_injection_contact_rejected_422(client, db, _no_sms):
+    """رقم التواصل صار نمطاً صارماً 09xxxxxxxx — نص ضار يُرفض بالتحقق قبل أي تخزين."""
+    evil_contact = "091' OR '1'='1"
+    resp = client.post(
+        "/students/register",
+        json=_register_payload(contact_id=evil_contact),
+    )
+    assert resp.status_code == 422, resp.text
+    assert resp.json()["error_code"] == "validation_error"
+    assert db.query(Student).count() == 0
 
 
 def test_register_non_json_body_422(client):

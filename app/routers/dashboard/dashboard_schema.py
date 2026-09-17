@@ -15,6 +15,7 @@ class DashboardStatsResponse(BaseModel):
     activities_today_cumulative: int
     survey_completed_count: int
     walkin_pending_count: int
+    walkin_completed_count: int
 
 
 class RoomOccupancyItem(BaseModel):

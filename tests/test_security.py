@@ -62,6 +62,15 @@ class TestRateLimit:
         )
         assert r3.status_code == 429, r3.text
 
+    def test_login_returns_429_after_limit(self, client, monkeypatch):
+        monkeypatch.setattr("app.dependencies._RATE_LIMIT_MAX_REQUESTS", 2)
+        for _ in range(2):
+            r = client.post("/auth/login", json={"username": "ghost", "password": "x"})
+            assert r.status_code == 401, r.text
+        r3 = client.post("/auth/login", json={"username": "ghost", "password": "x"})
+        assert r3.status_code == 429, r3.text
+        assert r3.json()["error_code"] == "too_many_requests"
+
 
 class TestPerStudentOtpLimit:
     def test_verify_limited_per_student(self, client, db, monkeypatch):
@@ -128,6 +137,7 @@ class TestOtpInvalidation:
 
 class TestOtpHashing:
     def test_otp_stored_as_hash_not_plaintext(self, client, db, monkeypatch):
+        monkeypatch.setenv("SMS_MODE", "sync")
         captured = {}
         from app.routers.registration import registration_service
 
@@ -148,6 +158,7 @@ class TestOtpHashing:
         )
 
     def test_verify_with_correct_code_still_works(self, client, db, monkeypatch):
+        monkeypatch.setenv("SMS_MODE", "sync")
         captured = {}
         from app.routers.registration import registration_service
 

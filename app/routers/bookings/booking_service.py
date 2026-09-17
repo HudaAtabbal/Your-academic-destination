@@ -1,4 +1,4 @@
-"""
+﻿"""
 منطق العمل لحجز جولة كلية أو استشارة (نية/حجز فقط، بدون تأكيد حضور فعلي).
 راجع قسم 3 بملف wijhatak_api_contract.md.
 
@@ -11,21 +11,27 @@ from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from app import time_utils
 from app.errors import duplicate_booking, missing_campus_entry, student_not_found
 from app.models import Booking, BookingType, Checkin, ActivityType, Faculty, Student
-
-
-def _get_student_or_raise(db: Session, unique_code: str) -> Student:
-    student = db.query(Student).filter(Student.unique_code == unique_code).first()
-    if student is None:
-        raise student_not_found()
-    return student
+from app.student_lookup import get_student_or_raise
 
 
 def _has_campus_entry(db: Session, student_id: int) -> bool:
+    """
+    محدّث: campus_entry صار مسموح مرة كل يوم — فالشرط المسبق للحجز (جولة/استشارة)
+    صار "فات من البوابة بنفس اليوم" مثل checkin_service._has_campus_entry_today.
+    """
+    today_start = time_utils.today_start()
+    today_end = today_start + timedelta(days=1)
     return (
         db.query(Checkin)
-        .filter(Checkin.student_id == student_id, Checkin.activity_type == ActivityType.campus_entry)
+        .filter(
+            Checkin.student_id == student_id,
+            Checkin.activity_type == ActivityType.campus_entry,
+            Checkin.checked_in_at >= today_start,
+            Checkin.checked_in_at < today_end,
+        )
         .first()
         is not None
     )
@@ -43,7 +49,7 @@ def _find_existing_booking(
 
 
 def create_tour_booking(db: Session, unique_code: str, college: Faculty) -> tuple[Booking, str | None]:
-    student = _get_student_or_raise(db, unique_code)
+    student = get_student_or_raise(db, unique_code)
 
     if not _has_campus_entry(db, student.id):
         raise missing_campus_entry()
@@ -62,7 +68,7 @@ def create_tour_booking(db: Session, unique_code: str, college: Faculty) -> tupl
 
 
 def create_consultation_booking(db: Session, unique_code: str) -> tuple[Booking, str | None]:
-    student = _get_student_or_raise(db, unique_code)
+    student = get_student_or_raise(db, unique_code)
 
     if not _has_campus_entry(db, student.id):
         raise missing_campus_entry()
@@ -83,9 +89,9 @@ def count_bookings_today(
 ) -> int:
     """
     عدّاد "اليوم" لعدد الحجوزات (بغض النظر إذا تأكدت فعلياً بـ checkins أو لأ) —
-    يستخدم توقيت السيرفر المحلي حالياً (قرار مؤجّل، راجع Business Rules #11).
+    بتوقيت سوريا عبر time_utils.
     """
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today_start = time_utils.today_start()
     today_end = today_start + timedelta(days=1)
 
     query = db.query(Booking).filter(

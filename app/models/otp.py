@@ -4,7 +4,7 @@
 جدول مؤقت بطبيعته — بينتظف يومياً بمهمة مجدولة (Scheduled Job) بمنطق الـ backend.
 """
 
-from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String ,INTEGER
+from sqlalchemy import BigInteger, Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 

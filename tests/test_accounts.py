@@ -130,3 +130,62 @@ def test_accounts_forbidden_for_non_super(client, students_admin_headers):
 def test_accounts_unauthenticated_401(client):
     resp = client.get("/admin/accounts")
     assert resp.status_code == 401
+
+
+# ---------- DELETE ----------
+
+
+def test_delete_account_204(client, super_headers):
+    client.post(
+        "/admin/accounts",
+        json={"username": "to_delete", "role": "gate_scanner"},
+        headers=super_headers,
+    )
+    resp = client.delete("/admin/accounts/to_delete", headers=super_headers)
+    assert resp.status_code == 204
+    # إعادة الحذف → 404
+    resp2 = client.delete("/admin/accounts/to_delete", headers=super_headers)
+    assert resp2.status_code == 404
+
+
+def test_delete_cannot_delete_self(client, super_headers):
+    resp = client.delete("/admin/accounts/taher_super", headers=super_headers)
+    assert resp.status_code == 400
+    assert resp.json()["error_code"] == "cannot_delete_self"
+
+
+def test_delete_unknown_404(client, super_headers):
+    resp = client.delete("/admin/accounts/nonexistent_user", headers=super_headers)
+    assert resp.status_code == 404
+    assert resp.json()["error_code"] == "account_not_found"
+
+
+# ---------- PATCH college ----------
+
+
+def test_patch_account_college(client, super_headers):
+    resp = client.patch(
+        "/admin/accounts/rima_staff",
+        json={"college": "dentistry"},
+        headers=super_headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["college"] == "dentistry"
+
+
+# ---------- create super_admin by super ----------
+
+
+def test_create_super_admin_by_super(client, super_headers):
+    resp = client.post(
+        "/admin/accounts",
+        json={"username": "new_super", "password": "sup123", "role": "super_admin"},
+        headers=super_headers,
+    )
+    assert resp.status_code == 201
+    assert resp.json()["role"] == "super_admin"
+    login = client.post(
+        "/auth/login", json={"username": "new_super", "password": "sup123"}
+    )
+    assert login.status_code == 200
+    assert login.json()["role"] == "super_admin"

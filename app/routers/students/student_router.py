@@ -44,9 +44,13 @@ def update_student(
 
 @router.get("/stats", response_model=StudentStatsResponse)
 def student_stats(db: Session = Depends(get_db)) -> StudentStatsResponse:
-    total_registered, walkin_pending_count = student_service.get_student_stats(db)
+    total_registered, walkin_pending_count, walkin_completed_count = (
+        student_service.get_student_stats(db)
+    )
     return StudentStatsResponse(
-        total_registered=total_registered, walkin_pending_count=walkin_pending_count
+        total_registered=total_registered,
+        walkin_pending_count=walkin_pending_count,
+        walkin_completed_count=walkin_completed_count,
     )
 
 
@@ -54,9 +58,10 @@ def student_stats(db: Session = Depends(get_db)) -> StudentStatsResponse:
 def walkin_incomplete(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    status: str = Query("incomplete", pattern="^(incomplete|complete)$"),
     db: Session = Depends(get_db),
 ) -> WalkinIncompleteListResponse:
-    items, total = student_service.list_walkin_incomplete(db, page, limit)
+    items, total = student_service.list_walkin_incomplete(db, page, limit, status)
     return WalkinIncompleteListResponse(
         items=[WalkinIncompleteItem(**item) for item in items],
         page=page,
