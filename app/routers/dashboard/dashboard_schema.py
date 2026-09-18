@@ -29,6 +29,21 @@ class RoomsOccupancyResponse(BaseModel):
     rooms: list[RoomOccupancyItem]
 
 
+class StudentsInsideItem(BaseModel):
+    unique_code: str
+    full_name: str | None = None
+    contact_id: str | None = None
+    total_points: int
+
+
+class StudentsInsideListResponse(BaseModel):
+    items: list[StudentsInsideItem]
+    page: int
+    limit: int
+    total: int
+    total_pages: int
+
+
 class SmsCounts(BaseModel):
     pending: int
     sending: int

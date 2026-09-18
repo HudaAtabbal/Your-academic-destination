@@ -127,3 +127,58 @@ def get_rooms_occupancy(db: Session) -> list[dict]:
 def get_sms_status(db: Session) -> dict:
     """حالة طابور إرسال SMS (أعداد حسب الحالة) + حالة المرسل المحلي."""
     return internal_service.get_sms_status(db)
+
+
+def list_students_inside_all_days(
+    db: Session,
+    page: int,
+    limit: int,
+    code: str | None = None,
+    order: str = "desc",
+) -> tuple[list[dict], int]:
+    """
+    قائمة الطلاب المميزين (distinct) يلي دخلوا الحرم على مدار كل الأيام — تراكمي
+    بدون فلترة تاريخ (نفس أساس عدّاد students_inside_all_days). لكل طالب نرجع
+    الرمز والاسم ورقم التواصل ومجموع نقاطه المخزّنة (total_points) — بدون أي
+    حساب معقّد وقت الطلب، لأنه عمود مخزّن ومحدّث تلقائياً.
+
+    الفلترة/الترتيب:
+    - code: بحث جزئي بالرمز (ILIKE) — ما بفرّق بين walk_in و registered.
+    - order: "desc" (الأعلى نقاطاً أولاً) أو "asc" (الأقل أولاً).
+    - الصفحات مرتبة دائماً بنفس الترتيب الثانوي (unique_code) لترقيم ثابت.
+    """
+    # طلاب ممن دخلوا الحرم مرة على الأقل (campus_entry) — بدون شرط اليوم.
+    inside_student_ids = (
+        db.query(Checkin.student_id)
+        .filter(Checkin.activity_type == ActivityType.campus_entry)
+        .distinct()
+        .subquery()
+    )
+
+    query = db.query(Student).join(
+        inside_student_ids, Student.id == inside_student_ids.c.student_id
+    )
+
+    if code:
+        query = query.filter(Student.unique_code.ilike(f"%{code}%"))
+
+    total = query.count()
+
+    order_col = Student.total_points.desc() if order == "desc" else Student.total_points.asc()
+    rows = (
+        query.order_by(order_col, Student.unique_code.asc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
+
+    items = [
+        {
+            "unique_code": student.unique_code,
+            "full_name": student.full_name,
+            "contact_id": student.contact_id,
+            "total_points": student.total_points,
+        }
+        for student in rows
+    ]
+    return items, total

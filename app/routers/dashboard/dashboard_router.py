@@ -3,7 +3,9 @@ Router: admin/dashboard — راجع قسم 9 بملف wijhatak_api_contract.md
 الدور المسموح: super_admin فقط.
 """
 
-from fastapi import APIRouter, Depends
+import math
+
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -16,6 +18,8 @@ from app.routers.dashboard.dashboard_schema import (
     RoomsOccupancyResponse,
     SmsCounts,
     SmsStatusResponse,
+    StudentsInsideItem,
+    StudentsInsideListResponse,
 )
 
 router = APIRouter(
@@ -45,3 +49,23 @@ def sms_status(db: Session = Depends(get_db)) -> SmsStatusResponse:
 def rooms_occupancy(db: Session = Depends(get_db)) -> RoomsOccupancyResponse:
     rooms = dashboard_service.get_rooms_occupancy(db)
     return RoomsOccupancyResponse(rooms=[RoomOccupancyItem(**r) for r in rooms])
+
+
+@router.get("/students-inside", response_model=StudentsInsideListResponse)
+def students_inside(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    code: str | None = Query(default=None, max_length=20),
+    order: str = Query("desc", pattern="^(desc|asc)$"),
+    db: Session = Depends(get_db),
+) -> StudentsInsideListResponse:
+    items, total = dashboard_service.list_students_inside_all_days(
+        db, page, limit, code=code, order=order
+    )
+    return StudentsInsideListResponse(
+        items=[StudentsInsideItem(**item) for item in items],
+        page=page,
+        limit=limit,
+        total=total,
+        total_pages=max(1, math.ceil(total / limit)),
+    )
