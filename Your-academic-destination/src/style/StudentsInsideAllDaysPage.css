@@ -1,0 +1,93 @@
+/* ============================================
+   StudentsInsideAllDaysPage — صف الفلترة وحقولها
+   مبني على عائلة ألوان الهوية نفسها المستخدمة
+   بباقي القائمة (InWalkIncompletePage.css):
+   الأخضر الغامق #0E3E37 + الكريمي #F7ECD9 + نص بنّي.
+   ============================================ */
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-input {
+  flex: 1 1 140px;
+  min-width: 0;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E5D5BC;
+  border-radius: 20px;
+  padding: 8px 14px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #3B0D23;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.filter-input::placeholder {
+  color: #B9A98E;
+  font-weight: 600;
+}
+
+.filter-input:focus {
+  border-color: #0E3E37;
+}
+
+.filter-toggle {
+  flex: 1 1 auto;
+  background-color: #F7ECD9;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #7A6953;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-toggle:hover {
+  color: #0E3E37;
+}
+
+.filter-toggle-active {
+  background-color: #0E3E37;
+  color: #FFFFFF;
+}
+
+.filter-btn {
+  border: none;
+  border-radius: 20px;
+  padding: 8px 16px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.filter-btn:hover {
+  opacity: 0.88;
+}
+
+.filter-btn-primary {
+  background-color: #0E3E37;
+  color: #FFFFFF;
+}
+
+.filter-btn-secondary {
+  background-color: #FFFFFF;
+  color: #0E3E37;
+  border: 1.5px solid #0E3E37;
+}
+
+.points-cell {
+  font-family: sans-serif;
+  text-align: center;
+  font-weight: 800;
+  color: #0E3E37;
+}

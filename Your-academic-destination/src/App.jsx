@@ -39,6 +39,7 @@ import InWalkIncompletePage from "./pages/UniGate/InWalkIncompletePage";
 import GeneralDirectorDashboard from "./pages/Admin/GeneralDirectorDashboard";
 import CreateTeamAccountPage from "./pages/Admin/CreateTeamAccountPage";
 import GenerateWalkInCodesPage from "./pages/Admin/GenerateWalkInCodesPage";
+import StudentsInsideAllDaysPage from "./pages/Admin/StudentsInsideAllDaysPage";
 
 
 
@@ -83,6 +84,7 @@ function App() {
 
         {/* لوحة الإدارة العامة — محتاجة تسجيل دخول (JWT) */}
         <Route path="/dashboard" element={<TeamPrivateRoute><GeneralDirectorDashboard/></TeamPrivateRoute>}/>
+        <Route path="/dashboard-students-inside" element={<TeamPrivateRoute><StudentsInsideAllDaysPage/></TeamPrivateRoute>}/>
         <Route path="/create-team-account" element={<TeamPrivateRoute><CreateTeamAccountPage/></TeamPrivateRoute>}/>
         <Route path="/generate-walkin-code" element={<TeamPrivateRoute><GenerateWalkInCodesPage/></TeamPrivateRoute>}/>
       </Routes>

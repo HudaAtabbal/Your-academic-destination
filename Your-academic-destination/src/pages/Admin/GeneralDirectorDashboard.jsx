@@ -13,7 +13,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
   const [stats, setStats] = useState([
     { id: 'registered', label: 'مسجّلون إلكترونياً', value: '—' },
     { id: 'inside', label: 'داخل الحرم اليوم', value: '—' },
-    { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: '—' },
+    { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: '—', link: '/dashboard-students-inside' },
     { id: 'survey', label: 'أكملوا الاستبيان', value: '—' },
     { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: '—', link: '/gate-incomplete' },
     { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: '—' },
@@ -30,7 +30,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
           setStats([
             { id: 'registered', label: 'مسجّلون إلكترونياً', value: res.registered_online_count },
             { id: 'inside', label: 'داخل الحرم اليوم', value: res.students_inside_today },
-            { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: res.students_inside_all_days },
+            { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: res.students_inside_all_days, link: '/dashboard-students-inside' },
             { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
             { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: res.walkin_pending_count, link: '/gate-incomplete' },
             { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: res.walkin_completed_count },
