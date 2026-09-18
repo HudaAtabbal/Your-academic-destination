@@ -6,6 +6,7 @@ import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
 import { showToast } from '../../api/toast';
 import { ROLE_LABELS } from '../../api/roles';
+import { COLLEGE_LABELS } from '../../api/colleges';
 import '../../style/StaffScan.css';
 
 const OPTION_LABELS = {
@@ -113,7 +114,7 @@ const CollegePage = () => {
           title="ركن التوجيه"
           username={accountUsername}
           role={roleLabel}
-          location={accountCollege || 'داخل مبنى الكلية'}
+          location={COLLEGE_LABELS[accountCollege] || 'داخل مبنى الكلية'}
         />
 
         <main className="card-body">

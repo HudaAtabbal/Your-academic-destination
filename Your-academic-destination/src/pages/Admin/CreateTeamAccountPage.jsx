@@ -18,8 +18,8 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
   const [role, setRole] = useState(editMember?.roleType || 'gate_scanner'); // 'super_admin', 'students_admin', 'gate_scanner', 'college_staff'
   const [faculty, setFaculty] = useState(
     editMember?.roleType === 'college_staff' &&
-    FACULTY_OPTIONS.some((c) => c.value === editMember.faculty)
-      ? editMember.faculty
+    FACULTY_OPTIONS.some((c) => c.value === editMember.facultyKey)
+      ? editMember.facultyKey
       : ''
   );
   const [error, setError] = useState('');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { apiGet, apiPatch, ApiError } from '../../api/api';
+import AdminHeader from '../../components/AdminHeader';
 import '../../style/StudentDataManagerPage.css';
 
 // تحويل استجابة الباك (snake_case) لشكل formData الداخلي تبع الصفحة
@@ -80,6 +81,10 @@ const validateStudentForm = (formData) => {
 const StudentDataManagerPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // المدير العام بيشوف الهيدر الإداري الموحّد فوق الصفحة، بينما باقي الأدوار
+  // المعنية بهاي الصفحة (مدير بيانات الطلاب) بتشوف الكرت العادي
+  const isSuperAdmin = localStorage.getItem('accountRole') === 'super_admin';
 
   // searchInput: قيمة خانة الكتابة نفسها (بتتحدث بكل حرف)
   // activeId: الرقم يلي فعلياً منعرض بياناته/عنوانه، ما بيتغير إلا بعد ضغط "بحث"
@@ -244,21 +249,23 @@ const StudentDataManagerPage = () => {
   };
 
   return (
-    <div className="card-wrapper">
+    <div className={`card-wrapper ${isSuperAdmin ? 'admin-gate-mode' : ''}`}>
+      {isSuperAdmin && <AdminHeader />}
       <div className="card-container">
         
-        {/* Top Header */}
-        <header className="page-header">
-          
-          
-          <div className="header-brand">
-            <div className="brand-text">
-              <h1 className="brand-title">وجهتك الأكاديمية 2</h1>
-              <p className="brand-subtitle">لوحة التحكم</p>
+        {/* Top Header — للمدير العام بنستبدله بالهيدر الإداري الموحّد،
+            بينما باقي الأدوار بشوفوا الكرت العادي مع شارة الدور */}
+        {!isSuperAdmin && (
+          <header className="page-header">
+            <div className="header-brand">
+              <div className="brand-text">
+                <h1 className="brand-title">وجهتك الأكاديمية 2</h1>
+                <p className="brand-subtitle">لوحة التحكم</p>
+              </div>
             </div>
-          </div>
-          <div className="header-badge">مدير بيانات الطلاب</div>
-        </header>
+            <div className="header-badge">مدير بيانات الطلاب</div>
+          </header>
+        )}
 
         {/* Scrollable Main Content */}
         <main className="page-body">

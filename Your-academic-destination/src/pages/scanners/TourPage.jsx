@@ -5,6 +5,7 @@ import ScanResultCard from '../../components/ScanResultCard';
 import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
 import { ROLE_LABELS } from '../../api/roles';
+import { COLLEGE_LABELS } from '../../api/colleges';
 import '../../style/StaffScan.css';
 
 const TourPage = () => {
@@ -42,7 +43,9 @@ const TourPage = () => {
       const response = await apiPost('/checkins/tour', { unique_code: code });
       setResult({
         status: 'success',
-        title: `جولة — كلية ${response.college || ''}`,
+        title: COLLEGE_LABELS[response.college]
+          ? `جولة — كلية ${COLLEGE_LABELS[response.college]}`
+          : 'جولة — كلية',
         studentName: response.student_name,
         studentCode: code,
       });
@@ -74,7 +77,7 @@ const TourPage = () => {
           title="جولة تعريفية"
           username={accountUsername}
           role={roleLabel}
-          location={accountCollege || 'باب الكلية'}
+          location={COLLEGE_LABELS[accountCollege] || 'باب الكلية'}
         />
 
         <main className="card-body">

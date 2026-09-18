@@ -2,10 +2,15 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import logo from '../assets/whited-logo-1.png';
 import { clearAuthToken } from '../api/api';
+import { ROLE_LABELS } from '../api/roles';
 import '../style/AdminHeader.css';
 
-const AdminHeader = ({ userRole = 'المدير العام' }) => {
+const AdminHeader = ({ userRole }) => {
   const navigate = useNavigate();
+
+  // إذا ما مررنا الدور كـ prop، منقرأه من localStorage ونعرض الترجمة العربية
+  const effectiveRole =
+    userRole || ROLE_LABELS[localStorage.getItem('accountRole')] || 'المدير العام';
 
   const handleLogout = () => {
     clearAuthToken();
@@ -47,7 +52,7 @@ const AdminHeader = ({ userRole = 'المدير العام' }) => {
       </nav>
 
       <div className="admin-header-user">
-        <span className="admin-user-badge">{userRole}</span>
+        <span className="admin-user-badge">{effectiveRole}</span>
         <button type="button" className="admin-logout-btn" onClick={handleLogout}>
           تسجيل خروج
         </button>

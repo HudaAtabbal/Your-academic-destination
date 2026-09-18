@@ -130,6 +130,16 @@
 /* الكرت بياخد الشاشة كاملة دايماً — بلا حواف wrapper ظاهرة إطلاقاً.
    !important هون لتخطي أي تعارض كلاسات من صفحات تانية (نفس سبب استخدامها
    فوق بالملف) */
+/* شريط الأزرار السفلي — ثابت يبقى ظاهر فوق المحتوى وقت السكرول */
+.actions {
+  margin-top: 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 10px 0 0;
+  background-color: #FFF4E0;
+}
+
 .card-wrapper {
   padding: 0 !important;
   align-items: stretch !important;   /* بيلغي التوسيط العمودي — كان سبب فراغ فوق وتحت */

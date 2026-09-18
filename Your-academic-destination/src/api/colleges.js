@@ -54,3 +54,10 @@ export const COLLEGE_OPTIONS = [
   { id: 'institute_applied_industries', name: 'معهد تقاني صناعات تطبيقية' },
   { id: 'institute_computer', name: 'معهد تقاني حاسوب' },
 ];
+
+// خريطة id → الاسم العربي، للعرض في الأماكن اللي بينعرض فيها اسم الكلية
+// بدون ربط بقيمة الـ select (مثلاً الصفحة الخاصة بمسؤول الكلية أو الملخصات)
+export const COLLEGE_LABELS = COLLEGE_OPTIONS.reduce((acc, item) => {
+  acc[item.id] = item.name;
+  return acc;
+}, {});

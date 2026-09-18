@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ROLE_LABELS } from '../../api/roles';
+import { COLLEGE_LABELS } from '../../api/colleges';
 import '../../style/SelectStationPage.css';
 
 // كل محطة بتودّي على شاشة حقيقية بالراوتر
@@ -18,7 +19,13 @@ const SelectStationPage = () => {
   const roleType = localStorage.getItem('accountRole') || '';
   const college = localStorage.getItem('accountCollege') || '';
   const roleLabel = ROLE_LABELS[roleType] || roleType;
-  const userInfo = [username, roleLabel, college].filter(Boolean).join(' • ');
+  const userInfo = [
+    username,
+    roleLabel,
+    COLLEGE_LABELS[college] || college,
+  ]
+    .filter(Boolean)
+    .join(' • ');
 
   const stations = [
     {

@@ -73,6 +73,8 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             username: account.username,
             role: ROLE_LABELS[account.role] || account.role,
             roleType: account.role,
+            // المفتاح الخام (English) للتحرير + الاسم العربي للعرض
+            facultyKey: account.college,
             faculty: FACULTY_LABELS[account.college] || account.college || '—',
           }))
         );

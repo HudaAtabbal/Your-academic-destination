@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiGet, ApiError } from '../../api/api';
 import { ROLE_LABELS } from '../../api/roles';
+import AdminHeader from '../../components/AdminHeader';
 import '../../style/InWalkIncompletePage.css';
 
 // تحويل status الراجعة من الباك لشكل العرض العربي — للتاب الأول (غير مكتملة)
@@ -44,6 +45,10 @@ const InWalkIncompletePage = () => {
   // مباشرة بدل ما نعتمد على تمريره كـ prop، لأنه التنقّل بالمشروع كله
   // عن طريق navigate() ومافي تمرير props بين الصفحات
   const userRole = localStorage.getItem('accountRole');
+
+  // المدير العام بيشوف الهيدر الإداري الموحّد فوق الصفحة، وباقي الأدوار
+  // المعنية بهاي الصفحة بتشوف الكرت العادي
+  const isSuperAdmin = userRole === 'super_admin';
 
   const [activeTab, setActiveTab] = useState('incomplete');
   const [records, setRecords] = useState([]);
@@ -96,21 +101,23 @@ const InWalkIncompletePage = () => {
   };
 
   return (
-    <div className="card-wrapper">
+    <div className={`card-wrapper ${isSuperAdmin ? 'admin-gate-mode' : ''}`}>
+      {isSuperAdmin && <AdminHeader />}
       <div className="card-container">
         
-        {/* Top Header */}
-        <header className="page-header">
-          
-          
-          <div className="header-brand">
-            <div className="brand-text">
-              <h1 className="brand-title">وجهتك الأكاديمية 2</h1>
-              <p className="brand-subtitle">لوحة التحكم</p>
+        {/* Top Header — للمدير العام بنستبدله بالهيدر الإداري الموحّد،
+            بينما باقي الأدوار بشوفوا الكرت العادي مع شارة الدور */}
+        {!isSuperAdmin && (
+          <header className="page-header">
+            <div className="header-brand">
+              <div className="brand-text">
+                <h1 className="brand-title">وجهتك الأكاديمية 2</h1>
+                <p className="brand-subtitle">لوحة التحكم</p>
+              </div>
             </div>
-          </div>
-          <div className="header-badge">{ROLE_LABELS[userRole] || 'مدير بيانات الطلاب'}</div>
-        </header>
+            <div className="header-badge">{ROLE_LABELS[userRole] || 'مدير بيانات الطلاب'}</div>
+          </header>
+        )}
 
         {/* Scrollable Main Body */}
         <main className="page-body">

@@ -5,6 +5,7 @@ import ScanResultCard from '../../components/ScanResultCard';
 import ScannerFooter from '../../components/ScannerFooter';
 import { apiGet, apiPost, ApiError } from '../../api/api';
 import { ROLE_LABELS } from '../../api/roles';
+import { COLLEGE_LABELS } from '../../api/colleges';
 import '../../style/StaffScan.css';
 
 const ConsultationPage = () => {
@@ -73,7 +74,7 @@ const ConsultationPage = () => {
           title="استشارة فردية"
           username={accountUsername}
           role={roleLabel}
-          location={accountCollege || 'باب الاستشارة'}
+          location={COLLEGE_LABELS[accountCollege] || 'باب الاستشارة'}
         />
 
         <main className="card-body">

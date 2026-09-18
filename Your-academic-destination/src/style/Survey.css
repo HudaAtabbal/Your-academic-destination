@@ -121,7 +121,7 @@
   pointer-events: none;
 }
 
-/* Bottom Actions */
+/* Bottom Actions — شريط سفلي ثابت يبقى ظاهر فوق المحتوى وقت السكرول */
 .actions {
   margin-top: auto;
   display: flex;
@@ -129,6 +129,10 @@
   align-items: center; /* حتى الأزرار تضل بالنص لما نصغّر عرضها */
   gap: 10px;
   padding-top: 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  background-color: #FFF4E0;
 }
 
 .survey-error-message {

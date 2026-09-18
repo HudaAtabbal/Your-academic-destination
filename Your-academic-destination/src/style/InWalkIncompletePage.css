@@ -376,3 +376,23 @@
   max-height: none !important;
   border-radius: 0 !important;
 }
+
+/* ============================================
+   وضع المدير العام — الهيدر الإداري الموحّد
+   فوق الكرت، والكرت بيمتد ليملأ باقي الشاشة
+   ============================================ */
+.card-wrapper.admin-gate-mode {
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  padding: 0 !important;
+}
+
+.card-wrapper.admin-gate-mode .card-container {
+  flex: 1;
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0;
+}

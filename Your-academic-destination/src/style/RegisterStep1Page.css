@@ -90,9 +90,14 @@
   margin: 0;
 }
 
-/* Button */
+/* Button — شريط سفلي ثابت يبقى ظاهر فوق المحتوى وقت السكرول */
 .actions {
   margin-top: 40px;
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  padding: 10px 0 0;
+  background-color: #FFF4E0;
 }
 
 .btn {
