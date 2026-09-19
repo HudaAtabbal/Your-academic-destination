@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import HeaderStep from '../../components/HeaderStep';
 import BottomNav from '../../components/BottomNav';
 import { apiGet, ApiError } from '../../api/api';
@@ -14,26 +14,46 @@ const STATIONS = [
   { name: 'الاستبيان البعدي', points: '20' },
 ];
 
+// النقاط هي المعلومة الوحيدة داخل تطبيق الطالب يلي لازم تبقى طازة —
+// منحدّثها بصمت كل ٦٠ ثانية أثناء فتح التاب (حسب موازنة التحميل).
+const POINTS_REFRESH_MS = 60000;
+
 const MyPointsPage = ({
+  active = false,
   footerNote = 'تُحتسب حتى ثلاث ندوات في اليوم — النقاط لتشجيعك على التنوّع لا على الجري.',
   awardsNote = 'الجوائز تُسلَّم في حفل الختام، اليوم الثالث --:16.',
 }) => {
   const [points, setPoints] = useState(null);
   const [error, setError] = useState('');
+  // بنمرّر سولاج فعالية عشان ما نعمل استطلاعات مركّبة فوق بعضها
+  const pendingRef = useRef(false);
 
   useEffect(() => {
-    const studentCode = localStorage.getItem('studentCode');
-    if (!studentCode) {
-      setError('يوجد مشكلة في جلستك، يرجى الرجوع والتسجيل من جديد');
-      return;
-    }
+    if (!active) return;
 
-    apiGet(`/students/${studentCode}/points`)
-      .then((res) => setPoints(res.total_points))
-      .catch((err) => {
+    const loadPoints = async () => {
+      if (pendingRef.current) return;
+      const studentCode = localStorage.getItem('studentCode');
+      if (!studentCode) {
+        setError('يوجد مشكلة في جلستك، يرجى الرجوع والتسجيل من جديد');
+        return;
+      }
+      pendingRef.current = true;
+      try {
+        const res = await apiGet(`/students/${studentCode}/points`);
+        setPoints(res.total_points);
+      } catch (err) {
         setError(err instanceof ApiError ? err.message : 'حدث خطأ اثناء تحميل نقاطك');
-      });
-  }, []);
+      } finally {
+        pendingRef.current = false;
+      }
+    };
+
+    loadPoints();
+
+    const timer = setInterval(loadPoints, POINTS_REFRESH_MS);
+    return () => clearInterval(timer);
+  }, [active]);
 
   return (
     <div className="card-wrapper">

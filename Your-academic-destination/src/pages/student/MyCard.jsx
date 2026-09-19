@@ -7,7 +7,7 @@ import { apiGet, ApiError } from "../../api/api";
 import { showToast } from "../../api/toast";
 import "../../style/MyCard.css";
 
-const MyCard = () => {
+const MyCard = ({ active = false }) => {
   const qrWrapperRef = useRef(null);
   const navigate = useNavigate();
 
@@ -38,6 +38,20 @@ const MyCard = () => {
         setCardStatus("pending");
       });
   }, [studentCode]);
+
+  // مع keep-alive التابات بتبقى محمّلة — لما التاب يرجع للعرض نتحقق بصمت تاني
+  // (بدون ما نبين شاشة التحميل ونخسر الرأي الحالي) حتى تنعكس أي حالة تفعيل جديدة
+  useEffect(() => {
+    if (!active || !studentCode) return;
+
+    apiGet(`/students/card/${studentCode}`)
+      .then((res) => {
+        setCardStatus(res.verification_status === "verified" ? "verified" : "pending");
+      })
+      .catch(() => {
+        // صمت — بنخلي الحالة المعروضة حالياً ولا نكسر الواجهة
+      });
+  }, [active, studentCode]);
 
   const handleLogout = () => {
     localStorage.removeItem("studentCode");

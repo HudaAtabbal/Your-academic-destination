@@ -1,0 +1,4 @@
+/* غلاف تابات الطالب — تابات غير نشطة تختفي نهائياً من العرض والحساب */
+.student-tabs-shell section[hidden] {
+  display: none !important;
+}

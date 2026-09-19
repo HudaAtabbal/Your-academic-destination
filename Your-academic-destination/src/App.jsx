@@ -5,6 +5,7 @@ import TeamPrivateRoute from "./components/TeamPrivateRoute";
 import StudentPrivateRoute from "./components/StudentPrivateRoute";
 import GuestOnlyRoute from "./components/GuestOnlyRoute";
 import OtpRoute from "./components/OtpRoute";
+import StudentTabsLayout from "./components/StudentTabsLayout";
 
 import WelcomePage from "./pages/student/WelcomePage";
 import FindCardPage from "./pages/student/FindCardPage"
@@ -12,13 +13,6 @@ import RegisterStep1Page from "./pages/student/RegisterStep1Page";
 import RegisterStep2Page from "./pages/student/RegisterStep2Page";
 import RegisterStep3Page from "./pages/student/RegisterStep3Page";
 import OTP from "./pages/student/OTP";
-
-
-import MyCard from "./pages/student/MyCard";
-import AcademicGuide from "./pages/student/AcademicGuide";
-import Survey from "./pages/student/Survey";
-import MyPointsPage from "./pages/student/MyPointsPage";
-
 
 import TeamLoginPage from "./pages/scanners/TeamLoginPage";
 import SelectStationPage from "./pages/scanners/SelectStationPage"
@@ -60,11 +54,13 @@ function App() {
 
 
         {/* صفحات الطالب الشخصية — محتاجة studentCode + studentName (بعد تسجيل+تحقق ناجح) */}
-        <Route path="/my-card" element={<StudentPrivateRoute><MyCard/></StudentPrivateRoute>}/>
-        {/* الدليل الأكاديمي محمي كمان — ما في أي مسار داخل التطبيق مفتوح بلا تسجيل */}
-        <Route path="/academic-guide" element={<StudentPrivateRoute><AcademicGuide/></StudentPrivateRoute>}/>
-        <Route path="/survey" element={<StudentPrivateRoute><Survey/></StudentPrivateRoute>}/>
-        <Route path="/my-points" element={<StudentPrivateRoute><MyPointsPage/></StudentPrivateRoute>}/>
+        {/* كل المسارات الأربعة بتستخدم نفس <StudentTabsLayout/> — نفس المكوّن بنفس الموقع عبر
+            المسارات بيعني React ما رح يُعيد بنيّ الصفحات عند التبديل بينها (keep-alive):
+            الدليل ما بيشحن من جديد، الاستبيان بيحافظ على الإجابات، والنقاط بتتحدّث فقط */}
+        <Route path="/my-card" element={<StudentPrivateRoute><StudentTabsLayout /></StudentPrivateRoute>}/>
+        <Route path="/academic-guide" element={<StudentPrivateRoute><StudentTabsLayout /></StudentPrivateRoute>}/>
+        <Route path="/survey" element={<StudentPrivateRoute><StudentTabsLayout /></StudentPrivateRoute>}/>
+        <Route path="/my-points" element={<StudentPrivateRoute><StudentTabsLayout /></StudentPrivateRoute>}/>
 
 
         {/* شاشات مسح فريق العمل — محتاجة تسجيل دخول (JWT) */}

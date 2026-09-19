@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { apiGet, ApiError } from '../../api/api';
 import AdminHeader from '../../components/AdminHeader';
 import '../../style/InWalkIncompletePage.css';
@@ -9,8 +9,33 @@ const PAGE_SIZE = 20;
 // الفلترة/الترتيب الافتراضية: الكل + الأعلى نقاطاً أولاً + بدون قيد نوع التسجيل
 const DEFAULT_ORDER = 'desc';
 
-// الفلترة بتشتغل فورياً مع debounce خفيف — ما في زر "تطبيق" بعد اليوم
-const DEBOUNCE_MS = 300;
+// هاد النهج "موازن": بنجيب كل السجلات مرة وحدة عنده فتح الواجهة (حتى ١٠ صفحات ×
+// ١٠٠ = ١٠٠٠ صف)، وبعدها الفلترة/الترتيب/الترقيم كلهم محليين على المتصفح بدون أي
+// طلبات سيرفر. وبالتوازي بنعمل تحديث صامت خلفي كل ٣٠ ثانية حتى الإدارة تشوف
+// بيانات طازة بدون ما نكسر تفاعل المستخدم السريع.
+const REFRESH_MS = 30000;
+const FETCH_LIMIT = 100;
+const MAX_PAGES = 10;
+
+// نجيب كل صفوف الطلاب داخل الجامعة (كل الأيام) دفعة وحدة متسلسلة
+const fetchAllStudentsInside = async () => {
+  const items = [];
+  let page = 1;
+  let total = 0;
+  while (page <= MAX_PAGES) {
+    const params = new URLSearchParams({
+      page: String(page),
+      limit: String(FETCH_LIMIT),
+      order: 'desc',
+    });
+    const response = await apiGet(`/admin/dashboard/students-inside?${params.toString()}`);
+    items.push(...(response.items || []));
+    total = response.total;
+    if (items.length >= total) break;
+    page += 1;
+  }
+  return { items, total };
+};
 
 const StudentsInsideAllDaysPage = () => {
   // الدور محفوظ بالـ localStorage وقت تسجيل الدخول (accountRole) — منقرأه هون
@@ -19,93 +44,100 @@ const StudentsInsideAllDaysPage = () => {
   const userRole = localStorage.getItem('accountRole');
   const isSuperAdmin = userRole === 'super_admin';
 
-  const [records, setRecords] = useState([]);
+  // كل السجلات المحمّلة مرة وحدة + الفلاتر/الترتيب الحيليين
+  const [allItems, setAllItems] = useState([]);
   const [totalCount, setTotalCount] = useState(null);
-  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // قيمة حقل الرمز كما يكتبها المستخدم (تتبّع فوري للكتابة)
+  const [page, setPage] = useState(1);
+  // قيمة حقل الرمز كما يكتبها المستخدم — بتصير فلترة حيّة محلية فوراً
   const [codeInput, setCodeInput] = useState('');
-  // قيم الفلترة المطبّقة فعلياً على الطلب
-  const [filters, setFilters] = useState({ code: '', order: DEFAULT_ORDER, regType: '' });
+  const [order, setOrder] = useState(DEFAULT_ORDER);
+  const [regType, setRegType] = useState('');
 
-  // مؤقّت مؤجَّل لحقل الرمز — كل كتابة تمهّد المؤقّت حتى يتوقف المستخدم
-  const debounceRef = useRef(null);
-
-  useEffect(
-    () => () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    },
-    []
-  );
-
-  // تطبيق رمز مكتوب (فوري عند Enter، أو بعد توقف الكتابة)
-  const commitCode = (value) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    setPage(1);
-    setFilters((prev) => ({ ...prev, code: value.trim() }));
-  };
-
-  const handleCodeChange = (e) => {
-    const value = e.target.value;
-    setCodeInput(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => commitCode(value), DEBOUNCE_MS);
-  };
-
-  const handleCodeKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      commitCode(codeInput);
-    }
-  };
-
-  const setOrder = (nextOrder) => {
-    setPage(1);
-    setFilters((prev) => ({ ...prev, order: nextOrder }));
-  };
-
-  const toggleRegType = (regType) => {
-    setPage(1);
-    setFilters((prev) => ({ ...prev, regType: prev.regType === regType ? '' : regType }));
-  };
-
+  // تحميل أولي + تحديث صامت دوري
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      setError('');
-      try {
-        const params = new URLSearchParams({
-          page: String(page),
-          limit: String(PAGE_SIZE),
-          order: filters.order,
-        });
-        if (filters.code) params.set('code', filters.code);
-        if (filters.regType) params.set('reg_type', filters.regType);
+    let cancelled = false;
 
-        const response = await apiGet(`/admin/dashboard/students-inside?${params.toString()}`);
-        setRecords(response.items);
-        setTotalCount(response.total);
+    const load = async () => {
+      try {
+        const { items, total } = await fetchAllStudentsInside();
+        if (cancelled) return;
+        setAllItems(items);
+        setTotalCount(total);
+        setError('');
       } catch (err) {
-        setError(err instanceof ApiError ? err.message : 'صار خطأ بتحميل السجلات');
+        if (!cancelled) {
+          setError(err instanceof ApiError ? err.message : 'صار خطأ بتحميل السجلات');
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) setIsLoading(false);
       }
     };
 
-    loadData();
-  }, [page, filters]);
+    load();
+    const timer = setInterval(() => {
+      if (!cancelled) load();
+    }, REFRESH_MS);
 
-  const totalPages = totalCount ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : 1;
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, []);
 
-  const handlePrevPage = () => {
-    setPage((p) => Math.max(1, p - 1));
+  // الفلترة الحيّة المحلية — ما في أي طلب باك، فورّي
+  const filteredItems = useMemo(() => {
+    const keyword = codeInput.trim().toLowerCase();
+    return allItems.filter((item) => {
+      const code = (item.unique_code || '').toLowerCase();
+      if (keyword && !code.includes(keyword)) return false;
+      if (regType === 'R' && !code.startsWith('r-')) return false;
+      if (regType === 'W' && !code.startsWith('w-')) return false;
+      return true;
+    });
+  }, [allItems, codeInput, regType]);
+
+  // الترتيب المحلي (تنازلي/تصاعدي بالنقاط مع ربط بالرمز) — بدون سيرفر
+  const sortedItems = useMemo(() => {
+    const sorted = [...filteredItems];
+    sorted.sort((a, b) => {
+      const diff =
+        order === 'desc'
+          ? b.total_points - a.total_points
+          : a.total_points - b.total_points;
+      if (diff !== 0) return diff;
+      return String(a.unique_code).localeCompare(String(b.unique_code));
+    });
+    return sorted;
+  }, [filteredItems, order]);
+
+  // الترقيم المحلي
+  const totalPages = sortedItems.length
+    ? Math.max(1, Math.ceil(sortedItems.length / PAGE_SIZE))
+    : 1;
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * PAGE_SIZE;
+  const pageItems = sortedItems.slice(startIndex, startIndex + PAGE_SIZE);
+
+  const handleCodeChange = (e) => {
+    setCodeInput(e.target.value);
+    setPage(1);
   };
 
-  const handleNextPage = () => {
-    setPage((p) => Math.min(totalPages, p + 1));
+  const handleOrder = (nextOrder) => {
+    setOrder(nextOrder);
+    setPage(1);
   };
+
+  const handleRegType = (nextRegType) => {
+    setRegType((prev) => (prev === nextRegType ? '' : nextRegType));
+    setPage(1);
+  };
+
+  const handlePrevPage = () => setPage((p) => Math.max(1, p - 1));
+  const handleNextPage = () => setPage((p) => Math.min(totalPages, p + 1));
 
   return (
     <div className="gd-dash-viewport">
@@ -135,7 +167,7 @@ const StudentsInsideAllDaysPage = () => {
               </div>
             </div>
 
-            {/* Filter Row — فلترة فورية: رمز + نوع التسجيل (R/W) + ترتيب النقاط */}
+            {/* Filter Row — فلترة فورية محلية: رمز + نوع التسجيل (R/W) + ترتيب النقاط */}
             <div className="filter-row">
               <input
                 type="text"
@@ -145,36 +177,35 @@ const StudentsInsideAllDaysPage = () => {
                 autoComplete="off"
                 value={codeInput}
                 onChange={handleCodeChange}
-                onKeyDown={handleCodeKeyDown}
               />
               <button
                 type="button"
-                className={`filter-toggle ${filters.regType === 'R' ? 'filter-toggle-active' : ''}`}
-                onClick={() => toggleRegType('R')}
+                className={`filter-toggle ${regType === 'R' ? 'filter-toggle-active' : ''}`}
+                onClick={() => handleRegType('R')}
                 title="المسجّلين (رمز R)"
               >
                 مسجلين (R)
               </button>
               <button
                 type="button"
-                className={`filter-toggle ${filters.regType === 'W' ? 'filter-toggle-active' : ''}`}
-                onClick={() => toggleRegType('W')}
+                className={`filter-toggle ${regType === 'W' ? 'filter-toggle-active' : ''}`}
+                onClick={() => handleRegType('W')}
                 title="ووك إن (رمز W)"
               >
                 ووك إن (W)
               </button>
               <button
                 type="button"
-                className={`filter-toggle ${filters.order === 'desc' ? 'filter-toggle-active' : ''}`}
-                onClick={() => setOrder('desc')}
+                className={`filter-toggle ${order === 'desc' ? 'filter-toggle-active' : ''}`}
+                onClick={() => handleOrder('desc')}
                 title="ترتيب مجموع النقاط تنازلياً"
               >
                 الأعلى نقاطاً أولاً
               </button>
               <button
                 type="button"
-                className={`filter-toggle ${filters.order === 'asc' ? 'filter-toggle-active' : ''}`}
-                onClick={() => setOrder('asc')}
+                className={`filter-toggle ${order === 'asc' ? 'filter-toggle-active' : ''}`}
+                onClick={() => handleOrder('asc')}
                 title="ترتيب مجموع النقاط تصاعدياً"
               >
                 الأقل نقاطاً أولاً
@@ -201,7 +232,7 @@ const StudentsInsideAllDaysPage = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {records.map((item) => (
+                        {pageItems.map((item) => (
                           <tr key={item.unique_code}>
                             <td className="code-cell" dir="ltr">{item.unique_code}</td>
                             <td className="name-cell">{item.full_name || 'لم يُدخل بعد'}</td>
@@ -209,10 +240,10 @@ const StudentsInsideAllDaysPage = () => {
                             <td className="points-cell">{item.total_points}</td>
                           </tr>
                         ))}
-                        {records.length === 0 && (
+                        {pageItems.length === 0 && (
                           <tr>
                             <td colSpan={4} className="empty-cell">
-                              لا يوجد طلاب بهاي الصفحة
+                              لا يوجد طلاب مطابقون للفلترة
                             </td>
                           </tr>
                         )}
@@ -227,18 +258,18 @@ const StudentsInsideAllDaysPage = () => {
                         type="button"
                         className="pagination-btn"
                         onClick={handlePrevPage}
-                        disabled={page <= 1}
+                        disabled={currentPage <= 1}
                       >
                         السابق
                       </button>
                       <span className="pagination-info">
-                        صفحة {page} من {totalPages}
+                        صفحة {currentPage} من {totalPages}
                       </span>
                       <button
                         type="button"
                         className="pagination-btn"
                         onClick={handleNextPage}
-                        disabled={page >= totalPages}
+                        disabled={currentPage >= totalPages}
                       >
                         التالي
                       </button>
