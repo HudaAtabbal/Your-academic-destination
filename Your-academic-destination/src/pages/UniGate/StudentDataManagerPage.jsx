@@ -249,203 +249,206 @@ const StudentDataManagerPage = () => {
   };
 
   return (
-    <div className={`card-wrapper ${isSuperAdmin ? 'admin-gate-mode' : ''}`}>
+    <div className="gd-dash-viewport">
       {isSuperAdmin && <AdminHeader />}
-      <div className="card-container">
-        
-        {/* Top Header — للمدير العام بنستبدله بالهيدر الإداري الموحّد،
-            بينما باقي الأدوار بشوفوا الكرت العادي مع شارة الدور */}
-        {!isSuperAdmin && (
-          <header className="page-header">
-            <div className="header-brand">
-              <div className="brand-text">
-                <h1 className="brand-title">وجهتك الأكاديمية 2</h1>
-                <p className="brand-subtitle">لوحة التحكم</p>
+
+      <div className={`card-wrapper ${isSuperAdmin ? 'admin-gate-mode' : ''}`}>
+        <div className="card-container">
+
+          {/* Top Header — للمدير العام بنستبدله بالهيدر الإداري الموحّد،
+              بينما باقي الأدوار بشوفوا الكرت العادي مع شارة الدور */}
+          {!isSuperAdmin && (
+            <header className="page-header">
+              <div className="header-brand">
+                <div className="brand-text">
+                  <h1 className="brand-title">وجهتك الأكاديمية 2</h1>
+                  <p className="brand-subtitle">لوحة التحكم</p>
+                </div>
               </div>
-            </div>
-            <div className="header-badge">مدير بيانات الطلاب</div>
-          </header>
-        )}
-
-        {/* Scrollable Main Content */}
-        <main className="page-body">
-          
-          {/* Stats Row */}
-          <div className="stats-row">
-            <button
-              type="button"
-              className="stat-card stat-card-clickable"
-              onClick={() => navigate('/gate-incomplete')}
-            >
-              <span className="stat-label">سجلات in-walk تنتظر الإكمال</span>
-              <span className="stat-value orange-text">{stats.walkin_pending_count ?? '—'}</span>
-            </button>
-            <div className="stat-card">
-              <span className="stat-label">سجلات in-walk مكتملة</span>
-              <span className="stat-value dark-green-text">{stats.walkin_completed_count ?? '—'}</span>
-            </div>
-            <div className="stat-card">
-              <span className="stat-label">إجمالي الطلاب المسجّلين</span>
-              <span className="stat-value primary-text">{stats.total_registered ?? '—'}</span>
-            </div>
-          </div>
-
-          {/* Search Box */}
-          <section className="search-section">
-            <h2 className="section-label">البحث برقم الطالب الفريد</h2>
-            <form onSubmit={handleSearchSubmit} className="search-box">
-              
-              <input
-                type="text"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="R-024865"
-                dir="rtl"
-              />
-              <button type="submit" className="btn-search" disabled={isSearching}>
-                {isSearching ? '...' : 'بحث'}
-              </button>
-            </form>
-            {searchError && <p className="search-error-message">{searchError}</p>}
-          </section>
-
-          {/* Edit Form Card — ما بيظهر إلا بعد ما نلاقي طالب فعلي */}
-          {formData && (
-            <section className="edit-card">
-              <div className="card-header-row">
-                <span className={`status-chip ${isRecordComplete ? 'success' : 'warning'}`}>
-                  {isRecordComplete ? 'سجل مكتمل' : 'بيانات ناقصة'}
-                </span>
-                <h2 className="edit-title">تعديل سجل الطالب — {activeId}</h2>
-              </div>
-
-              <form onSubmit={handleSave} className="edit-form">
-                {/* Row 1 */}
-                <div className="form-row">
-                  <div className="input-group">
-                    <label htmlFor="fullName">الاسم الثلاثي</label>
-                    <input
-                      type="text"
-                      id="fullName"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleFullNameChange}
-                    />
-                    {formErrors.fullName && (
-                      <p className="field-error-message">{formErrors.fullName}</p>
-                    )}
-                  </div>
-                  <div className="input-group">
-                    <label htmlFor="birthDate">تاريخ الميلاد</label>
-                    <input
-                      type="date"
-                      id="birthDate"
-                      name="birthDate"
-                      value={formData.birthDate}
-                      onChange={handleInputChange}
-                      dir="ltr"
-                    />
-                    {formErrors.birthDate && (
-                      <p className="field-error-message">{formErrors.birthDate}</p>
-                    )}
-                  </div>
-                  
-                </div>
-
-                {/* Row 2 */}
-                <div className="form-row">
-                  <div className="input-group">
-                    <label htmlFor="certificateYear">سنة الشهادة</label>
-                    <input
-                      type="text"
-                      id="certificateYear"
-                      name="certificateYear"
-                      inputMode="numeric"
-                      maxLength={4}
-                      value={formData.certificateYear}
-                      onChange={handleCertificateYearChange}
-                      dir="ltr"
-                    />
-                    {formErrors.certificateYear && (
-                      <p className="field-error-message">{formErrors.certificateYear}</p>
-                    )}
-                  </div>
-                  <div className="input-group">
-                    <label htmlFor="phoneNumber">رقم الهاتف</label>
-                    <input
-                      type="text"
-                      id="phoneNumber"
-                      name="phoneNumber"
-                      maxLength={10}
-                      value={formData.phoneNumber}
-                      onChange={handlePhoneChange}
-                      dir="ltr"
-                    />
-                    {formErrors.phoneNumber && (
-                      <p className="field-error-message">{formErrors.phoneNumber}</p>
-                    )}
-                  </div>
-                  
-                </div>
-
-                {/* Row 3 */}
-                <div className="form-row">
-                  <div className="input-group">
-                    <label htmlFor="certificateType">نوع الشهادة</label>
-                    <select
-                      id="certificateType"
-                      name="certificateType"
-                      value={formData.certificateType}
-                      onChange={handleInputChange}
-                      className="select-field"
-                    >
-                      <option value="">اختر نوع الشهادة...</option>
-                      <option value="scientific">علمي</option>
-                      <option value="literary">أدبي</option>
-                    </select>
-                    {formErrors.certificateType && (
-                      <p className="field-error-message">{formErrors.certificateType}</p>
-                    )}
-                  </div>
-                  <div className="input-group">
-                    <label htmlFor="baccalaureateScore">المعدل </label>
-                    <input
-                      type="text"
-                      id="baccalaureateScore"
-                      name="baccalaureateScore"
-                      value={formData.baccalaureateScore}
-                      onChange={handleBaccalaureateScoreChange}
-                      dir="rtl"
-                    />
-                    {formErrors.baccalaureateScore && (
-                      <p className="field-error-message">{formErrors.baccalaureateScore}</p>
-                    )}
-                  </div>
-                  
-                </div>
-
-                {/* Row 4 — كانت معطّلة سابقاً، وهاد كان سبب مشكلة "بلا بيانات": 
-                    isRecordComplete كان بيشترط verificationStatus === 'verified'،
-                    بس ما في طريقة كانت موجودة بالواجهة لتغيير هالقيمة، فكانت تضل
-                    عالقة على "pending" دايماً حتى لو باقي الحقول انعبّت بالكامل */}
-                <div className="form-row">
-                  <div className="input-group">
-                    {/* verification_status صار غير قابل للتعديل من الخادم — أخفينا الحقل */}
-                  </div>
-                  
-                </div>
-
-                {saveMessage && <p className="save-feedback-message">{saveMessage}</p>}
-
-                {/* Submit Button */}
-                <button type="submit" className="btn-save" disabled={isSaving}>
-                  {isSaving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
-                </button>
-              </form>
-            </section>
+              <div className="header-badge">مدير بيانات الطلاب</div>
+            </header>
           )}
 
-        </main>
+          {/* Scrollable Main Content */}
+          <main className="page-body">
+
+            {/* Stats Row */}
+            <div className="stats-row">
+              <button
+                type="button"
+                className="stat-card stat-card-clickable"
+                onClick={() => navigate('/gate-incomplete')}
+              >
+                <span className="stat-label">سجلات in-walk تنتظر الإكمال</span>
+                <span className="stat-value orange-text">{stats.walkin_pending_count ?? '—'}</span>
+              </button>
+              <div className="stat-card">
+                <span className="stat-label">سجلات in-walk مكتملة</span>
+                <span className="stat-value dark-green-text">{stats.walkin_completed_count ?? '—'}</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-label">إجمالي الطلاب المسجّلين</span>
+                <span className="stat-value primary-text">{stats.total_registered ?? '—'}</span>
+              </div>
+            </div>
+
+            {/* Search Box */}
+            <section className="search-section">
+              <h2 className="section-label">البحث برقم الطالب الفريد</h2>
+              <form onSubmit={handleSearchSubmit} className="search-box">
+
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="R-024865"
+                  dir="rtl"
+                />
+                <button type="submit" className="btn-search" disabled={isSearching}>
+                  {isSearching ? '...' : 'بحث'}
+                </button>
+              </form>
+              {searchError && <p className="search-error-message">{searchError}</p>}
+            </section>
+
+            {/* Edit Form Card — ما بيظهر إلا بعد ما نلاقي طالب فعلي */}
+            {formData && (
+              <section className="edit-card">
+                <div className="card-header-row">
+                  <span className={`status-chip ${isRecordComplete ? 'success' : 'warning'}`}>
+                    {isRecordComplete ? 'سجل مكتمل' : 'بيانات ناقصة'}
+                  </span>
+                  <h2 className="edit-title">تعديل سجل الطالب — {activeId}</h2>
+                </div>
+
+                <form onSubmit={handleSave} className="edit-form">
+                  {/* Row 1 */}
+                  <div className="form-row">
+                    <div className="input-group">
+                      <label htmlFor="fullName">الاسم الثلاثي</label>
+                      <input
+                        type="text"
+                        id="fullName"
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleFullNameChange}
+                      />
+                      {formErrors.fullName && (
+                        <p className="field-error-message">{formErrors.fullName}</p>
+                      )}
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="birthDate">تاريخ الميلاد</label>
+                      <input
+                        type="date"
+                        id="birthDate"
+                        name="birthDate"
+                        value={formData.birthDate}
+                        onChange={handleInputChange}
+                        dir="ltr"
+                      />
+                      {formErrors.birthDate && (
+                        <p className="field-error-message">{formErrors.birthDate}</p>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Row 2 */}
+                  <div className="form-row">
+                    <div className="input-group">
+                      <label htmlFor="certificateYear">سنة الشهادة</label>
+                      <input
+                        type="text"
+                        id="certificateYear"
+                        name="certificateYear"
+                        inputMode="numeric"
+                        maxLength={4}
+                        value={formData.certificateYear}
+                        onChange={handleCertificateYearChange}
+                        dir="ltr"
+                      />
+                      {formErrors.certificateYear && (
+                        <p className="field-error-message">{formErrors.certificateYear}</p>
+                      )}
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="phoneNumber">رقم الهاتف</label>
+                      <input
+                        type="text"
+                        id="phoneNumber"
+                        name="phoneNumber"
+                        maxLength={10}
+                        value={formData.phoneNumber}
+                        onChange={handlePhoneChange}
+                        dir="ltr"
+                      />
+                      {formErrors.phoneNumber && (
+                        <p className="field-error-message">{formErrors.phoneNumber}</p>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Row 3 */}
+                  <div className="form-row">
+                    <div className="input-group">
+                      <label htmlFor="certificateType">نوع الشهادة</label>
+                      <select
+                        id="certificateType"
+                        name="certificateType"
+                        value={formData.certificateType}
+                        onChange={handleInputChange}
+                        className="select-field"
+                      >
+                        <option value="">اختر نوع الشهادة...</option>
+                        <option value="scientific">علمي</option>
+                        <option value="literary">أدبي</option>
+                      </select>
+                      {formErrors.certificateType && (
+                        <p className="field-error-message">{formErrors.certificateType}</p>
+                      )}
+                    </div>
+                    <div className="input-group">
+                      <label htmlFor="baccalaureateScore">المعدل </label>
+                      <input
+                        type="text"
+                        id="baccalaureateScore"
+                        name="baccalaureateScore"
+                        value={formData.baccalaureateScore}
+                        onChange={handleBaccalaureateScoreChange}
+                        dir="rtl"
+                      />
+                      {formErrors.baccalaureateScore && (
+                        <p className="field-error-message">{formErrors.baccalaureateScore}</p>
+                      )}
+                    </div>
+
+                  </div>
+
+                  {/* Row 4 — كانت معطّلة سابقاً، وهاد كان سبب مشكلة "بلا بيانات": 
+                      isRecordComplete كان بيشترط verificationStatus === 'verified'،
+                      بس ما في طريقة كانت موجودة بالواجهة لتغيير هالقيمة، فكانت تضل
+                      عالقة على "pending" دايماً حتى لو باقي الحقول انعبّت بالكامل */}
+                  <div className="form-row">
+                    <div className="input-group">
+                      {/* verification_status صار غير قابل للتعديل من الخادم — أخفينا الحقل */}
+                    </div>
+
+                  </div>
+
+                  {saveMessage && <p className="save-feedback-message">{saveMessage}</p>}
+
+                  {/* Submit Button */}
+                  <button type="submit" className="btn-save" disabled={isSaving}>
+                    {isSaving ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+                  </button>
+                </form>
+              </section>
+            )}
+
+          </main>
+        </div>
       </div>
     </div>
   );

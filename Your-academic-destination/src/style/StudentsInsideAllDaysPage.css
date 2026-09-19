@@ -5,6 +5,16 @@
    الأخضر الغامق #0E3E37 + الكريمي #F7ECD9 + نص بنّي.
    ============================================ */
 
+/* Viewport — هيدر المدير بسياق block مسطح، نفس نمط الصفحات الشغالة */
+.gd-dash-viewport {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.gd-dash-viewport .card-wrapper.admin-gate-mode {
+  min-height: calc(100dvh - 80px) !important;
+}
+
 .filter-row {
   display: flex;
   flex-wrap: wrap;

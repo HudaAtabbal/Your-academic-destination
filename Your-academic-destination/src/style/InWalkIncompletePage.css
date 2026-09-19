@@ -377,6 +377,16 @@
   border-radius: 0 !important;
 }
 
+/* Viewport — هيدر المدير بسياق block مسطح، نفس نمط الصفحات الشغالة */
+.gd-dash-viewport {
+  min-height: 100vh;
+  width: 100%;
+}
+
+.gd-dash-viewport .card-wrapper.admin-gate-mode {
+  min-height: calc(100dvh - 80px) !important;
+}
+
 /* ============================================
    وضع المدير العام — الهيدر الإداري الموحّد
    فوق الكرت، والكرت بيمتد ليملأ باقي الشاشة

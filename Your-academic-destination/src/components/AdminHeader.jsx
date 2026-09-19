@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import logo from '../assets/whited-logo-1.png';
 import { clearAuthToken } from '../api/api';
 import { ROLE_LABELS } from '../api/roles';
@@ -22,13 +22,13 @@ const AdminHeader = ({ userRole }) => {
 
   return (
     <header className="admin-header">
-      <div className="admin-header-brand">
+      <Link to="/dashboard" className="admin-header-brand">
         <img src={logo} alt="شعار" className="admin-logo" />
         <div className="admin-brand-text">
           <span className="admin-brand-title">وجهتك الأكاديمية 2</span>
           <span className="admin-brand-subtitle">لوحة التحكم</span>
         </div>
-      </div>
+      </Link>
 
       <nav className="admin-nav">
         <NavLink
