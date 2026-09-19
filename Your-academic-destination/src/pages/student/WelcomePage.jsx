@@ -2,7 +2,10 @@ import React from "react";
 import Header from "../../components/Header";
 import InfoCard from "../../components/InfoCard";
 import "../../style/WelcomePage.css";
-import logo from "../../assets/whited-logo-1.png";
+import asset2 from "../../assets/asset-2.png";
+import homsWhite from "../../assets/homs-university-white.png";
+import homsLogo from "../../assets/homs-university-logo.svg";
+import faceitLogo from "../../assets/destination-white-01.png";
 import { useNavigate } from "react-router-dom";
 
 const WelcomePage = () => {
@@ -10,15 +13,15 @@ const WelcomePage = () => {
   return (
     <div className="wp-card-wrapper">
       <div className="wp-card-container">
-        <Header logoSrc={logo} subtitle="جامعة حمص • 15–17 أيلول" />
+        <Header
+          logos={[asset2, homsWhite, homsLogo, faceitLogo]}
+          tagline="ثلاثة أيام تتعرّف فيها على كل كلية في الجامعة، وتسأل من دَرسها قَبلك."
+          date="23 • 24 • 26 أيلول"
+        />
 
         <main className="wp-card-body">
           <h1 className="wp-main-title">وجهتك الأكاديمية</h1>
           <span className="wp-badge">النسخة الثانية</span>
-
-          <p className="wp-description">
-            ثلاثة أيام تتعرّف فيها على كل كلية في الجامعة، وتسأل من دَرسها قَبلك.
-          </p>
 
           <InfoCard
             title="سجّل من البيت، وادخل من الخط السريع"

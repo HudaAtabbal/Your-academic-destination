@@ -1,16 +1,15 @@
-import React from 'react';
+import React from "react";
 
-const Header = ({ logoSrc, subtitle }) => {
+const Header = ({ logos = [], tagline = "", date = "" }) => {
   return (
     <header className="card-header">
-      <div className="logo-wrapper">
-        <img 
-          src={logoSrc} 
-          alt="اتحاد طلبة سوريا - فرع محافظة حمص" 
-          className="logo-img"
-        />
+      <div className="logo-row">
+        {logos.map((src, index) => (
+          <img key={index} src={src} alt="شعار" className="header-logo" />
+        ))}
       </div>
-      <p className="subtitle">{subtitle}</p>
+      <p className="header-tagline">{tagline}</p>
+      <p className="header-date">{date}</p>
     </header>
   );
 };
