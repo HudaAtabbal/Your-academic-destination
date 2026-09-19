@@ -2,9 +2,9 @@ import React from "react";
 import Header from "../../components/Header";
 import InfoCard from "../../components/InfoCard";
 import "../../style/WelcomePage.css";
+import unionLogo from "../../assets/whited-logo-1.png";
 import asset2 from "../../assets/asset-2.png";
 import homsWhite from "../../assets/homs-university-white.png";
-import homsLogo from "../../assets/homs-university-logo.svg";
 import faceitLogo from "../../assets/destination-white-01.png";
 import { useNavigate } from "react-router-dom";
 
@@ -14,9 +14,9 @@ const WelcomePage = () => {
     <div className="wp-card-wrapper">
       <div className="wp-card-container">
         <Header
-          logos={[asset2, homsWhite, homsLogo, faceitLogo]}
+          logos={[unionLogo, homsWhite, asset2, faceitLogo]}
           tagline="ثلاثة أيام تتعرّف فيها على كل كلية في الجامعة، وتسأل من دَرسها قَبلك."
-          date="23 • 24 • 26 أيلول"
+          date="التواريخ: ٢٣ ، ٢٤ و ٢٦ أيلول"
         />
 
         <main className="wp-card-body">
