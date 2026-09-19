@@ -10,6 +10,7 @@ from app.database import get_db
 from app.dependencies import rate_limit_public_lookup
 from app.routers.survey import survey_service
 from app.routers.survey.survey_schema import (
+    SurveyEligibilityResponse,
     SurveyStatusResponse,
     SurveySubmitRequest,
     SurveySubmitResponse,
@@ -26,6 +27,17 @@ router = APIRouter(prefix="/survey", tags=["survey"])
 def survey_status(unique_code: str, db: Session = Depends(get_db)) -> SurveyStatusResponse:
     answered = survey_service.get_survey_status(db, unique_code)
     return SurveyStatusResponse(answered=answered)
+
+
+@router.get(
+    "/{unique_code}/eligibility",
+    response_model=SurveyEligibilityResponse,
+    dependencies=[Depends(rate_limit_public_lookup)],
+)
+def survey_eligibility(
+    unique_code: str, db: Session = Depends(get_db)
+) -> SurveyEligibilityResponse:
+    return SurveyEligibilityResponse(**survey_service.get_survey_eligibility(db, unique_code))
 
 
 @router.post(

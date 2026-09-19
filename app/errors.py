@@ -117,6 +117,15 @@ def duplicate_survey() -> AppError:
     )
 
 
+def survey_not_eligible() -> AppError:
+    return AppError(
+        status_code=409,
+        error_code="survey_not_eligible",
+        message="لازم يفوّت الطالب من بوابة الجامعة ويحضر نشاط واحد على الأقل "
+        "(محاضرة أو جولة بالكلية أو استشارة فردية) قبل ما يعبّي الاستبيان",
+    )
+
+
 def duplicate_username() -> AppError:
     return AppError(
         status_code=409,

@@ -13,6 +13,13 @@ class SurveyStatusResponse(BaseModel):
     answered: bool
 
 
+class SurveyEligibilityResponse(BaseModel):
+    answered: bool
+    eligible: bool
+    campus_entry: bool
+    activity: bool
+
+
 class SurveySubmitRequest(BaseModel):
     opinion_change: OpinionChange
     preferred_major: College
