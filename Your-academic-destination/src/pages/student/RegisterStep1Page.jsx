@@ -180,7 +180,6 @@ const RegisterStep1Page = () => {
         <HeaderStep
           title="من أنت؟"
           stepText="خطوة 1 من 3"
-          onBack={() => window.history.back()}
         />
 
         <StepProgress totalSteps={3} currentStep={1} />

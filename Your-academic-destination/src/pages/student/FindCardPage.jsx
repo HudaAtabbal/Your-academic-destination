@@ -57,7 +57,6 @@ const FindCardPage = () => {
         <HeaderStep
           title="بطاقتي  "
           stepText="ادخل بياناتك لاسترجاع بطاقتك"
-          onBack={() => window.history.back()}
         />
 
         <main className="fcp-body">

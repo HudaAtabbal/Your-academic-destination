@@ -15,7 +15,6 @@ const AcademicGuide = () => {
         <HeaderStep
           title="الدليل الأكاديمي"
           stepText="كل ما تحتاج معرفته عن الكليات"
-          onBack={() => window.history.back()}
         />
 
         <iframe

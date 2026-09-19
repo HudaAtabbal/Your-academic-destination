@@ -144,7 +144,6 @@ const MyCard = ({ active = false }) => {
           <HeaderStep
             title="بطاقتي"
             stepText="وجهتك الأكاديمية 2 • جامعة حمص"
-            onBack={() => window.history.back()}
           />
 
           <main className="mc-card-body">
@@ -167,7 +166,6 @@ const MyCard = ({ active = false }) => {
           <HeaderStep
             title="بطاقتي"
             stepText="وجهتك الأكاديمية 2 • جامعة حمص"
-            onBack={() => window.history.back()}
           />
 
           <main className="mc-card-body">
@@ -222,7 +220,6 @@ const MyCard = ({ active = false }) => {
         <HeaderStep
           title="بطاقتي"
           stepText="وجهتك الأكاديمية 2 • جامعة حمص"
-          onBack={() => window.history.back()}
         />
 
         <main className="mc-card-body">

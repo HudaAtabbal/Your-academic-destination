@@ -62,7 +62,6 @@ const MyPointsPage = ({
         <HeaderStep
           title="نقاطي"
           stepText="احصل على اكبر عدد من النقاط لتدخل السحب على الجوائز"
-          onBack={() => window.history.back()}
         />
 
         {/* Scrollable Main Content */}

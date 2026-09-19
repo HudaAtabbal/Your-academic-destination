@@ -149,7 +149,6 @@ const OTP = () => {
         <HeaderStep
           title="أدخل رمز التحقق"
           stepText="سيصلك الرمز عبر SMS"
-          onBack={() => navigate(-1)}
         />
 
         <main className="card-body">
