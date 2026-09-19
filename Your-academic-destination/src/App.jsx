@@ -58,6 +58,7 @@ function App() {
             المسارات بيعني React ما رح يُعيد بنيّ الصفحات عند التبديل بينها (keep-alive):
             الدليل ما بيشحن من جديد، الاستبيان بيحافظ على الإجابات، والنقاط بتتحدّث فقط */}
         <Route path="/my-card" element={<StudentPrivateRoute><StudentTabsLayout /></StudentPrivateRoute>}/>
+        <Route path="/yawmi" element={<StudentPrivateRoute><StudentTabsLayout /></StudentPrivateRoute>}/>
         <Route path="/academic-guide" element={<StudentPrivateRoute><StudentTabsLayout /></StudentPrivateRoute>}/>
         <Route path="/survey" element={<StudentPrivateRoute><StudentTabsLayout /></StudentPrivateRoute>}/>
         <Route path="/my-points" element={<StudentPrivateRoute><StudentTabsLayout /></StudentPrivateRoute>}/>
