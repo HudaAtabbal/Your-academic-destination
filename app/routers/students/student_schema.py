@@ -118,3 +118,21 @@ class WalkinIncompleteListResponse(BaseModel):
     limit: int
     total: int
     total_pages: int
+
+
+class RegisteredStudentsItem(BaseModel):
+    unique_code: str
+    full_name: str | None = None
+    contact_id: str | None = None
+    bacc_year: int | None = None
+    bacc_average: float | None = None
+    certificate_type: CertificateType | None = None
+    verification_status: VerificationStatus | None = None
+
+
+class RegisteredStudentsListResponse(BaseModel):
+    items: list[RegisteredStudentsItem]
+    page: int
+    limit: int
+    total: int
+    total_pages: int

@@ -1,4 +1,4 @@
-"""
+﻿"""
 منطق العمل للوحة مدير بيانات الطلاب — راجع قسم 6 بملف wijhatak_api_contract.md.
 
 قاعدة تصنيف السجلات (walk-in):
@@ -153,6 +153,45 @@ def list_walkin_incomplete(
             "full_name": s.full_name,
             "contact_id": s.contact_id,
             "status": "partial" if s.id in active_ids else "no_data",
+        }
+        for s in students
+    ]
+
+    return items, total
+
+
+def list_registered(
+    db: Session, page: int, limit: int
+) -> tuple[list[dict], int]:
+    """قائمة المسجّلين إلكترونياً (registration_type=registered) — بترقيم صفحات.
+    تُستعمل لصفحة "مسجّلون إلكترونياً" بالفرونت (RegisteredStudentsListPage)."""
+    base_query = db.query(Student).filter(
+        Student.registration_type == RegistrationType.registered
+    )
+    total = base_query.count()
+
+    students = (
+        base_query.order_by(Student.created_at.desc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
+
+    items = [
+        {
+            "unique_code": s.unique_code,
+            "full_name": s.full_name,
+            "contact_id": s.contact_id,
+            "bacc_year": s.bacc_year,
+            "bacc_average": s.bacc_average,
+            "certificate_type": (
+                s.certificate_type.value if s.certificate_type is not None else None
+            ),
+            "verification_status": (
+                s.verification_status.value
+                if s.verification_status is not None
+                else None
+            ),
         }
         for s in students
     ]

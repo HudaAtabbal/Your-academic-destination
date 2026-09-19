@@ -13,6 +13,8 @@ from app.dependencies import require_role
 from app.models import AccountRole
 from app.routers.students import student_service
 from app.routers.students.student_schema import (
+    RegisteredStudentsItem,
+    RegisteredStudentsListResponse,
     StudentDetail,
     StudentStatsResponse,
     StudentUpdateRequest,
@@ -64,6 +66,22 @@ def walkin_incomplete(
     items, total = student_service.list_walkin_incomplete(db, page, limit, status)
     return WalkinIncompleteListResponse(
         items=[WalkinIncompleteItem(**item) for item in items],
+        page=page,
+        limit=limit,
+        total=total,
+        total_pages=max(1, math.ceil(total / limit)),
+    )
+
+
+@router.get("/registered", response_model=RegisteredStudentsListResponse)
+def list_registered(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+) -> RegisteredStudentsListResponse:
+    items, total = student_service.list_registered(db, page, limit)
+    return RegisteredStudentsListResponse(
+        items=[RegisteredStudentsItem(**item) for item in items],
         page=page,
         limit=limit,
         total=total,
