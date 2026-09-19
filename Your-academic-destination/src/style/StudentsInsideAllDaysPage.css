@@ -5,14 +5,31 @@
    الأخضر الغامق #0E3E37 + الكريمي #F7ECD9 + نص بنّي.
    ============================================ */
 
-/* Viewport — هيدر المدير بسياق block مسطح، نفس نمط الصفحات الشغالة */
+/* Viewport — نفس مواصفات الـ dashboard بالكامل حتى يطلع الهيدر
+   والخلفية بنفس الشكل المتعارف عليه (متل يلي برا) */
 .gd-dash-viewport {
   min-height: 100vh;
   width: 100%;
+  background-color: #FFF6E5;
+  color: #0F3B34;
+  direction: rtl;
+  font-family: 'Ghroob', 'Segoe UI', Tahoma, sans-serif;
+  box-sizing: border-box;
 }
 
 .gd-dash-viewport .card-wrapper.admin-gate-mode {
   min-height: calc(100dvh - 80px) !important;
+}
+
+/* ضمان أبعاد الهيدر داخل هالصفحات عالشاشات الكبيرة (صف واحد 80px)
+   — على المقاسات الأصغر منسجم مع تلبينة الـ AdminHeader الرديفة */
+@media (min-width: 861px) {
+  .gd-dash-viewport .admin-header {
+    height: 80px;
+    flex: 0 0 80px;
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
 .filter-row {
@@ -57,6 +74,7 @@
   font-weight: 800;
   color: #7A6953;
   cursor: pointer;
+  white-space: nowrap;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
@@ -69,35 +87,45 @@
   color: #FFFFFF;
 }
 
-.filter-btn {
-  border: none;
-  border-radius: 20px;
-  padding: 8px 16px;
-  font-family: 'Ghroob', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: opacity 0.15s ease;
-}
-
-.filter-btn:hover {
-  opacity: 0.88;
-}
-
-.filter-btn-primary {
-  background-color: #0E3E37;
-  color: #FFFFFF;
-}
-
-.filter-btn-secondary {
-  background-color: #FFFFFF;
-  color: #0E3E37;
-  border: 1.5px solid #0E3E37;
-}
-
 .points-cell {
   font-family: sans-serif;
   text-align: center;
   font-weight: 800;
   color: #0E3E37;
+}
+
+/* ============================================
+   Responsive — هالصفحة أصلها للـ desktop، وهون
+   بنصّفها للجوالات الصغيرة حتى لا تتراكب العناصر
+   ============================================ */
+
+@media (max-width: 900px) {
+  .filter-toggle {
+    flex: 1 1 auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .filter-row {
+    gap: 8px;
+  }
+
+  .filter-input {
+    flex-basis: 120px;
+    font-size: 0.78rem;
+    padding: 7px 12px;
+  }
+
+  .filter-toggle {
+    font-size: 0.72rem;
+    padding: 7px 10px;
+  }
+
+  .stats-row {
+    flex-wrap: wrap;
+  }
+
+  .stat-card {
+    flex: 1 1 100%;
+  }
 }

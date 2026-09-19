@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { apiGet, ApiError } from '../../api/api';
 import AdminHeader from '../../components/AdminHeader';
 import '../../style/InWalkIncompletePage.css';
@@ -6,8 +6,11 @@ import '../../style/StudentsInsideAllDaysPage.css';
 
 const PAGE_SIZE = 20;
 
-// الفلترة/الترتيب الافتراضية: الكل + الأعلى نقاطاً أولاً
+// الفلترة/الترتيب الافتراضية: الكل + الأعلى نقاطاً أولاً + بدون قيد نوع التسجيل
 const DEFAULT_ORDER = 'desc';
+
+// الفلترة بتشتغل فورياً مع debounce خفيف — ما في زر "تطبيق" بعد اليوم
+const DEBOUNCE_MS = 300;
 
 const StudentsInsideAllDaysPage = () => {
   // الدور محفوظ بالـ localStorage وقت تسجيل الدخول (accountRole) — منقرأه هون
@@ -22,20 +25,40 @@ const StudentsInsideAllDaysPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // قيم حقول الفلترة كما يكتبها المستخدم (ما بتروح للباك إلا بعد "تطبيق")
+  // قيمة حقل الرمز كما يكتبها المستخدم (تتبّع فوري للكتابة)
   const [codeInput, setCodeInput] = useState('');
   // قيم الفلترة المطبّقة فعلياً على الطلب
-  const [filters, setFilters] = useState({ code: '', order: DEFAULT_ORDER });
+  const [filters, setFilters] = useState({ code: '', order: DEFAULT_ORDER, regType: '' });
 
-  const handleApply = () => {
+  // مؤقّت مؤجَّل لحقل الرمز — كل كتابة تمهّد المؤقّت حتى يتوقف المستخدم
+  const debounceRef = useRef(null);
+
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    []
+  );
+
+  // تطبيق رمز مكتوب (فوري عند Enter، أو بعد توقف الكتابة)
+  const commitCode = (value) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setPage(1);
-    setFilters({ code: codeInput.trim(), order: filters.order });
+    setFilters((prev) => ({ ...prev, code: value.trim() }));
   };
 
-  const handleClear = () => {
-    setCodeInput('');
-    setPage(1);
-    setFilters({ code: '', order: DEFAULT_ORDER });
+  const handleCodeChange = (e) => {
+    const value = e.target.value;
+    setCodeInput(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => commitCode(value), DEBOUNCE_MS);
+  };
+
+  const handleCodeKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitCode(codeInput);
+    }
   };
 
   const setOrder = (nextOrder) => {
@@ -43,11 +66,9 @@ const StudentsInsideAllDaysPage = () => {
     setFilters((prev) => ({ ...prev, order: nextOrder }));
   };
 
-  const handleCodeKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleApply();
-    }
+  const toggleRegType = (regType) => {
+    setPage(1);
+    setFilters((prev) => ({ ...prev, regType: prev.regType === regType ? '' : regType }));
   };
 
   useEffect(() => {
@@ -61,6 +82,7 @@ const StudentsInsideAllDaysPage = () => {
           order: filters.order,
         });
         if (filters.code) params.set('code', filters.code);
+        if (filters.regType) params.set('reg_type', filters.regType);
 
         const response = await apiGet(`/admin/dashboard/students-inside?${params.toString()}`);
         setRecords(response.items);
@@ -113,7 +135,7 @@ const StudentsInsideAllDaysPage = () => {
               </div>
             </div>
 
-            {/* Filter Row — فلترة بالرمز + ترتيب النقاط */}
+            {/* Filter Row — فلترة فورية: رمز + نوع التسجيل (R/W) + ترتيب النقاط */}
             <div className="filter-row">
               <input
                 type="text"
@@ -122,9 +144,25 @@ const StudentsInsideAllDaysPage = () => {
                 placeholder="الرمز (بحث جزئي)"
                 autoComplete="off"
                 value={codeInput}
-                onChange={(e) => setCodeInput(e.target.value)}
+                onChange={handleCodeChange}
                 onKeyDown={handleCodeKeyDown}
               />
+              <button
+                type="button"
+                className={`filter-toggle ${filters.regType === 'R' ? 'filter-toggle-active' : ''}`}
+                onClick={() => toggleRegType('R')}
+                title="المسجّلين (رمز R)"
+              >
+                مسجلين (R)
+              </button>
+              <button
+                type="button"
+                className={`filter-toggle ${filters.regType === 'W' ? 'filter-toggle-active' : ''}`}
+                onClick={() => toggleRegType('W')}
+                title="ووك إن (رمز W)"
+              >
+                ووك إن (W)
+              </button>
               <button
                 type="button"
                 className={`filter-toggle ${filters.order === 'desc' ? 'filter-toggle-active' : ''}`}
@@ -140,12 +178,6 @@ const StudentsInsideAllDaysPage = () => {
                 title="ترتيب مجموع النقاط تصاعدياً"
               >
                 الأقل نقاطاً أولاً
-              </button>
-              <button type="button" className="filter-btn filter-btn-primary" onClick={handleApply}>
-                تطبيق
-              </button>
-              <button type="button" className="filter-btn filter-btn-secondary" onClick={handleClear}>
-                مسح
               </button>
             </div>
 
