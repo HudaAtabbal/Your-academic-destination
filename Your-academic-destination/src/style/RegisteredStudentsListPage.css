@@ -1,0 +1,241 @@
+/* ============================================
+   RegisteredStudentsListPage — قائمة المسجّلين إلكترونياً
+   مبني على نفس عائلة ألوان الهوية المستخدمة بباقي
+   اللوحات الإدارية (GeneralDirectorDashboard):
+   الأخضر الغامق #0E3E37 + الكريمي #F7ECD9 + نص بني.
+   ============================================ */
+
+/* Viewport — نفس معايير الـ dashboard حتى يطلع الهيدر
+   والخلفية بشكلها المتعارف عليه */
+.gd-dash-viewport {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #FFF6E5;
+  color: #0F3B34;
+  direction: rtl;
+  font-family: 'Ghroob', 'Segoe UI', Tahoma, sans-serif;
+  box-sizing: border-box;
+}
+
+/* ضمان أبعاد الهيدر عالشاشات الكبيرة (صف واحد 80px) */
+@media (min-width: 861px) {
+  .gd-dash-viewport .admin-header {
+    height: 80px;
+    flex: 0 0 80px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* منطقة المحتوى */
+.page-body {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 28px 24px 64px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* صف البطاقات الإحصائية */
+.stats-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.stat-card {
+  flex: 1 1 200px;
+  background-color: #FFFFFF;
+  border-radius: 18px;
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(14, 62, 55, 0.04);
+}
+
+.stat-label {
+  color: #7A6855;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.stat-value {
+  color: #0E3E37;
+  font-size: 2.4rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.dark-green-text {
+  color: #0E3E37 !important;
+}
+
+/* قسم الجدول */
+.table-section {
+  background-color: #FFFFFF;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(14, 62, 55, 0.04);
+}
+
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #0E3E37;
+  margin: 0 0 18px 0;
+}
+
+.table-error-message {
+  background-color: #FDECEC;
+  color: #B71C1C;
+  border: 1px solid #F5C6C6;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-weight: 700;
+  margin: 0 0 14px 0;
+}
+
+.table-loading-message {
+  color: #7A6855;
+  font-weight: 700;
+  padding: 20px 0;
+  text-align: center;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid #F0E4D2;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+}
+
+.data-table th {
+  background-color: #F7ECD9;
+  color: #0E3E37;
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding: 14px 16px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F6EBD9;
+  font-size: 0.95rem;
+  color: #0F3B34;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background-color: #FCF6EB;
+}
+
+.code-cell {
+  font-family: 'Courier New', monospace;
+  direction: ltr;
+  text-align: left;
+  font-weight: 700;
+  color: #0E3E37;
+}
+
+.name-cell {
+  font-weight: 700;
+}
+
+.phone-cell {
+  font-family: 'Courier New', monospace;
+  direction: ltr;
+  text-align: left;
+  color: #5B4B3A;
+}
+
+.empty-cell {
+  text-align: center;
+  color: #A08D78;
+  padding: 28px 16px !important;
+  font-weight: 700;
+}
+
+/* شارة الحالة — نفس اصطلاح باقي اللوحات */
+.status-badge {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.status-badge.complete {
+  background-color: #E2F4EE;
+  color: #0F5C4D;
+}
+
+.status-badge.partial {
+  background-color: #FCF0D3;
+  color: #7A5300;
+}
+
+/* ترقيم الصفحات */
+.pagination-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.pagination-btn {
+  background-color: #0E3E37;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 22px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #0A2B26;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  color: #7A6855;
+  font-weight: 700;
+}
+
+/* ======== استجابة الجوال ======== */
+@media (max-width: 600px) {
+  .page-body {
+    padding: 16px 12px 40px 12px;
+    gap: 18px;
+  }
+
+  .stat-card {
+    flex: 1 1 100%;
+  }
+
+  .table-section {
+    padding: 16px;
+  }
+}

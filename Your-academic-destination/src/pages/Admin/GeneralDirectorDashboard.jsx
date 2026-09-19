@@ -11,8 +11,8 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
 
   const [teamMembers, setTeamMembers] = useState([]);
   const [stats, setStats] = useState([
-    { id: 'registered', label: 'مسجّلون إلكترونياً', value: '—' },
-    { id: 'inside', label: 'داخل الحرم اليوم', value: '—' },
+      { id: 'registered', label: 'مسجّلون إلكترونياً', value: '—', link: '/gate-registered' },
+      { id: 'inside', label: 'داخل الحرم اليوم', value: '—' },
     { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: '—', link: '/dashboard-students-inside' },
     { id: 'survey', label: 'أكملوا الاستبيان', value: '—' },
     { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: '—', link: '/gate-incomplete' },
