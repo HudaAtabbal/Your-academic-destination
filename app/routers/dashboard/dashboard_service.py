@@ -134,6 +134,7 @@ def list_students_inside_all_days(
     page: int,
     limit: int,
     code: str | None = None,
+    reg_type: str | None = None,
     order: str = "desc",
 ) -> tuple[list[dict], int]:
     """
@@ -144,6 +145,7 @@ def list_students_inside_all_days(
 
     الفلترة/الترتيب:
     - code: بحث جزئي بالرمز (ILIKE) — ما بفرّق بين walk_in و registered.
+    - reg_type: "R" للمسجّلين أو "W" للووك إن (يُطهّر على RegistrationType).
     - order: "desc" (الأعلى نقاطاً أولاً) أو "asc" (الأقل أولاً).
     - الصفحات مرتبة دائماً بنفس الترتيب الثانوي (unique_code) لترقيم ثابت.
     """
@@ -161,6 +163,12 @@ def list_students_inside_all_days(
 
     if code:
         query = query.filter(Student.unique_code.ilike(f"%{code}%"))
+
+    if reg_type:
+        query = query.filter(
+            Student.registration_type
+            == (RegistrationType.registered if reg_type == "R" else RegistrationType.walk_in)
+        )
 
     total = query.count()
 

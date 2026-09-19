@@ -56,11 +56,12 @@ def students_inside(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     code: str | None = Query(default=None, max_length=20),
+    reg_type: str | None = Query(default=None, pattern="^(R|W)$"),
     order: str = Query("desc", pattern="^(desc|asc)$"),
     db: Session = Depends(get_db),
 ) -> StudentsInsideListResponse:
     items, total = dashboard_service.list_students_inside_all_days(
-        db, page, limit, code=code, order=order
+        db, page, limit, code=code, reg_type=reg_type, order=order
     )
     return StudentsInsideListResponse(
         items=[StudentsInsideItem(**item) for item in items],

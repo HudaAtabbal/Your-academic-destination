@@ -147,6 +147,42 @@ def test_students_inside_filter_unknown_code(
     assert resp.json()["items"] == []
 
 
+# ---------- الفلترة بنوع التسجيل (R/W) ----------
+
+
+def test_students_inside_filter_by_reg_type(
+    client, student_factory, students_admin_headers, super_headers
+):
+    """سجّل مسجّل (R) وووك إن (W) داخل الحرم — كل فلتر يرجّع صاحبه بس،
+    وحذف الفلتر يرجع الاتنين معاً."""
+    student_factory(CODE_A, full_name="مسجّل")
+    student_factory(
+        CODE_C,
+        full_name="ووك إن",
+        registration_type=RegistrationType.walk_in,
+        verification_status=VerificationStatus.verified,
+    )
+    for code in (CODE_A, CODE_C):
+        assert _campus_entry(client, students_admin_headers, code).status_code == 201
+
+    resp_r = _get_students_inside(client, headers=super_headers, reg_type="R")
+    assert resp_r.status_code == 200
+    assert {item["unique_code"] for item in resp_r.json()["items"]} == {CODE_A}
+
+    resp_w = _get_students_inside(client, headers=super_headers, reg_type="W")
+    assert resp_w.status_code == 200
+    assert {item["unique_code"] for item in resp_w.json()["items"]} == {CODE_C}
+
+    resp_all = _get_students_inside(client, headers=super_headers)
+    assert resp_all.status_code == 200
+    assert resp_all.json()["total"] == 2
+
+
+def test_students_inside_filter_reg_type_invalid(client, super_headers):
+    resp = _get_students_inside(client, headers=super_headers, reg_type="X")
+    assert resp.status_code == 422
+
+
 # ---------- الترقيم ----------
 
 
