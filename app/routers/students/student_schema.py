@@ -128,6 +128,8 @@ class RegisteredStudentsItem(BaseModel):
     bacc_average: float | None = None
     certificate_type: CertificateType | None = None
     verification_status: VerificationStatus | None = None
+    sms_status: str | None = None  # جديد: pending | sent | failed (آخر رسالة OTP)
+    sms_error: str | None = None   # جديد: سبب الفشل إن وُجد
 
 
 class RegisteredStudentsListResponse(BaseModel):
