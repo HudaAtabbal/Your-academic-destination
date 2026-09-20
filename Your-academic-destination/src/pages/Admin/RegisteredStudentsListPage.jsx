@@ -8,7 +8,7 @@ const PAGE_SIZE = 20;
 // عرض حالة التحقق بالعربي — نفس اصطلاح باقي اللوحات
 const VERIFICATION_DISPLAY = {
   verified: { label: 'موثّق', type: 'complete' },
-  pending: { label: 'قيد التحقق', type: 'partial' },
+  pending: { label: 'غير موثّق', type: 'partial' },
 };
 
 // حالة رسالة الـ OTP (من جدول sms_jobs) — null يعني ما في سجل رسالة لهالطالب
@@ -24,15 +24,22 @@ const RegisteredStudentsListPage = () => {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  // فلترة حالة التحقق: '' = الكل، verified = موثّق، pending = غير موثّق
+  const [verificationFilter, setVerificationFilter] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       setError('');
       try {
-        const response = await apiGet(
-          `/admin/students/registered?page=${page}&limit=${PAGE_SIZE}`
-        );
+        const params = new URLSearchParams({
+          page: String(page),
+          limit: String(PAGE_SIZE),
+        });
+        if (verificationFilter) {
+          params.set('verification_status', verificationFilter);
+        }
+        const response = await apiGet(`/admin/students/registered?${params.toString()}`);
         setRecords(response.items);
         setTotalCount(response.total);
       } catch (err) {
@@ -42,9 +49,14 @@ const RegisteredStudentsListPage = () => {
       }
     };
     loadData();
-  }, [page]);
+  }, [page, verificationFilter]);
 
   const totalPages = totalCount ? Math.max(1, Math.ceil(totalCount / PAGE_SIZE)) : 1;
+
+  const handleVerificationFilter = (value) => {
+    setVerificationFilter((prev) => (prev === value ? '' : value));
+    setPage(1);
+  };
 
   return (
     <div className="gd-dash-viewport">
@@ -57,6 +69,33 @@ const RegisteredStudentsListPage = () => {
             <span className="stat-value dark-green-text">{totalCount ?? '—'}</span>
           </div>
         </section>
+
+        {/* فلترة حالة التحقق: الكل / موثّق / غير موثّق */}
+        <div className="filter-row">
+          <button
+            type="button"
+            className={`filter-toggle ${verificationFilter === '' ? 'filter-toggle-active' : ''}`}
+            onClick={() => handleVerificationFilter('')}
+          >
+            الكل
+          </button>
+          <button
+            type="button"
+            className={`filter-toggle ${verificationFilter === 'verified' ? 'filter-toggle-active' : ''}`}
+            onClick={() => handleVerificationFilter('verified')}
+            title="المسجّلين الموثّقين فقط"
+          >
+            موثّق
+          </button>
+          <button
+            type="button"
+            className={`filter-toggle ${verificationFilter === 'pending' ? 'filter-toggle-active' : ''}`}
+            onClick={() => handleVerificationFilter('pending')}
+            title="المسجّلين غير الموثّقين فقط"
+          >
+            غير موثّق
+          </button>
+        </div>
 
         <section className="table-section">
           <h2 className="section-title">قائمة المسجّلين إلكترونياً</h2>
@@ -120,8 +159,10 @@ const RegisteredStudentsListPage = () => {
                     })}
                     {records.length === 0 && (
                       <tr>
-                        <td colSpan={8} className="empty-cell">
-                          لا يوجد مسجّلون إلكترونياً بعد
+<td colSpan={8} className="empty-cell">
+                          {verificationFilter
+                            ? 'لا يوجد مسجّلون مطابقون للفلترة'
+                            : 'لا يوجد مسجّلون إلكترونياً بعد'}
                         </td>
                       </tr>
                     )}

@@ -74,6 +74,38 @@
   color: #0E3E37 !important;
 }
 
+/* صف الفلترة — الكل / موثّق / غير موثّق */
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.filter-toggle {
+  flex: 1 1 auto;
+  background-color: #F7ECD9;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 12px;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #7A6953;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-toggle:hover {
+  color: #0E3E37;
+}
+
+.filter-toggle-active {
+  background-color: #0E3E37;
+  color: #FFFFFF;
+}
+
 /* قسم الجدول */
 .table-section {
   background-color: #FFFFFF;
