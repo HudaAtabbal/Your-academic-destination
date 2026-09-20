@@ -1,4 +1,4 @@
-﻿"""
+"""
 منطق العمل للوحة مدير بيانات الطلاب — راجع قسم 6 بملف wijhatak_api_contract.md.
 
 قاعدة تصنيف السجلات (walk-in):
@@ -13,7 +13,15 @@ import math
 from sqlalchemy.orm import Session
 
 from app.errors import duplicate_contact, student_not_found
-from app.models import Checkin, RegistrationType, Student, StudentStatus, VerificationStatus
+from app.models import (
+    Checkin,
+    OTP,
+    RegistrationType,
+    SmsJob,
+    Student,
+    StudentStatus,
+    VerificationStatus,
+)
 
 # حقول ما بينسمح تعديلها من هاد الروتر — registration_type ثابت بعد الإنشاء
 _IMMUTABLE_FIELDS = {"registration_type", "id", "unique_code", "created_at", "verification_status"}
@@ -160,11 +168,21 @@ def list_walkin_incomplete(
     return items, total
 
 
+def _job_error(job) -> str | None:
+    """سبب فشل مهمة الـ SMS — أسماء أعمدة محتملة (لأن اسم العمود ما انتأكد)."""
+    for name in ("error_message", "last_error", "error", "failure_reason"):
+        value = getattr(job, name, None)
+        if value:
+            return str(value)
+    return None
+
+
 def list_registered(
     db: Session, page: int, limit: int
 ) -> tuple[list[dict], int]:
     """قائمة المسجّلين إلكترونياً (registration_type=registered) — بترقيم صفحات.
-    تُستعمل لصفحة "مسجّلون إلكترونياً" بالفرونت (RegisteredStudentsListPage)."""
+    تُستعمل لصفحة "مسجّلون إلكترونياً" بالفرونت (RegisteredStudentsListPage).
+    كل طالب معه حالة آخر رسالة OTP انبعتت له (من sms_jobs)."""
     base_query = db.query(Student).filter(
         Student.registration_type == RegistrationType.registered
     )
@@ -177,23 +195,44 @@ def list_registered(
         .all()
     )
 
-    items = [
-        {
-            "unique_code": s.unique_code,
-            "full_name": s.full_name,
-            "contact_id": s.contact_id,
-            "bacc_year": s.bacc_year,
-            "bacc_average": s.bacc_average,
-            "certificate_type": (
-                s.certificate_type.value if s.certificate_type is not None else None
-            ),
-            "verification_status": (
-                s.verification_status.value
-                if s.verification_status is not None
-                else None
-            ),
-        }
-        for s in students
-    ]
+    # استعلام واحد لكل الصفحة (مش N+1): آخر مهمة SMS لكل طالب
+    latest_job = {}
+    if students:
+        rows = (
+            db.query(OTP.student_id, SmsJob)
+            .join(SmsJob, SmsJob.otp_id == OTP.id)
+            .filter(OTP.student_id.in_([s.id for s in students]))
+            .order_by(SmsJob.id.asc())  # الأحدث بيجي آخر واحد فبيكتب فوق القديم
+            .all()
+        )
+        for student_id, job in rows:
+            latest_job[student_id] = job
+
+    items = []
+    for s in students:
+        job = latest_job.get(s.id)
+        items.append(
+            {
+                "unique_code": s.unique_code,
+                "full_name": s.full_name,
+                "contact_id": s.contact_id,
+                "bacc_year": s.bacc_year,
+                "bacc_average": s.bacc_average,
+                "certificate_type": (
+                    s.certificate_type.value if s.certificate_type is not None else None
+                ),
+                "verification_status": (
+                    s.verification_status.value
+                    if s.verification_status is not None
+                    else None
+                ),
+                "sms_status": (
+                    (job.status.value if hasattr(job.status, "value") else job.status)
+                    if job is not None
+                    else None
+                ),
+                "sms_error": _job_error(job) if job is not None else None,
+            }
+        )
 
     return items, total
