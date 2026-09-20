@@ -103,4 +103,9 @@ def lookup_by_contact(
     student = registration_service.lookup_by_contact(
         db, payload.contact_id, payload.full_name
     )
-    return LookupByContactResponse(unique_code=student.unique_code, full_name=student.full_name)
+    # جديد: نرجّع حالة التوثيق حتى الفرونت يحوّل الطالب pending لصفحة الـ OTP
+    return LookupByContactResponse(
+        unique_code=student.unique_code,
+        full_name=student.full_name,
+        verification_status=student.verification_status,
+    )
