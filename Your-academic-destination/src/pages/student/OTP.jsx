@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import HeaderStep from "../../components/HeaderStep";
 import { apiPost, ApiError } from "../../api/api";
 import { clearRegistrationData } from "../../api/RegistrationStorage";
@@ -7,6 +7,8 @@ import "../../style/OTP.css";
 
 const OTP = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const autoResendDone = useRef(false);
 
   const [otp, setOtp] = useState(["", "", "", ""]);
   const [status, setStatus] = useState("idle"); // idle | error | success
@@ -15,12 +17,10 @@ const OTP = () => {
   const [resendMessage, setResendMessage] = useState("");
   const inputRefs = useRef([]);
 
-  // منطق التحقق نفسه، منفصل حتى يستخدم تلقائياً وبالزر كمان
   const verifyCode = async (fullCode) => {
     const uniqueCode = localStorage.getItem("pendingStudentCode");
 
     if (!uniqueCode) {
-      // ما في كود مخزّن أصلاً — يعني الطالب وصل لهون بدون ما يخلّص التسجيل
       setStatus("error");
       setError("في مشكلة بجلسة التسجيل، يرجى الرجوع والتسجيل من جديد");
       return;
@@ -37,22 +37,15 @@ const OTP = () => {
       setStatus("success");
       setError("");
 
-      // انتهت مهمة السلة المؤقتة بعد التحقق الكامل — منضفيها حتى ما تضل
-      // بيانات قديمة لو الطالب رجع يسجّل من جديد، ولأنه من هاي اللحظة
-      // الطالب موثّق فعلياً ورقمه محجوز.
       clearRegistrationData();
 
-      // صار الطالب موثّقاً فعلياً: نرقّي الكود من pending إلى studentCode
-      // الرسمي، وهيك بس من هاي اللحظة بتصير صفحاته المحمية مسموحة.
       localStorage.setItem("studentCode", uniqueCode);
       localStorage.removeItem("pendingStudentCode");
 
-      // بنخزّن اسم الطالب كمان حتى صفحة البطاقة (MyCard) تعرضه الحقيقي بدل الموك
       if (response.full_name) {
         localStorage.setItem("studentName", response.full_name);
       }
 
-      // نعطي فرصة يشوف اللون الأخضر قبل ما ننتقل
       setTimeout(() => {
         navigate("/my-card");
       }, 600);
@@ -77,7 +70,6 @@ const OTP = () => {
     newOtp[index] = value;
     setOtp(newOtp);
 
-    // لما يبلش يدخل من جديد بعد خطأ، بننضف حالة الخطأ
     if (status === "error") {
       setStatus("idle");
       setError("");
@@ -85,10 +77,8 @@ const OTP = () => {
 
     if (value !== "") {
       if (index < 3) {
-        // الانتقال التلقائي للحقل التالي عند الإدخال
         inputRefs.current[index + 1].focus();
       } else {
-        // آخر خانة اتعبت: نتحقق تلقائياً بدون ما ننتظر ضغطة الزر
         const fullCode = newOtp.join("");
         if (fullCode.length === 4) {
           verifyCode(fullCode);
@@ -98,7 +88,6 @@ const OTP = () => {
   };
 
   const handleKeyDown = (index, e) => {
-    // الرجوع للحقل السابق عند ضغط Backspace
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1].focus();
     }
@@ -118,7 +107,8 @@ const OTP = () => {
     verifyCode(fullCode);
   };
 
-  const handleResend = async () => {
+  // إرسال رمز جديد (يدوي من الزر أو تلقائي عند الرجوع وهو غير موثّق)
+  const sendResend = async () => {
     const uniqueCode = localStorage.getItem("pendingStudentCode");
     if (!uniqueCode) {
       setError("في مشكلة بجلسة التسجيل، يرجى الرجوع والتسجيل من جديد");
@@ -143,6 +133,19 @@ const OTP = () => {
     }
   };
 
+  const handleResend = () => sendResend();
+
+  // إرسال تلقائي مرة وحدة لما الطالب يرجع وهو غير موثّق
+  useEffect(() => {
+    if (location.state?.autoResend && !autoResendDone.current) {
+      autoResendDone.current = true;
+      // نمسح الـ state حتى ما يتكرر الإرسال عند الريفريش
+      navigate(location.pathname, { replace: true, state: null });
+      sendResend();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="card-wrapper">
       <div className="card-container">
@@ -153,7 +156,6 @@ const OTP = () => {
 
         <main className="card-body">
           <form onSubmit={handleSubmit} className="form-container">
-            {/* OTP Input Boxes */}
             <div className="otp-container" dir="ltr">
               {otp.map((digit, index) => (
                 <input
@@ -179,7 +181,6 @@ const OTP = () => {
               <p className="resend-success-message">{resendMessage}</p>
             )}
 
-            {/* Resend Action */}
             <p className="resend-text">
               لم يصلك رمز؟{" "}
               <button
@@ -191,8 +192,6 @@ const OTP = () => {
               </button>
             </p>
 
-            {/* زر تعديل رقم الهاتف — ننقل مباشرة لخطوة الرقم (البيانات السابقة
-                محفوظة بالسلة، ويرسل previous_unique_code عند إعادة الإرسال) */}
             <button
               type="button"
               className="otp-back-btn"
@@ -201,7 +200,6 @@ const OTP = () => {
               تعديل رقم الهاتف
             </button>
 
-            {/* Submit Button */}
             <div className="actions">
               <button
                 type="submit"

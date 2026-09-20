@@ -33,16 +33,26 @@ const FindCardPage = () => {
     setIsSubmitting(true);
 
     try {
-      // الاسم بيتحقق منه الباك اند نفسه الآن (لو الاسم ما بيطابق الرقم،
-      // الباك بيرجع 404 بنفس الرسالة الموحّدة) — المقارنة بس على الفرونت
-      // ما بتعتبر أمان، كان أي حدا بيعرف رقم الهاتف بيمشي عليها من غير متصفح.
       const result = await apiPost('/students/lookup-by-contact', {
         contact_id: phone,
         full_name: name,
       });
 
+      // الباك بيرجّع needs_otp (true لطالب مسجّل ولسا ما تحقق من OTP)
+      const isUnverified = result.needs_otp === true;
+
+      if (isUnverified) {
+        // غير موثّق: ما منعطيه studentCode، منخزّنه pending وننقله للتحقق
+        localStorage.setItem('pendingStudentCode', result.unique_code);
+        localStorage.removeItem('studentCode');
+        localStorage.removeItem('studentName');
+        navigate('/otp', { state: { autoResend: true } });
+        return;
+      }
+
       localStorage.setItem('studentCode', result.unique_code);
       localStorage.setItem('studentName', result.full_name);
+      localStorage.removeItem('pendingStudentCode');
       navigate('/my-card');
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'ما لقينا حساب مرتبط بهالرقم، تأكدي منه وحاولي مرة تانية');
