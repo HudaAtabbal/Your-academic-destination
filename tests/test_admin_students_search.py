@@ -340,6 +340,82 @@ def test_walkin_status_param_invalid_422(client, super_headers):
     assert resp.status_code == 422
 
 
+def test_registered_list_lists_only_registered(client, student_factory, super_headers):
+    """قائمة المسجّلين إلكترونياً ترجّع سجلات registered بأرقام تواصلهم وحقل حالة التحقق."""
+    student_factory(
+        "R-7001",
+        registration_type=RegistrationType.registered,
+        verification_status=VerificationStatus.verified,
+        status=StudentStatus.complete,
+        full_name="طالب موثّق",
+    )
+    student_factory(
+        "W-7001",
+        registration_type=RegistrationType.walk_in,
+        verification_status=VerificationStatus.verified,
+        status=StudentStatus.pending,
+    )
+    resp = client.get("/admin/students/registered?page=1&limit=20", headers=super_headers)
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert len(data["items"]) == 1
+    item = data["items"][0]
+    assert item["unique_code"] == "R-7001"
+    assert item["verification_status"] == "verified"
+
+
+def test_registered_list_filter_verified(client, student_factory, super_headers):
+    """verification_status=verified → فقط الموثّقين."""
+    student_factory("R-7101", registration_type=RegistrationType.registered, verification_status=VerificationStatus.verified, status=StudentStatus.complete)
+    student_factory("R-7102", registration_type=RegistrationType.registered, verification_status=VerificationStatus.pending, status=StudentStatus.pending)
+    resp = client.get(
+        "/admin/students/registered?verification_status=verified&page=1&limit=20",
+        headers=super_headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["items"][0]["unique_code"] == "R-7101"
+
+
+def test_registered_list_filter_pending(client, student_factory, super_headers):
+    """verification_status=pending → فقط غير الموثّقين."""
+    student_factory("R-7201", registration_type=RegistrationType.registered, verification_status=VerificationStatus.verified, status=StudentStatus.complete)
+    student_factory("R-7202", registration_type=RegistrationType.registered, verification_status=VerificationStatus.pending, status=StudentStatus.pending)
+    resp = client.get(
+        "/admin/students/registered?verification_status=pending&page=1&limit=20",
+        headers=super_headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 1
+    assert data["items"][0]["unique_code"] == "R-7202"
+
+
+def test_registered_list_filter_pagination(client, student_factory, super_headers):
+    """الفلترة تحسب total على السجلات المطابقة — الترقيم يتوافق معها."""
+    student_factory("R-7301", registration_type=RegistrationType.registered, verification_status=VerificationStatus.verified, status=StudentStatus.complete)
+    student_factory("R-7302", registration_type=RegistrationType.registered, verification_status=VerificationStatus.pending, status=StudentStatus.pending)
+    student_factory("R-7303", registration_type=RegistrationType.registered, verification_status=VerificationStatus.verified, status=StudentStatus.complete)
+    resp = client.get(
+        "/admin/students/registered?verification_status=verified&page=1&limit=2",
+        headers=super_headers,
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["total"] == 2
+    assert data["total_pages"] == 1
+
+
+def test_registered_list_filter_invalid_422(client, super_headers):
+    """قيمة verification_status غير مسموحة → 422."""
+    resp = client.get(
+        "/admin/students/registered?verification_status=bogus", headers=super_headers
+    )
+    assert resp.status_code == 422
+
+
 def test_walkin_completion_updates_stats_counters(
     client, student_factory, students_admin_headers, super_headers
 ):

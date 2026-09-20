@@ -77,9 +77,10 @@ def walkin_incomplete(
 def list_registered(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    verification_status: str | None = Query(None, pattern="^(verified|pending)$"),
     db: Session = Depends(get_db),
 ) -> RegisteredStudentsListResponse:
-    items, total = student_service.list_registered(db, page, limit)
+    items, total = student_service.list_registered(db, page, limit, verification_status)
     return RegisteredStudentsListResponse(
         items=[RegisteredStudentsItem(**item) for item in items],
         page=page,

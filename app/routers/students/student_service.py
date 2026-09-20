@@ -178,14 +178,21 @@ def _job_error(job) -> str | None:
 
 
 def list_registered(
-    db: Session, page: int, limit: int
+    db: Session, page: int, limit: int, verification_status: str | None = None
 ) -> tuple[list[dict], int]:
     """قائمة المسجّلين إلكترونياً (registration_type=registered) — بترقيم صفحات.
     تُستعمل لصفحة "مسجّلون إلكترونياً" بالفرونت (RegisteredStudentsListPage).
-    كل طالب معه حالة آخر رسالة OTP انبعتت له (من sms_jobs)."""
+    كل طالب معه حالة آخر رسالة OTP انبعتت له (من sms_jobs).
+
+    verification_status اختياري: يفلتر على موثّق (verified) أو غير موثّق (pending).
+    بلا قيمة يرجّع الكل."""
     base_query = db.query(Student).filter(
         Student.registration_type == RegistrationType.registered
     )
+    if verification_status is not None:
+        base_query = base_query.filter(
+            Student.verification_status == VerificationStatus(verification_status)
+        )
     total = base_query.count()
 
     students = (
