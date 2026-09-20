@@ -22,21 +22,24 @@
   gap: 36px;
 }
 
-/* Top Metrics Cards */
+/* Top Metrics Cards — 3 بكل سطر (6 بطاقات = سطرين مرتبين) */
 .gd-dash-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
+  align-items: stretch;
 }
 
 .gd-dash-metric-card {
   background-color: #FFFFFF;
   border-radius: 18px;
   padding: 24px 20px;
+  min-height: 170px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  text-align: center;
   box-shadow: 0 2px 8px rgba(15, 59, 52, 0.03);
 }
 
@@ -327,7 +330,7 @@
 
 @media (max-width: 900px) {
   .gd-dash-metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -340,6 +343,10 @@
   .gd-dash-metrics-grid {
     grid-template-columns: 1fr;
     gap: 14px;
+  }
+
+  .gd-dash-metric-card {
+    min-height: 130px;
   }
 
   .gd-dash-metric-number {
