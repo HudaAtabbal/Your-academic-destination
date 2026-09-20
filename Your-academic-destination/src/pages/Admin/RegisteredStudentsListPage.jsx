@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { apiGet } from '../../api/api';
 import AdminHeader from '../../components/AdminHeader';
 import '../../style/RegisteredStudentsListPage.css';
@@ -12,8 +11,14 @@ const VERIFICATION_DISPLAY = {
   pending: { label: 'قيد التحقق', type: 'partial' },
 };
 
+// حالة رسالة الـ OTP (من جدول sms_jobs) — null يعني ما في سجل رسالة لهالطالب
+const SMS_DISPLAY = {
+  pending: { label: 'بانتظار الإرسال', type: 'partial' },
+  sent: { label: 'مرسلة', type: 'complete' },
+  failed: { label: 'فاشلة', type: 'empty', style: { color: '#b3261e', fontWeight: 600 } },
+};
+
 const RegisteredStudentsListPage = () => {
-  const navigate = useNavigate();
   const [records, setRecords] = useState([]);
   const [totalCount, setTotalCount] = useState(null);
   const [page, setPage] = useState(1);
@@ -46,7 +51,6 @@ const RegisteredStudentsListPage = () => {
       <AdminHeader />
 
       <main className="page-body">
-        {/* نت #1 — عدد المسجّلين */}
         <section className="stats-row">
           <div className="stat-card">
             <span className="stat-label">مسجّلون إلكترونياً</span>
@@ -73,6 +77,7 @@ const RegisteredStudentsListPage = () => {
                       <th>نوع الشهادة</th>
                       <th>المعدل</th>
                       <th>الحالة</th>
+                      <th>رسالة التحقق</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -81,6 +86,9 @@ const RegisteredStudentsListPage = () => {
                         label: item.verification_status,
                         type: 'empty',
                       };
+                      const sms = item.sms_status
+                        ? SMS_DISPLAY[item.sms_status] || { label: item.sms_status, type: 'empty' }
+                        : null;
                       return (
                         <tr key={item.unique_code}>
                           <td className="code-cell" dir="ltr">{item.unique_code}</td>
@@ -94,12 +102,25 @@ const RegisteredStudentsListPage = () => {
                               {verdict.label}
                             </span>
                           </td>
+                          <td>
+                            {sms ? (
+                              <span
+                                className={`status-badge ${sms.type}`}
+                                style={sms.style}
+                                title={item.sms_error || undefined}
+                              >
+                                {sms.label}
+                              </span>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
                         </tr>
                       );
                     })}
                     {records.length === 0 && (
                       <tr>
-                        <td colSpan={7} className="empty-cell">
+                        <td colSpan={8} className="empty-cell">
                           لا يوجد مسجّلون إلكترونياً بعد
                         </td>
                       </tr>
@@ -108,7 +129,6 @@ const RegisteredStudentsListPage = () => {
                 </table>
               </div>
 
-              {/* ترقيم الصفحات */}
               {totalPages > 1 && (
                 <div className="pagination-row">
                   <button

@@ -28,7 +28,8 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
       apiGet('/admin/dashboard/stats')
         .then((res) => {
           setStats([
-            { id: 'registered', label: 'مسجّلون إلكترونياً', value: res.registered_online_count },
+            // ✅ الرابط لازم يضل موجود هون كمان، وإلا بيختفي بعد ما توصل البيانات
+            { id: 'registered', label: 'مسجّلون إلكترونياً', value: res.registered_online_count, link: '/gate-registered' },
             { id: 'inside', label: 'داخل الحرم اليوم', value: res.students_inside_today },
             { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: res.students_inside_all_days, link: '/dashboard-students-inside' },
             { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
