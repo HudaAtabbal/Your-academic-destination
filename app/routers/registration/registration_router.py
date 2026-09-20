@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
+from app.models import RegistrationType, VerificationStatus
 from app.dependencies import rate_limit_public_lookup, rate_limit_student_otp
 from app.routers.registration import registration_service
 from app.routers.registration.registration_schema import (
@@ -103,9 +104,15 @@ def lookup_by_contact(
     student = registration_service.lookup_by_contact(
         db, payload.contact_id, payload.full_name
     )
-    # جديد: نرجّع حالة التوثيق حتى الفرونت يحوّل الطالب pending لصفحة الـ OTP
+    # جديد: نرجّع حالة التوثيق حتى الفرونت يحوّل الطالب غير الموثّق لصفحة الـ OTP.
+    # needs_otp لطلاب registered بس — walk_in ما بيمرّوا على OTP.
+    needs_otp = (
+        student.registration_type == RegistrationType.registered
+        and student.verification_status != VerificationStatus.verified
+    )
     return LookupByContactResponse(
         unique_code=student.unique_code,
         full_name=student.full_name,
         verification_status=student.verification_status,
+        needs_otp=needs_otp,
     )
