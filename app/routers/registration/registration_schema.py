@@ -97,3 +97,7 @@ class LookupByContactRequest(BaseModel):
 class LookupByContactResponse(BaseModel):
     unique_code: str
     full_name: str | None = None
+    verification_status: VerificationStatus  # جديد
+    # جديد: true فقط لطالب registered ولسا ما تحقق من OTP.
+    # (طلاب walk_in verification_status عندهم pending افتراضياً بدون OTP، فما منعتمد على الحالة لحالها)
+    needs_otp: bool
