@@ -33,7 +33,8 @@ const MapPage = () => {
       const scale = clamp(next.scale, 1, 4);
       const baseMaxX = Math.max(0, (stage.offsetWidth * scale - vp.clientWidth) / 2);
       const baseMaxY = Math.max(0, (stage.offsetHeight * scale - vp.clientHeight) / 2);
-      const slackY = sheetOpenRef.current ? vp.clientHeight * 0.55 : 56;
+      // الشيت ممكن ياخد حتى 72% من الارتفاع — خلّي السحب يسمح بإظهار المبنى فوقه
+      const slackY = sheetOpenRef.current ? vp.clientHeight * 0.72 : 56;
       const maxX = Math.max(baseMaxX, 24);
       const maxY = Math.max(baseMaxY, slackY);
       return {
@@ -188,7 +189,8 @@ const MapPage = () => {
       const s = tr.current.scale;
       const wx = stage.offsetWidth * (spot.x / 100) * s;
       const wy = stage.offsetHeight * (spot.y / 100) * s;
-      paint({ scale: s, x: vp.clientWidth / 2 - wx, y: vp.clientHeight * 0.26 - wy }, true);
+      // ارفع المبنى لفوق الشيت حتى يبان كلو فوق الحافة
+      paint({ scale: s, x: vp.clientWidth / 2 - wx, y: vp.clientHeight * 0.18 - wy }, true);
     }
     setSelected(spot);
   };
