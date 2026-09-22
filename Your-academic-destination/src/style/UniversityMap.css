@@ -1,13 +1,24 @@
-/* University Map — خريطة الجامعة التفاعلية */
+/* University Map — خريطة الجامعة التفاعلية (مسطحة 2D بالكامل) */
+
+.ag-card-container {
+  position: relative;
+}
 
 .um-map-viewport {
   position: relative;
   flex: 1;
+  min-height: 0;
   overflow: hidden;
   background-color: #fff;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+  cursor: grab;
+  overscroll-behavior: contain;
+}
+
+.um-map-viewport:active {
+  cursor: grabbing;
 }
 
 .um-map-canvas {
@@ -16,64 +27,109 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.12s ease-out;
+  transform-origin: center center;
   will-change: transform;
+  /* مساحة فاضية برّا الصورة لتمديد كبسولات البوابات عن السهم */
+  padding: 10px 56px 40px 12px;
+}
+
+.um-map-canvas--animate {
+  transition: transform 0.28s cubic-bezier(0.25, 0.8, 0.3, 1);
+}
+
+.um-map-stage {
+  position: relative;
+  max-width: 100%;
+  max-height: 100%;
+  line-height: 0;
+  flex-shrink: 0;
 }
 
 .um-map-image {
-  width: 100%;
-  height: auto;
+  display: block;
+  max-width: 100%;
   max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
   pointer-events: none;
   -webkit-user-drag: none;
 }
 
-/* ===== Hotspots ===== */
+/* ===== Hotspots — النص فقط، شفافة تماماً ===== */
 .um-hotspot {
   position: absolute;
   transform: translate(-50%, -50%);
-  background: none;
+  background: transparent;
   border: none;
+  border-radius: 12px;
   padding: 0;
+  margin: 0;
   cursor: pointer;
-  z-index: 2;
+  z-index: 3;
+  appearance: none;
+  -webkit-appearance: none;
+  transition:
+    transform 0.2s cubic-bezier(0.25, 0.8, 0.3, 1),
+    box-shadow 0.2s ease,
+    background 0.2s ease;
 }
 
-.um-hotspot-dot {
-  display: block;
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: rgba(12, 74, 67, 0.15);
-  border: 2.5px solid #0c4a43;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
-  transition: transform 0.15s ease, background 0.15s ease;
+.um-hotspot:hover,
+.um-hotspot:focus-visible {
+  background: transparent;
+  box-shadow: none;
 }
 
-.um-hotspot:hover .um-hotspot-dot,
-.um-hotspot:active .um-hotspot-dot {
-  transform: scale(1.25);
-  background: rgba(12, 74, 67, 0.35);
+/* ضغطة = المربع كلو بوب لقدام (بلا إطار وميض) */
+.um-hotspot:active,
+.um-hotspot--open {
+  background: transparent;
+  box-shadow: none;
+  transform: translate(-50%, -50%);
+  z-index: 5;
 }
 
-.um-hotspot--featured .um-hotspot-dot {
-  background: rgba(12, 74, 67, 0.85);
-  border-color: #0c4a43;
-  box-shadow: 0 0 0 4px rgba(12, 74, 67, 0.2), 0 1px 4px rgba(0, 0, 0, 0.3);
+.um-hotspot:focus-visible {
+  outline: none;
 }
 
-.um-hotspot--gate .um-hotspot-arrow {
-  width: 26px;
-  height: 26px;
+/* ===== أسماء البوابات — كبسولة بيضاء موحّدة برّا حدود الصورة بجانب السهم ===== */
+.um-gate-label {
+  position: absolute;
+  white-space: nowrap;
+  overflow: visible;
+  font-family: 'Ghroob', sans-serif;
+  font-size: clamp(10px, 2.8vw, 13px);
+  font-weight: 800;
+  line-height: 1.3;
   color: #0c4a43;
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
-  transition: transform 0.15s ease;
+  background: #fff;
+  border: 1.75px solid #0c4a43;
+  border-radius: 999px;
+  padding: 5px 12px;
+  cursor: pointer;
+  z-index: 4;
+  box-shadow: none;
+  transition: background 0.15s ease, color 0.15s ease;
 }
 
-.um-hotspot--gate:hover .um-hotspot-arrow,
-.um-hotspot--gate:active .um-hotspot-arrow {
-  transform: scale(1.25);
+.um-gate-label--right {
+  transform: translate(4px, calc(-50% + 10px));
+}
+
+.um-gate-label--bottom {
+  transform: translate(-50%, 8px);
+}
+
+.um-gate-label:hover,
+.um-gate-label:active {
+  background: #0c4a43;
+  color: #fff;
+}
+
+.um-gate-label:focus-visible {
+  outline: none;
 }
 
 .um-reset-zoom {
@@ -89,7 +145,7 @@
   font-size: 1.4rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   cursor: pointer;
-  z-index: 3;
+  z-index: 5;
 }
 
 /* ===== Bottom Sheet ===== */
@@ -109,9 +165,13 @@
   z-index: 11;
   background: #fff;
   border-radius: 22px 22px 0 0;
-  padding: 10px 18px 22px;
-  max-height: 62%;
+  padding: 10px 18px calc(22px + env(safe-area-inset-bottom, 0px));
+  max-height: 58%;
+  min-height: 150px;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
   box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.16);
   animation: um-sheet-up 0.22s cubic-bezier(0.25, 0.8, 0.3, 1);
   direction: rtl;
@@ -132,6 +192,14 @@
   border-radius: 3px;
   background: #e6dac0;
   margin: 0 auto 10px;
+  padding: 12px 0;
+  background-clip: content-box;
+  cursor: grab;
+  touch-action: none;
+}
+
+.um-sheet--animating {
+  transition: transform 0.22s cubic-bezier(0.25, 0.8, 0.3, 1);
 }
 
 .um-sheet-header {
@@ -234,5 +302,105 @@
   }
   to {
     opacity: 1;
+  }
+}
+
+/* ===== ريسبونسف ===== */
+@media (max-width: 480px) {
+  .um-map-canvas {
+    padding: 8px 64px 48px 8px;
+  }
+
+  .um-sheet {
+    max-height: 62%;
+    padding: 10px 14px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius: 18px 18px 0 0;
+  }
+
+  .um-sheet-title {
+    font-size: 1.05rem;
+  }
+
+  .um-sheet-desc {
+    font-size: 0.84rem;
+  }
+
+  .um-sheet-item {
+    font-size: 0.84rem;
+    padding: 8px 12px;
+  }
+
+  .um-sheet-group-title {
+    font-size: 0.8rem;
+  }
+
+  .um-gate-label {
+    font-size: clamp(9px, 2.7vw, 12px);
+    padding: 4px 9px;
+  }
+
+  .um-reset-zoom {
+    width: 38px;
+    height: 38px;
+    font-size: 1.25rem;
+    bottom: 12px;
+    left: 12px;
+  }
+}
+
+@media (max-width: 360px) {
+  .um-map-canvas {
+    padding: 6px 58px 44px 6px;
+  }
+
+  .um-sheet {
+    padding: 8px 12px calc(16px + env(safe-area-inset-bottom, 0px));
+    max-height: 58%;
+  }
+
+  .um-sheet-title {
+    font-size: 1rem;
+  }
+
+  .um-sheet-item {
+    font-size: 0.8rem;
+    padding: 7px 10px;
+  }
+
+  .um-sheet-group-title {
+    font-size: 0.76rem;
+  }
+
+  .um-reset-zoom {
+    width: 36px;
+    height: 36px;
+    font-size: 1.2rem;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  .um-gate-label {
+    font-size: clamp(8px, 2.5vw, 11px);
+    padding: 3px 8px;
+  }
+}
+
+@media (max-height: 680px) {
+  .um-sheet {
+    max-height: 56%;
+    padding-top: 8px;
+  }
+
+  .um-sheet-desc {
+    font-size: 0.84rem;
+    margin-bottom: 8px;
+  }
+
+  .um-sheet-item {
+    padding: 7px 12px;
+  }
+
+  .um-sheet-group {
+    margin-top: 8px;
   }
 }
