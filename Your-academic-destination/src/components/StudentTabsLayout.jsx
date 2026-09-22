@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import MyCard from '../pages/student/MyCard';
 import YawmiPage from '../pages/student/YawmiPage';
 import AcademicGuide from '../pages/student/AcademicGuide';
+import MapPage from '../pages/student/MapPage';
 import Survey from '../pages/student/Survey';
 import MyPointsPage from '../pages/student/MyPointsPage';
 import '../style/StudentTabsLayout.css';
@@ -14,6 +15,7 @@ const TABS = [
   { route: '/my-card', Component: MyCard },
   { route: '/yawmi', Component: YawmiPage },
   { route: '/academic-guide', Component: AcademicGuide },
+  { route: '/university-map', Component: MapPage },
   { route: '/survey', Component: Survey },
   { route: '/my-points', Component: MyPointsPage },
 ];

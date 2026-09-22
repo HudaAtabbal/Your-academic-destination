@@ -1,0 +1,238 @@
+/* University Map — خريطة الجامعة التفاعلية */
+
+.um-map-viewport {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  background-color: #fff;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.um-map-canvas {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease-out;
+  will-change: transform;
+}
+
+.um-map-image {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+/* ===== Hotspots ===== */
+.um-hotspot {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.um-hotspot-dot {
+  display: block;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(12, 74, 67, 0.15);
+  border: 2.5px solid #0c4a43;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.um-hotspot:hover .um-hotspot-dot,
+.um-hotspot:active .um-hotspot-dot {
+  transform: scale(1.25);
+  background: rgba(12, 74, 67, 0.35);
+}
+
+.um-hotspot--featured .um-hotspot-dot {
+  background: rgba(12, 74, 67, 0.85);
+  border-color: #0c4a43;
+  box-shadow: 0 0 0 4px rgba(12, 74, 67, 0.2), 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+.um-hotspot--gate .um-hotspot-arrow {
+  width: 26px;
+  height: 26px;
+  color: #0c4a43;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.35));
+  transition: transform 0.15s ease;
+}
+
+.um-hotspot--gate:hover .um-hotspot-arrow,
+.um-hotspot--gate:active .um-hotspot-arrow {
+  transform: scale(1.25);
+}
+
+.um-reset-zoom {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  color: #0c4a43;
+  font-size: 1.4rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  z-index: 3;
+}
+
+/* ===== Bottom Sheet ===== */
+.um-sheet-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 74, 67, 0.35);
+  z-index: 10;
+  animation: um-fade-in 0.18s ease;
+}
+
+.um-sheet {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 11;
+  background: #fff;
+  border-radius: 22px 22px 0 0;
+  padding: 10px 18px 22px;
+  max-height: 62%;
+  overflow-y: auto;
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.16);
+  animation: um-sheet-up 0.22s cubic-bezier(0.25, 0.8, 0.3, 1);
+  direction: rtl;
+}
+
+.um-sheet::-webkit-scrollbar {
+  display: none;
+}
+
+.um-sheet {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.um-sheet-handle {
+  width: 42px;
+  height: 5px;
+  border-radius: 3px;
+  background: #e6dac0;
+  margin: 0 auto 10px;
+}
+
+.um-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.um-sheet-title {
+  margin: 0;
+  color: #0c4a43;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+}
+
+.um-sheet-title--featured {
+  color: #0c4a43;
+  background: rgba(12, 74, 67, 0.1);
+  border: 1.5px solid #0c4a43;
+  border-radius: 12px;
+  padding: 2px 10px;
+}
+
+.um-sheet-close {
+  background: none;
+  border: none;
+  color: #a39a88;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 6px;
+  line-height: 1;
+}
+
+.um-sheet-desc {
+  margin: 4px 0 10px;
+  color: #6e6858;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.um-sheet-list {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.um-sheet-item {
+  background: #fffbf3;
+  border: 1px solid #e6dac0;
+  border-radius: 12px;
+  padding: 9px 13px;
+  color: #0c4a43;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.um-sheet-item--sub {
+  background: #fff4e0;
+  border-color: #f0e3cf;
+}
+
+.um-sheet-group {
+  margin-top: 10px;
+}
+
+.um-sheet-group-title {
+  margin: 0 0 7px;
+  color: #e65100;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.um-sheet-group-title::before {
+  content: '◆ ';
+  font-size: 0.7rem;
+}
+
+@keyframes um-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes um-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
