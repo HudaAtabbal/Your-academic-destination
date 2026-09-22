@@ -9,7 +9,7 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background-color: #fff;
+  background-color: #e8dfc8;
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
@@ -130,6 +130,77 @@
 
 .um-gate-label:focus-visible {
   outline: none;
+}
+
+/* ===== ملاحظة عائمة تلفت الانتباه ===== */
+.um-map-tip {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(calc(100% - 24px), 340px);
+  padding: 10px 12px 10px 14px;
+  background: #0c4a43;
+  color: #fff4e0;
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(12, 74, 67, 0.28);
+  pointer-events: auto;
+  animation: um-tip-in 0.35s cubic-bezier(0.25, 0.8, 0.3, 1), um-tip-glow 2.2s ease-in-out 0.4s 3;
+}
+
+.um-map-tip-text {
+  margin: 0;
+  flex: 1;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.um-map-tip-close {
+  flex-shrink: 0;
+  background: rgba(255, 244, 224, 0.15);
+  border: none;
+  color: #fff4e0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  cursor: pointer;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.um-map-tip-close:hover {
+  background: rgba(255, 244, 224, 0.28);
+}
+
+@keyframes um-tip-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes um-tip-glow {
+  0%,
+  100% {
+    box-shadow: 0 6px 18px rgba(12, 74, 67, 0.28);
+  }
+  50% {
+    box-shadow: 0 6px 22px rgba(12, 74, 67, 0.5), 0 0 0 3px rgba(230, 81, 0, 0.35);
+  }
 }
 
 .um-reset-zoom {
@@ -337,6 +408,15 @@
   .um-gate-label {
     font-size: clamp(9px, 2.7vw, 12px);
     padding: 4px 9px;
+  }
+
+  .um-map-tip {
+    top: 8px;
+    padding: 8px 10px 8px 12px;
+  }
+
+  .um-map-tip-text {
+    font-size: 0.76rem;
   }
 
   .um-reset-zoom {

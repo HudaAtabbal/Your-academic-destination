@@ -11,6 +11,7 @@ import '../../style/UniversityMap.css';
 const MapPage = () => {
   const [selected, setSelected] = useState(null);
   const [showReset, setShowReset] = useState(false);
+  const [showTip, setShowTip] = useState(true);
   const viewportRef = useRef(null);
   const stageRef = useRef(null);
   const canvasRef = useRef(null);
@@ -301,6 +302,22 @@ const MapPage = () => {
               ))}
             </div>
           </div>
+
+          {showTip && (
+            <div className="um-map-tip" role="note">
+              <p className="um-map-tip-text">
+                لمعرفة الكليات في كل مبنى اضغط على اسم المبنى
+              </p>
+              <button
+                type="button"
+                className="um-map-tip-close"
+                onClick={() => setShowTip(false)}
+                aria-label="إغلاق الملاحظة"
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {showReset && (
             <button type="button" className="um-reset-zoom" onClick={resetZoom} aria-label="إعادة التكبير">
