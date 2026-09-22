@@ -365,18 +365,18 @@ tbody td{padding:10px 12px;border-block-start:1px solid var(--line);vertical-ali
 @media (min-width:1280px){.hl-types{grid-template-columns:repeat(3,1fr)}}
 @media (prefers-reduced-motion:reduce){.hx.in .hx-p,.hq-in{animation:none}.hq-bar i{transition:none}}
 
-.pick-c h2 .fc,.pick-h .fc{font-variant-numeric:tabular-nums;font-size:.72rem;padding:1px 6px;border-radius:5px;background:var(--cc);color:#fff;direction:ltr}
+.pick-c h2 .fc,.pick-sx .fc{font-variant-numeric:tabular-nums;font-size:.72rem;padding:1px 6px;border-radius:5px;background:var(--cc);color:#fff;direction:ltr}
 .pick-c{margin-block-start:22px;border:1px solid var(--line);border-radius:14px;background:var(--white);overflow:hidden;transition:border-color .2s,box-shadow .2s}
 .pick-c:hover,.pick-c:focus-within{border-color:var(--cc);box-shadow:0 8px 22px rgba(12,74,67,.08)}
 .pick-c.pick-open{border-color:var(--cc)}
-.pick-h{width:100%;min-height:var(--tap);display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;background:none;cursor:pointer;font:inherit;color:var(--cc);text-align:start}
-.pick-h::before{content:"";width:10px;height:10px;background:var(--cc);transform:rotate(45deg);flex:none}
-.pick-h .fc{flex:none}
-.pick-h .t{flex:1;font-size:.9rem;font-weight:600;line-height:1.45;text-wrap:balance}
-.pick-h .chev{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--paper);color:var(--mute);font-size:.8rem;line-height:1;transition:transform .26s ease,color .2s,background .2s}
-.pick-h[aria-expanded="true"] .chev{transform:rotate(180deg);color:var(--cc);background:#EAF2EE}
-.pick-h:hover .chev{color:var(--cc)}
-.pick-h:hover .t{text-decoration:underline}
+.pick-sx{width:100%;min-height:var(--tap);display:flex;align-items:center;gap:10px;padding:12px 14px;border:0;background:none;cursor:pointer;font:inherit;color:var(--cc);text-align:start}
+.pick-sx::before{content:"";width:10px;height:10px;background:var(--cc);transform:rotate(45deg);flex:none}
+.pick-sx .fc{flex:none}
+.pick-sx .t{flex:1;font-size:.9rem;font-weight:600;line-height:1.45;text-wrap:balance}
+.pick-sx .chev{flex:none;display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--paper);color:var(--mute);font-size:.8rem;line-height:1;transition:transform .26s ease,color .2s,background .2s}
+.pick-sx[aria-expanded="true"] .chev{transform:rotate(180deg);color:var(--cc);background:#EAF2EE}
+.pick-sx:hover .chev{color:var(--cc)}
+.pick-sx:hover .t{text-decoration:underline}
 .pick-b{padding:2px 14px 16px}
 .pick-b[hidden]{display:none}
 .pick-b.anim>*{animation:rise .42s cubic-bezier(.25,.8,.3,1) backwards}
@@ -871,7 +871,7 @@ const API_BASE = "/api";
       <p class="hl-on" data-hl-on hidden></p>
       <div data-groups>${Object.values(groups).map(g => `
         <section class="pick-c" style="--cc:${g.c.color}">
-          <button type="button" class="pick-h" aria-expanded="false" data-pick-ax="${esc(g.c.key)}">
+          <button type="button" class="pick-sx" aria-expanded="false" data-pick-ax="${esc(g.c.key)}">
             <span class="fc">${esc(g.c.code || '')}</span><span class="t">${esc(g.c.name)}</span><span class="chev" aria-hidden="true">▾</span>
           </button>
           <div class="pick-b" data-pick-b="${esc(g.c.key)}" hidden>
