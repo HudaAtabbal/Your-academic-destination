@@ -99,6 +99,21 @@ def consultation_checkin(
     )
 
 
+@router.post(
+    "/game",
+    response_model=CheckinResponse,
+    status_code=201,
+    dependencies=[Depends(require_role(AccountRole.game_corner_manager))],
+)
+def game_checkin(
+    payload: UniqueCodeRequest, db: Session = Depends(get_db)
+) -> CheckinResponse:
+    checkin, student_name = checkin_service.create_game_checkin(db, payload.unique_code)
+    return CheckinResponse(
+        checkin_id=checkin.id, student_name=student_name, checked_in_at=checkin.checked_in_at
+    )
+
+
 @router.get("/count/today", response_model=CheckinCountResponse)
 def count_checkins_today(
     # الأعمدة أنواع enum — FastAPI بيرجّع 422 موحّد لأي قيمة غير صالحة

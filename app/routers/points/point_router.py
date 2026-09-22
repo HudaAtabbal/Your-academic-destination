@@ -20,8 +20,8 @@ router = APIRouter(tags=["points"])
     dependencies=[Depends(rate_limit_public_lookup)],
 )
 def get_points(unique_code: str, db: Session = Depends(get_db)) -> PointsResponse:
-    total_points = point_service.get_points(db, unique_code)
-    return PointsResponse(total_points=total_points)
+    detail = point_service.get_points_detail(db, unique_code)
+    return PointsResponse(**detail)
 
 
 @router.get(

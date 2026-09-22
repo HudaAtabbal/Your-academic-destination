@@ -69,4 +69,11 @@ class Checkin(Base):
             unique=True,
             postgresql_where=(activity_type == ActivityType.consultation),
         ),
+        # ركن الترفيه: مرة وحدة بالكامل للطالب
+        Index(
+            "unique_game_checkin",
+            "student_id",
+            unique=True,
+            postgresql_where=(activity_type == ActivityType.game),
+        ),
     )

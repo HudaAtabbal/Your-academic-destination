@@ -7,6 +7,10 @@ from pydantic import BaseModel
 
 class PointsResponse(BaseModel):
     total_points: int
+    today_lecture_count: int = 0
+    lectures_capped_today: bool = False
+    today_tour_count: int = 0
+    tours_capped_today: bool = False
 
 
 class LeaderboardEntry(BaseModel):

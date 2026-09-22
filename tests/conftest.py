@@ -33,6 +33,7 @@ BASE_ACCOUNTS = [
     ("sedra_admin", "admin123", AccountRole.students_admin, None),
     ("rima_staff", "staff123", AccountRole.college_staff, Faculty.medicine),
     ("hadi_gate", "gate123", AccountRole.gate_scanner, None),
+    ("nour_game", "game123", AccountRole.game_corner_manager, None),
 ]
 
 DEFAULT_STUDENT_CODE = "R-9001"
@@ -118,6 +119,11 @@ def college_staff_headers(auth_headers):
 @pytest.fixture
 def gate_scanner_headers(auth_headers):
     return auth_headers("hadi_gate", "gate123")
+
+
+@pytest.fixture
+def game_corner_headers(auth_headers):
+    return auth_headers("nour_game", "game123")
 
 
 @pytest.fixture

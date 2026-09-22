@@ -74,6 +74,15 @@ def missing_booking() -> AppError:
     )
 
 
+def game_requirements_not_met(tour_count: int, lecture_count: int) -> AppError:
+    return AppError(
+        status_code=409,
+        error_code="game_requirements_not_met",
+        message="لازم يكمل الطالب جولتين كليتين ومحاضرة واحدة على الأقل قبل ما يدخل ركن الترفيه",
+        details={"tour_count": tour_count, "lecture_count": lecture_count},
+    )
+
+
 def duplicate_checkin(
     student_name: str,
     unique_code: str,

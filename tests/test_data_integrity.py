@@ -53,7 +53,7 @@ def _student_points(client, code):
 
 
 def test_points_formula_full_matrix(client, db, student_factory):
-    """المعادلة الكاملة: حضور 2 يوم + محاضرات (سقف 3/يوم) + جولتان + استشارة + استبيان = 95."""
+    """المعادلة الكاملة: حضور 2 يوم + محاضرات (سقف 3 يومياً) + جولتان + استشارة + استبيان = 95."""
     student_factory("R-9001")
     sid = _student_id(db, "R-9001")
     now = datetime.now()
@@ -81,7 +81,7 @@ def test_points_formula_full_matrix(client, db, student_factory):
 
 
 def test_lecture_daily_cap_counted_per_day(client, db, student_factory):
-    """سقف 3 محاضرات يومياً: 5 اليوم + 2 أمس = 5×10 نقاط محتسبة فعلياً 3×10 + 2×10 = 50."""
+    """سقف 3 محاضرات يومياً: 5 اليوم تُحتسب 3 + 2 أمس = 30 + 20 = 50."""
     student_factory("R-9001")
     sid = _student_id(db, "R-9001")
     now = datetime.now()

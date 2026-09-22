@@ -16,7 +16,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app import time_utils
-from app.errors import duplicate_checkin, missing_booking, missing_campus_entry
+from app.errors import (
+    duplicate_checkin,
+    game_requirements_not_met,
+    missing_booking,
+    missing_campus_entry,
+)
 from app.models import ActivityType, Booking, BookingType, Checkin, Faculty, Lecture, Student
 from app.routers.points import point_service
 from app.student_lookup import get_student_or_raise
@@ -24,6 +29,7 @@ from app.student_lookup import get_student_or_raise
 _ACTIVITY_LABELS = {
     ActivityType.campus_entry: "الدخول من بوابة الجامعة اليوم",
     ActivityType.consultation: "الاستشارة الفردية",
+    ActivityType.game: "ركن الترفيه",
 }
 
 # الأسماء العربية للمحاضرات — مطابقة لقائمة LECTURES بالواجهة (StadiumPage).
@@ -290,6 +296,48 @@ def create_consultation_checkin(db: Session, unique_code: str) -> tuple[Checkin,
         unique_code,
         ActivityType.consultation,
         _ACTIVITY_LABELS[ActivityType.consultation],
+    )
+    db.refresh(checkin)
+    return checkin, student.full_name
+
+
+def _count_activity(db: Session, student_id: int, activity_type: ActivityType) -> int:
+    return (
+        db.query(Checkin)
+        .filter(Checkin.student_id == student_id, Checkin.activity_type == activity_type)
+        .count()
+    )
+
+
+def create_game_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | None]:
+    student = get_student_or_raise(db, unique_code)
+
+    if not _has_campus_entry_today(db, student.id):
+        raise missing_campus_entry()
+
+    tour_count = _count_activity(db, student.id, ActivityType.tour)
+    lecture_count = _count_activity(db, student.id, ActivityType.lecture)
+    if tour_count < 2 or lecture_count < 1:
+        raise game_requirements_not_met(tour_count, lecture_count)
+
+    existing = _find_existing_checkin(db, student.id, ActivityType.game)
+    _raise_if_duplicate(
+        existing,
+        student.full_name,
+        unique_code,
+        ActivityType.game,
+        _ACTIVITY_LABELS[ActivityType.game],
+    )
+
+    checkin = Checkin(student_id=student.id, activity_type=ActivityType.game)
+    db.add(checkin)
+    _flush_commit_checkin(
+        db,
+        lambda: _find_existing_checkin(db, student.id, ActivityType.game),
+        student,
+        unique_code,
+        ActivityType.game,
+        _ACTIVITY_LABELS[ActivityType.game],
     )
     db.refresh(checkin)
     return checkin, student.full_name

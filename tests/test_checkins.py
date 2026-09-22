@@ -1,9 +1,11 @@
 """اختبارات تسجيل الحضور (check-ins) — الأنواع الأربعة + العدادات."""
 
+from datetime import datetime
+
 from fastapi.testclient import TestClient
 
 import main as main_module
-from app.models import College, Faculty
+from app.models import ActivityType, Checkin, College, Faculty, Lecture, Student
 
 STUDENT = "R-9001"
 L1 = "lecture_1"
@@ -256,6 +258,162 @@ def test_consultation_duplicate_409(
     )
     assert resp.status_code == 409
     assert resp.json()["error_code"] == "duplicate_checkin"
+
+
+# ---------- game (game_corner_manager) ----------
+
+
+def _make_eligible_for_game(
+    client,
+    students_admin_headers,
+    college_staff_headers,
+    gate_scanner_headers,
+    create_custom_staff,
+    auth_headers,
+):
+    """يهيّئ طالباً مؤهلاً لركن الترفيه: دخول بوابة + جولتان (كليتان مختلفتان) + محاضرة."""
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+
+    assert _tour_booking(client, college_staff_headers).status_code == 201
+    assert (
+        client.post(
+            "/checkins/tour", json={"unique_code": STUDENT}, headers=college_staff_headers
+        ).status_code
+        == 201
+    )
+
+    create_custom_staff("dent_staff2", "pw456", Faculty.dentistry)
+    dent_headers = auth_headers("dent_staff2", "pw456")
+    assert _tour_booking(client, dent_headers).status_code == 201
+    assert (
+        client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=dent_headers).status_code
+        == 201
+    )
+
+    assert (
+        client.post(
+            "/checkins/lecture",
+            json={"unique_code": STUDENT, "lecture_name": L1},
+            headers=gate_scanner_headers,
+        ).status_code
+        == 201
+    )
+
+
+def test_game_happy(
+    client,
+    student_factory,
+    students_admin_headers,
+    college_staff_headers,
+    gate_scanner_headers,
+    create_custom_staff,
+    auth_headers,
+    game_corner_headers,
+):
+    student_factory(STUDENT)
+    _make_eligible_for_game(
+        client,
+        students_admin_headers,
+        college_staff_headers,
+        gate_scanner_headers,
+        create_custom_staff,
+        auth_headers,
+    )
+    resp = client.post("/checkins/game", json={"unique_code": STUDENT}, headers=game_corner_headers)
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["student_name"] == "طالب تجريبي"
+    assert body["college"] is None
+    assert body["lecture_name"] is None
+    assert "checked_in_at" in body
+
+    # ركن الترفيه بتاعي 0 نقاط: 5 بوابة + 10 + 10 جولتين + 10 محاضرة = 35
+    pts = client.get(f"/students/{STUDENT}/points")
+    assert pts.json()["total_points"] == 35
+
+
+def test_game_without_prerequisites_409(
+    client, student_factory, students_admin_headers, game_corner_headers
+):
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    resp = client.post("/checkins/game", json={"unique_code": STUDENT}, headers=game_corner_headers)
+    assert resp.status_code == 409
+    body = resp.json()
+    assert body["error_code"] == "game_requirements_not_met"
+    assert body["details"]["tour_count"] == 0
+    assert body["details"]["lecture_count"] == 0
+
+
+def test_game_without_campus_entry_409(client, db, student_factory, game_corner_headers):
+    """جولتان ومحاضرة مسجّلين بس ما فات من البوابة اليوم → 409 missing_campus_entry."""
+    student_factory(STUDENT)
+    sid = db.query(Student).filter(Student.unique_code == STUDENT).first().id
+    now = datetime.now()
+    for college in (Faculty.medicine, Faculty.dentistry):
+        db.add(
+            Checkin(
+                student_id=sid,
+                activity_type=ActivityType.tour,
+                college=college,
+                checked_in_at=now,
+            )
+        )
+    db.add(
+        Checkin(
+            student_id=sid,
+            activity_type=ActivityType.lecture,
+            lecture_name=Lecture.lecture_1,
+            checked_in_at=now,
+        )
+    )
+    db.commit()
+
+    resp = client.post("/checkins/game", json={"unique_code": STUDENT}, headers=game_corner_headers)
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "missing_campus_entry"
+
+
+def test_game_duplicate_409(
+    client,
+    student_factory,
+    students_admin_headers,
+    college_staff_headers,
+    gate_scanner_headers,
+    create_custom_staff,
+    auth_headers,
+    game_corner_headers,
+):
+    student_factory(STUDENT)
+    _make_eligible_for_game(
+        client,
+        students_admin_headers,
+        college_staff_headers,
+        gate_scanner_headers,
+        create_custom_staff,
+        auth_headers,
+    )
+    payload = {"unique_code": STUDENT}
+    assert (
+        client.post("/checkins/game", json=payload, headers=game_corner_headers).status_code == 201
+    )
+    resp = client.post("/checkins/game", json=payload, headers=game_corner_headers)
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "duplicate_checkin"
+
+
+def test_game_forbidden_for_other_roles(client, student_factory, students_admin_headers):
+    student_factory(STUDENT)
+    resp = client.post(
+        "/checkins/game", json={"unique_code": STUDENT}, headers=students_admin_headers
+    )
+    assert resp.status_code == 403
+
+
+def test_game_unauthenticated_401(client, student_factory):
+    student_factory(STUDENT)
+    resp = client.post("/checkins/game", json={"unique_code": STUDENT}, headers={})
+    assert resp.status_code == 401
 
 
 # ---------- counts ----------
