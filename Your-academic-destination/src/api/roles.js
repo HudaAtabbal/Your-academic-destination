@@ -6,4 +6,5 @@ export const ROLE_LABELS = {
   students_admin: 'مدير بيانات الطلاب',
   gate_scanner: 'مسؤول المسح',
   college_staff: 'مسؤول الكلية',
+  game_corner_manager: 'مسؤول ركن الترفيه',
 };

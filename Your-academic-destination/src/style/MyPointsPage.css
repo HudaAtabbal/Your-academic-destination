@@ -151,6 +151,18 @@
   opacity: 0.85;
 }
 
+.points-cap-note {
+  color: #E65100;
+  font-size: 0.85rem;
+  font-weight: 800;
+  margin: 12px 0 0 0;
+  line-height: 1.5;
+  text-align: right;
+  background-color: #FFF3E0;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
 /* Awards Notice */
 .awards-notice {
   text-align: center;

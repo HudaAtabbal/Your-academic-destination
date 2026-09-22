@@ -5,11 +5,12 @@ import { apiGet, ApiError } from '../../api/api';
 import '../../style/MyPointsPage.css';
 
 // ⚠️ جدول القيم هون نصوص ثابتة بالفرونت (نفس تعليق الباك: "القيم معلنة ولا تتغير") —
-// الباك بيرجّع بس total_points النهائي، مش تفصيل كل محطة، فهاد الجدول للعرض بس
+// الباك بيرجّع total_points + تفاصيل سقوف اليوم (today_lecture_count /
+// lectures_capped_today / today_tour_count / tours_capped_today)، فهاد الجدول للعرض بس.
 const STATIONS = [
   { name: 'دخول البوابة (مرة يومياً)', points: '5' },
-  { name: 'حضور محاضرة', points: '10' },
-  { name: 'جولة كلية', points: '10' },
+  { name: 'حضور محاضرة (حتى 3 محاضرات يومياً)', points: '10' },
+  { name: 'جولة كلية (حتى 3 جولات يومياً)', points: '10' },
   { name: 'استشارة فردية', points: '15' },
   { name: 'الاستبيان البعدي', points: '20' },
 ];
@@ -20,10 +21,12 @@ const POINTS_REFRESH_MS = 60000;
 
 const MyPointsPage = ({
   active = false,
-  footerNote = 'تُحتسب حتى ثلاث ندوات في اليوم — النقاط لتشجيعك على التنوّع لا على الجري.',
+  footerNote = 'تُحتسب النقاط حتى 3 محاضرات يومياً و3 جولات يومياً — النقاط لتشجيعك على التنوّع لا على الجري.',
   awardsNote = 'الجوائز تُسلَّم في حفل الختام، اليوم الثالث --:16.',
 }) => {
   const [points, setPoints] = useState(null);
+  const [lecturesCappedToday, setLecturesCappedToday] = useState(false);
+  const [toursCappedToday, setToursCappedToday] = useState(false);
   const [error, setError] = useState('');
   // بنمرّر سولاج فعالية عشان ما نعمل استطلاعات مركّبة فوق بعضها
   const pendingRef = useRef(false);
@@ -42,6 +45,8 @@ const MyPointsPage = ({
       try {
         const res = await apiGet(`/students/${studentCode}/points`);
         setPoints(res.total_points);
+        setLecturesCappedToday(!!res.lectures_capped_today);
+        setToursCappedToday(!!res.tours_capped_today);
       } catch (err) {
         setError(err instanceof ApiError ? err.message : 'حدث خطأ اثناء تحميل نقاطك');
       } finally {
@@ -54,6 +59,19 @@ const MyPointsPage = ({
     const timer = setInterval(loadPoints, POINTS_REFRESH_MS);
     return () => clearInterval(timer);
   }, [active]);
+
+  const personalizedNote = () => {
+    if (lecturesCappedToday && toursCappedToday) {
+      return 'لقد بلغت الحد الأقصى للمحاضرات والجولات اليوم — لن تُحتسب نقاط إضافية على المزيد منهما اليوم.';
+    }
+    if (lecturesCappedToday) {
+      return 'لقد بلغت الحد الأقصى للمحاضرات اليوم — لن تُحتسب نقاط إضافية على المزيد من المحاضرات اليوم.';
+    }
+    if (toursCappedToday) {
+      return 'لقد بلغت الحد الأقصى للجولات اليوم — لن تُحتسب نقاط إضافية على المزيد من الجولات اليوم.';
+    }
+    return '';
+  };
 
   return (
     <div className="card-wrapper">
@@ -96,6 +114,10 @@ const MyPointsPage = ({
             </table>
 
             <p className="table-note">{footerNote}</p>
+
+            {personalizedNote() && (
+              <p className="points-cap-note">{personalizedNote()}</p>
+            )}
           </section>
 
           {/* Awards Footer Notice */}

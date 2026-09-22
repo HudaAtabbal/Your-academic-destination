@@ -31,6 +31,7 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
     { id: 'students_admin', label: 'مدير بيانات الطلاب' },
     { id: 'gate_scanner', label: 'مسؤول المسح' },
     { id: 'college_staff', label: 'مسؤول الكلية' },
+    { id: 'game_corner_manager', label: 'مسؤول ركن الترفيه' },
   ];
 
   // مثال اسم مستخدم مختلف حسب الدور المختار، حتى يبين الشكل المتوقع فوراً
@@ -39,6 +40,7 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
     students_admin: 'مثال: sara_admin',
     gate_scanner: 'مثال: sara_gate',
     college_staff: 'مثال: sara_college',
+    game_corner_manager: 'مثال: sara_game',
   };
 
   const handleBack = () => {
