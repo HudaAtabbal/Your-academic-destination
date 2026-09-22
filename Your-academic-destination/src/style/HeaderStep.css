@@ -50,6 +50,8 @@
   font-size: 0.75rem;
   font-weight: 400;
   opacity: 0.85;
+  white-space: normal;
+  line-height: 1.6;
 }
 
 .back-btn {
