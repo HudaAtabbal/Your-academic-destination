@@ -28,11 +28,20 @@ def _resolve_college(role: AccountRole, college: Faculty | None) -> Faculty | No
     return college if role == AccountRole.college_staff else None
 
 
-def list_accounts(db: Session, page: int, limit: int) -> tuple[list[Account], int]:
-    total = db.query(Account).count()
+def list_accounts(
+    db: Session, page: int, limit: int, search: str | None = None
+) -> tuple[list[Account], int]:
+    """
+    قائمة حسابات فريق العمل مع ترقيم صفحات وبحث جزئي باسم المستخدم (ILIKE).
+    البحث مطبّق قبل العدّ والترقيم مشان الأرقام تبقى صادقة.
+    """
+    query = db.query(Account)
+    if search and search.strip():
+        query = query.filter(Account.username.ilike(f"%{search.strip()}%"))
+
+    total = query.count()
     items = (
-        db.query(Account)
-        .order_by(Account.id)
+        query.order_by(Account.id)
         .offset((page - 1) * limit)
         .limit(limit)
         .all()

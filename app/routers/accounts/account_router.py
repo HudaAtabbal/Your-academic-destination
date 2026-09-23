@@ -31,9 +31,10 @@ router = APIRouter(
 def list_accounts(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
+    search: str | None = Query(default=None, max_length=100),
     db: Session = Depends(get_db),
 ) -> AccountListResponse:
-    items, total = account_service.list_accounts(db, page, limit)
+    items, total = account_service.list_accounts(db, page, limit, search=search)
     return AccountListResponse(
         items=[AccountPublic(username=a.username, role=a.role, college=a.college) for a in items],
         page=page,

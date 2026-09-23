@@ -30,6 +30,31 @@ class RoomsOccupancyResponse(BaseModel):
     rooms: list[RoomOccupancyItem]
 
 
+class HallStudentItem(BaseModel):
+    checkin_id: int
+    unique_code: str
+    full_name: str | None = None
+    checked_in_at: datetime
+
+
+class HallStudentsResponse(BaseModel):
+    lecture_name: Lecture
+    hall_label: str
+    current_count: int
+    students: list[HallStudentItem]
+
+
+class HallClearResponse(BaseModel):
+    lecture_name: Lecture
+    hall_label: str
+    deleted_count: int
+
+
+class CheckinDeleteResponse(BaseModel):
+    checkin_id: int
+    deleted: bool
+
+
 class StudentsInsideItem(BaseModel):
     unique_code: str
     full_name: str | None = None

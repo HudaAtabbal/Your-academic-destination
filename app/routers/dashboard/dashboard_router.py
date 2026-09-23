@@ -15,8 +15,12 @@ from app.routers.dashboard import dashboard_service
 from app.routers.dashboard.dashboard_schema import (
     AnalyticsResponse,
     CertificateCountItem,
+    CheckinDeleteResponse,
     CollegeVisitItem,
     DashboardStatsResponse,
+    HallClearResponse,
+    HallStudentItem,
+    HallStudentsResponse,
     LectureAttendanceItem,
     RoomOccupancyItem,
     RoomsOccupancyResponse,
@@ -27,6 +31,7 @@ from app.routers.dashboard.dashboard_schema import (
     StudentsInsideListResponse,
     YearCountItem,
 )
+from app.models import Lecture
 
 router = APIRouter(
     prefix="/admin/dashboard",
@@ -55,6 +60,37 @@ def sms_status(db: Session = Depends(get_db)) -> SmsStatusResponse:
 def rooms_occupancy(db: Session = Depends(get_db)) -> RoomsOccupancyResponse:
     rooms = dashboard_service.get_rooms_occupancy(db)
     return RoomsOccupancyResponse(rooms=[RoomOccupancyItem(**r) for r in rooms])
+
+
+@router.get("/rooms-occupancy/{lecture_name}", response_model=HallStudentsResponse)
+def hall_students(
+    lecture_name: Lecture, db: Session = Depends(get_db)
+) -> HallStudentsResponse:
+    students = dashboard_service.list_hall_students(db, lecture_name)
+    return HallStudentsResponse(
+        lecture_name=lecture_name,
+        hall_label=dashboard_service.get_hall_label(),
+        current_count=len(students),
+        students=[HallStudentItem(**s) for s in students],
+    )
+
+
+@router.delete("/rooms-occupancy/{lecture_name}", response_model=HallClearResponse)
+def clear_hall(
+    lecture_name: Lecture, db: Session = Depends(get_db)
+) -> HallClearResponse:
+    deleted_count = dashboard_service.clear_hall_occupancy(db, lecture_name)
+    return HallClearResponse(
+        lecture_name=lecture_name,
+        hall_label=dashboard_service.get_hall_label(),
+        deleted_count=deleted_count,
+    )
+
+
+@router.delete("/checkins/{checkin_id}", response_model=CheckinDeleteResponse)
+def delete_checkin(checkin_id: int, db: Session = Depends(get_db)) -> CheckinDeleteResponse:
+    dashboard_service.delete_checkin_by_id(db, checkin_id)
+    return CheckinDeleteResponse(checkin_id=checkin_id, deleted=True)
 
 
 @router.get("/students-inside", response_model=StudentsInsideListResponse)

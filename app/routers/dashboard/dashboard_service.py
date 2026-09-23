@@ -21,6 +21,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app import time_utils
+from app.errors import checkin_not_found
 from app.models import (
     ActivityType,
     CertificateType,
@@ -35,8 +36,14 @@ from app.models import (
 )
 from app.routers.checkins import checkin_service
 from app.routers.internal import internal_service
+from app.routers.points import point_service
 
 _HALL_LABEL = "المدرج الرئيسي"
+
+
+def get_hall_label() -> str:
+    """تسمية القاعة الوحيدة (مدرج رئيسي) — نفس القيمة المعروضة بإشغال القاعات."""
+    return _HALL_LABEL
 
 
 def get_dashboard_stats(db: Session) -> dict:
@@ -144,6 +151,75 @@ def get_rooms_occupancy(db: Session) -> list[dict]:
         }
         for lecture_name, count, last_updated in rows
     ]
+
+
+def list_hall_students(db: Session, lecture_name: Lecture) -> list[dict]:
+    """الطلاب المسجّلون حالياً داخل قاعة محاضرة معيّنة (اليوم فقط، بتوقيت سوريا)."""
+    today_start = time_utils.today_start()
+    today_end = today_start + timedelta(days=1)
+
+    rows = (
+        db.query(Checkin, Student)
+        .join(Student, Checkin.student_id == Student.id)
+        .filter(
+            Checkin.activity_type == ActivityType.lecture,
+            Checkin.lecture_name == lecture_name,
+            Checkin.checked_in_at >= today_start,
+            Checkin.checked_in_at < today_end,
+        )
+        .order_by(Checkin.checked_in_at.asc())
+        .all()
+    )
+
+    return [
+        {
+            "checkin_id": checkin.id,
+            "unique_code": student.unique_code,
+            "full_name": student.full_name,
+            "checked_in_at": checkin.checked_in_at,
+        }
+        for checkin, student in rows
+    ]
+
+
+def clear_hall_occupancy(db: Session, lecture_name: Lecture) -> int:
+    """إفراغ قاعة محاضرة ليوم — حذف كل سجلات دخول الطلاب القدام لها.
+
+    ملاحظة مهمة: الحذف غير مقيّد بأي سعة — حتى لو نزّلنا السعة (room capacity)
+    تحت عدد الموجودين، نضل قادرين نمسح دخول الطلاب. لا يوجد عمود capacity
+    بالسكيما، لذا لا يوجد أي فحص يمنع حذف الدخول أبداً.
+    """
+    today_start = time_utils.today_start()
+    today_end = today_start + timedelta(days=1)
+
+    to_delete = (
+        db.query(Checkin)
+        .filter(
+            Checkin.activity_type == ActivityType.lecture,
+            Checkin.lecture_name == lecture_name,
+            Checkin.checked_in_at >= today_start,
+            Checkin.checked_in_at < today_end,
+        )
+        .all()
+    )
+    count = len(to_delete)
+    for checkin in to_delete:
+        db.delete(checkin)
+    db.commit()
+    return count
+
+
+def delete_checkin_by_id(db: Session, checkin_id: int) -> None:
+    """حذف سجل دخول واحد (لطالب محدد) — للحذف الفردي داخل قاعة الداشبورد."""
+    checkin = db.query(Checkin).filter(Checkin.id == checkin_id).first()
+    if checkin is None:
+        raise checkin_not_found()
+    student_id = checkin.student_id
+    db.delete(checkin)
+    db.commit()
+    # إعادة حساب نقاط الطالب — حذف دخول (مثلاً محاضرة) لازم ينعكس على نقاطه/نقاطها
+    point_service.recalculate_and_store_points(db, student_id)
+    db.commit()
 
 
 def get_sms_status(db: Session) -> dict:

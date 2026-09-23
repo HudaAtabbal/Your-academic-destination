@@ -5,8 +5,8 @@ def test_list_accounts(client, super_headers):
     resp = client.get("/admin/accounts", headers=super_headers)
     assert resp.status_code == 200
     body = resp.json()
-    assert body["total"] == 4
-    assert len(body["items"]) == 4
+    assert body["total"] == 5
+    assert len(body["items"]) == 5
     assert body["page"] == 1
     assert body["limit"] == 20
 
@@ -18,8 +18,8 @@ def test_list_pagination(client, super_headers):
     assert resp.status_code == 200
     body = resp.json()
     assert len(body["items"]) == 2
-    assert body["total"] == 4
-    assert body["total_pages"] == 2
+    assert body["total"] == 5
+    assert body["total_pages"] == 3
 
 
 def test_create_account_with_password(client, super_headers):
@@ -130,6 +130,52 @@ def test_accounts_forbidden_for_non_super(client, students_admin_headers):
 def test_accounts_unauthenticated_401(client):
     resp = client.get("/admin/accounts")
     assert resp.status_code == 401
+
+
+def test_list_accounts_search_by_username(client, super_headers):
+    """بحث جزئي باسم المستخدم (ILIKE) — يطابق الموجود ولا ينسخ الصفحات."""
+    resp = client.get(
+        "/admin/accounts", params={"search": "admin"}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["items"][0]["username"] == "sedra_admin"
+
+    resp = client.get(
+        "/admin/accounts", params={"search": "taher"}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["items"][0]["username"] == "taher_super"
+
+    # لا يوجد أي حساب مطابق — قائمة فارغة
+    resp = client.get(
+        "/admin/accounts", params={"search": "ghost"}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 0
+    assert resp.json()["items"] == []
+
+
+def test_list_accounts_search_with_pagination(client, super_headers):
+    """البحث يتقاطع مع الصفحات: الفلترة أولاً ثم الترقيم."""
+    for i in range(3):
+        client.post(
+            "/admin/accounts",
+            json={"username": f"zaker_{i}", "role": "gate_scanner"},
+            headers=super_headers,
+        )
+    resp = client.get(
+        "/admin/accounts", params={"search": "zaker", "limit": 2, "page": 2}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 3
+    assert body["total_pages"] == 2
+    assert len(body["items"]) == 1
+    assert body["items"][0]["username"] == "zaker_2"
 
 
 # ---------- DELETE ----------

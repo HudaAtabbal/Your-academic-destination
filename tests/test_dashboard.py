@@ -149,6 +149,113 @@ def test_dashboard_forbidden_for_non_super(client, students_admin_headers):
     assert resp.json()["error_code"] == "forbidden"
 
 
+def test_hall_students_list(
+    client,
+    student_factory,
+    students_admin_headers,
+    gate_scanner_headers,
+    super_headers,
+):
+    """قائمة الطلاب داخل قاعة محاضرة — كل دخول شيك-إن لليوم، بالترتيب الزمني."""
+    student_factory("R-9001", full_name="أحمد الأول")
+    student_factory("R-9002", full_name="سمير الثاني")
+    assert _campus_entry(client, students_admin_headers, "R-9001").status_code == 201
+    assert _lecture(client, gate_scanner_headers, "R-9001").status_code == 201
+    assert _campus_entry(client, students_admin_headers, "R-9002").status_code == 201
+    assert _lecture(client, gate_scanner_headers, "R-9002").status_code == 201
+
+    resp = client.get("/admin/dashboard/rooms-occupancy/lecture_1", headers=super_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["lecture_name"] == L1
+    assert body["hall_label"] == "المدرج الرئيسي"
+    assert body["current_count"] == 2
+    assert len(body["students"]) == 2
+    codes = [s["unique_code"] for s in body["students"]]
+    assert codes == ["R-9001", "R-9002"]
+    assert body["students"][0]["full_name"] == "أحمد الأول"
+    assert all("checkin_id" in s and "checked_in_at" in s for s in body["students"])
+
+
+def test_hall_students_empty(client, super_headers):
+    """قاعة بلا حضور — قائمة فارغة والعدّاد صفر (بدون 404)."""
+    resp = client.get("/admin/dashboard/rooms-occupancy/lecture_5", headers=super_headers)
+    assert resp.status_code == 200
+    assert resp.json()["current_count"] == 0
+    assert resp.json()["students"] == []
+
+
+def test_hall_invalid_lecture_422(client, super_headers):
+    resp = client.get("/admin/dashboard/rooms-occupancy/not_a_lecture", headers=super_headers)
+    assert resp.status_code == 422
+
+
+def test_clear_hall_occupancy(
+    client,
+    student_factory,
+    students_admin_headers,
+    gate_scanner_headers,
+    super_headers,
+):
+    """إفراغ قاعة درس: يمسح كل دخول المحاضرة لليوم من غير ما يمنع (وليس مقيداً بأي سعة)."""
+    for code in ("R-9001", "R-9002"):
+        student_factory(code)
+        assert _campus_entry(client, students_admin_headers, code).status_code == 201
+        assert _lecture(client, gate_scanner_headers, code).status_code == 201
+    # محاضرة أخرى ما بتنمسح
+    assert _lecture(client, gate_scanner_headers, "R-9001", "lecture_2").status_code == 201
+
+    resp = client.delete("/admin/dashboard/rooms-occupancy/lecture_1", headers=super_headers)
+    assert resp.status_code == 200
+    assert resp.json()["deleted_count"] == 2
+
+    # القاعة صارت فاضية (بتختفي من الإشغال)، ومحاضرة_2 نضلت
+    occ = client.get("/admin/dashboard/rooms-occupancy", headers=super_headers).json()["rooms"]
+    assert [(r["lecture_name"], r["current_count"]) for r in occ] == [("lecture_2", 1)]
+    # والتأكيد المباشر: قائمة الطلاب مساوية للصفرة
+    cleared = client.get(
+        "/admin/dashboard/rooms-occupancy/lecture_1", headers=super_headers
+    ).json()
+    assert cleared["current_count"] == 0
+    assert cleared["students"] == []
+
+
+def test_delete_single_checkin(
+    client,
+    student_factory,
+    students_admin_headers,
+    gate_scanner_headers,
+    super_headers,
+):
+    """حذف دخول طالب واحد من القاعة — الحذف ينجح حتى لو القاعة (نظرياً) عندها سعة مقلصة."""
+    student_factory("R-9001")
+    assert _campus_entry(client, students_admin_headers, "R-9001").status_code == 201
+    assert _lecture(client, gate_scanner_headers, "R-9001").status_code == 201
+
+    students = client.get(
+        "/admin/dashboard/rooms-occupancy/lecture_1", headers=super_headers
+    ).json()["students"]
+    assert len(students) == 1
+    checkin_id = students[0]["checkin_id"]
+
+    resp = client.delete(f"/admin/dashboard/checkins/{checkin_id}", headers=super_headers)
+    assert resp.status_code == 200
+    assert resp.json() == {"checkin_id": checkin_id, "deleted": True}
+
+    # القاعة صارت فاضية بعد الحذف
+    body = client.get(
+        "/admin/dashboard/rooms-occupancy/lecture_1", headers=super_headers
+    ).json()
+    assert body["current_count"] == 0
+    assert body["students"] == []
+
+
+def test_delete_unknown_checkin_404(client, super_headers):
+    resp = client.delete("/admin/dashboard/checkins/99999", headers=super_headers)
+    assert resp.status_code == 404
+    assert resp.json()["error_code"] == "checkin_not_found"
+
+
 def test_dashboard_counts_only_verified_registered(
     client, student_factory, super_headers
 ):

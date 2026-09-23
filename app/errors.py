@@ -151,6 +151,14 @@ def account_not_found() -> AppError:
     )
 
 
+def checkin_not_found() -> AppError:
+    return AppError(
+        status_code=404,
+        error_code="checkin_not_found",
+        message="سجل الدخول مش موجود",
+    )
+
+
 def cannot_delete_self() -> AppError:
     return AppError(
         status_code=400,
