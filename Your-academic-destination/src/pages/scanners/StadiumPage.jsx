@@ -10,6 +10,7 @@ import '../../style/StaffScan.css';
 // مطابقة لـ enum Lecture بالباك (id = اسم القيمة بالـ enum، name = النص الفعلي).
 // ⚠️ القاعة (hall) مش موجودة بالـ enum — لسا لازم نحددها مع الباك أو نضيفها لاحقاً.
 const LECTURES = [
+  { id: 'opening', name: 'حفل الافتتاح', hall: '' },
   { id: 'lecture_1', name: 'ندوة كليات العلوم الإنسانية', hall: '' },
   { id: 'lecture_2', name: 'ندوة مركزية: كيف تختار تخصصك الجامعي', hall: '' },
   { id: 'lecture_3', name: 'ندوة الكليات الطبية', hall: '' },
