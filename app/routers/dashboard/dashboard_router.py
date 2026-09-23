@@ -13,13 +13,19 @@ from app.dependencies import require_role
 from app.models import AccountRole
 from app.routers.dashboard import dashboard_service
 from app.routers.dashboard.dashboard_schema import (
+    AnalyticsResponse,
+    CertificateCountItem,
+    CollegeVisitItem,
     DashboardStatsResponse,
+    LectureAttendanceItem,
     RoomOccupancyItem,
     RoomsOccupancyResponse,
+    ScoreBucketItem,
     SmsCounts,
     SmsStatusResponse,
     StudentsInsideItem,
     StudentsInsideListResponse,
+    YearCountItem,
 )
 
 router = APIRouter(
@@ -69,4 +75,20 @@ def students_inside(
         limit=limit,
         total=total,
         total_pages=max(1, math.ceil(total / limit)),
+    )
+
+
+@router.get("/analytics", response_model=AnalyticsResponse)
+def dashboard_analytics(db: Session = Depends(get_db)) -> AnalyticsResponse:
+    analytics = dashboard_service.get_dashboard_analytics(db)
+    return AnalyticsResponse(
+        college_visits=[CollegeVisitItem(**i) for i in analytics["college_visits"]],
+        lecture_attendance=[
+            LectureAttendanceItem(**i) for i in analytics["lecture_attendance"]
+        ],
+        score_distribution=[ScoreBucketItem(**i) for i in analytics["score_distribution"]],
+        year_distribution=[YearCountItem(**i) for i in analytics["year_distribution"]],
+        certificate_distribution=[
+            CertificateCountItem(**i) for i in analytics["certificate_distribution"]
+        ],
     )

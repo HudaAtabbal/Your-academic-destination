@@ -59,6 +59,11 @@ def _lecture_label(lecture: Lecture) -> str:
     return _LECTURE_DISPLAY_NAMES.get(lecture, lecture.value)
 
 
+def lecture_display_name(lecture: Lecture) -> str:
+    """الاسم الرسمي العربي للمحاضرة — واجهة عامة يعيد استخدامها dashboard."""
+    return _lecture_label(lecture)
+
+
 def _today_range() -> tuple[datetime, datetime]:
     """حدود "اليوم" — بتوقيت سوريا عبر time_utils."""
     start = time_utils.today_start()

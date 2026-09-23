@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.models.enums import Lecture
+from app.models.enums import CertificateType, Faculty, Lecture
 
 
 class DashboardStatsResponse(BaseModel):
@@ -16,6 +16,7 @@ class DashboardStatsResponse(BaseModel):
     survey_completed_count: int
     walkin_pending_count: int
     walkin_completed_count: int
+    total_consultations: int
 
 
 class RoomOccupancyItem(BaseModel):
@@ -55,3 +56,37 @@ class SmsStatusResponse(BaseModel):
     counts: SmsCounts
     last_heartbeat: datetime | None
     worker_online: bool
+
+
+class CollegeVisitItem(BaseModel):
+    college: Faculty
+    count: int
+
+
+class LectureAttendanceItem(BaseModel):
+    lecture_name: Lecture
+    label: str
+    count: int
+
+
+class ScoreBucketItem(BaseModel):
+    label: str
+    count: int
+
+
+class YearCountItem(BaseModel):
+    year: int
+    count: int
+
+
+class CertificateCountItem(BaseModel):
+    certificate_type: CertificateType
+    count: int
+
+
+class AnalyticsResponse(BaseModel):
+    college_visits: list[CollegeVisitItem]
+    lecture_attendance: list[LectureAttendanceItem]
+    score_distribution: list[ScoreBucketItem]
+    year_distribution: list[YearCountItem]
+    certificate_distribution: list[CertificateCountItem]

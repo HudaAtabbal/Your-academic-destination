@@ -1,4 +1,4 @@
-"""
+﻿"""
 منطق العمل لإحصائيات لوحة المدير العام — راجع قسم 9 بملف wijhatak_api_contract.md.
 
 ملاحظات القرارات المحسومة:
@@ -21,7 +21,19 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app import time_utils
-from app.models import ActivityType, Checkin, PostSurvey, RegistrationType, Student, StudentStatus, VerificationStatus
+from app.models import (
+    ActivityType,
+    CertificateType,
+    Checkin,
+    Faculty,
+    Lecture,
+    PostSurvey,
+    RegistrationType,
+    Student,
+    StudentStatus,
+    VerificationStatus,
+)
+from app.routers.checkins import checkin_service
 from app.routers.internal import internal_service
 
 _HALL_LABEL = "المدرج الرئيسي"
@@ -79,6 +91,15 @@ def get_dashboard_stats(db: Session) -> dict:
         .count()
     )
 
+    # إجمالي الاستشارات الفردية المنفذة — عدّ سجلات checkin بنوع consultation
+    # (تراكمي لكل الأيام). كل طالب بيسجّل استشارة مرة وحدة بالكامل عن طريق
+    # فهرس unique_consultation_checkin، فالعدد يساوي عدد الطلاب المنجزين للاستشارة.
+    total_consultations = (
+        db.query(Checkin)
+        .filter(Checkin.activity_type == ActivityType.consultation)
+        .count()
+    )
+
     return {
         "registered_online_count": registered_online_count,
         "students_inside_today": students_inside_today,
@@ -86,6 +107,7 @@ def get_dashboard_stats(db: Session) -> dict:
         "survey_completed_count": survey_completed_count,
         "walkin_pending_count": walkin_pending_count,
         "walkin_completed_count": walkin_completed_count,
+        "total_consultations": total_consultations,
     }
 
 
@@ -190,3 +212,95 @@ def list_students_inside_all_days(
         for student in rows
     ]
     return items, total
+
+
+def get_dashboard_analytics(db: Session) -> dict:
+    """
+    إحصائيات تفصيلية للوحة المدير العام — كلها إجمالية لكل الأيام (تراكمية).
+
+    - college_visits: "زيارة الكلية (ركن التوجيه)" — شيكيات جولات الكلية
+      (activity_type=tour) المجمّعة حسب الكلية. تُعرض كل أعضاء Faculty الخمسة والعشرين
+      (الكلية بلا زيارات = صفر)، مرتّبة تنازلياً بعدد الزيارات.
+    - lecture_attendance: حضور المحاضرات — كل الـ16 مضمنة (صفر للفاضي)،
+      بترتيب enum، مع الاسم العربي الرسمي لكل محاضرة.
+    - score_distribution: توزيع معدل الطالب (bacc_average) على فترات عرض 10
+      (0-10 … 90-100) — الحقل اختياري، والقيم الفارغة (NULL) متجاهلة.
+    - year_distribution: توزيع سنة الشهادة (bacc_year) — كل سنة فئة، مرتبة
+      تصاعدياً، والفارغة متجاهلة.
+    - certificate_distribution: الفرع الثانوي — علمي/أدبي (certificate_type).
+      الفئتان مدرجتان دائماً حتى لو كانت إحداهما صفراً.
+    """
+    # "زيارة الكلية (ركن التوجيه)" — التجميع فقط للزيارات المنفذة (شيكيات الجولات).
+    college_visits_rows = (
+        db.query(Checkin.college, func.count(Checkin.id))
+        .filter(Checkin.activity_type == ActivityType.tour)
+        .group_by(Checkin.college)
+        .all()
+    )
+    college_count_map = {college: count for college, count in college_visits_rows}
+    college_visits = [
+        {"college": college, "count": college_count_map.get(college, 0)}
+        for college in Faculty
+    ]
+    college_visits.sort(key=lambda item: item["count"], reverse=True)
+
+    # حضور المحاضرات — كل الـ16 مضمنة بترتيب enum.
+    lecture_rows = (
+        db.query(Checkin.lecture_name, func.count(Checkin.id))
+        .filter(Checkin.activity_type == ActivityType.lecture)
+        .group_by(Checkin.lecture_name)
+        .all()
+    )
+    lecture_count_map = {lecture: count for lecture, count in lecture_rows}
+    lecture_attendance = [
+        {
+            "lecture_name": lecture,
+            "label": checkin_service.lecture_display_name(lecture),
+            "count": lecture_count_map.get(lecture, 0),
+        }
+        for lecture in Lecture
+    ]
+
+    # توزيع المعدل (bacc_average) على فترات عرض 10 — 0-10 … 90-100.
+    score_rows = db.query(Student.bacc_average).filter(Student.bacc_average.isnot(None)).all()
+    score_counts = {i: 0 for i in range(0, 100, 10)}
+    for (value,) in score_rows:
+        bucket = min(int(float(value) // 10) * 10, 90)
+        score_counts[bucket] += 1
+    score_distribution = [
+        {"label": f"{start}-{start + 10}", "count": score_counts[start]}
+        for start in sorted(score_counts)
+    ]
+
+    # توزيع سنة الشهادة (bacc_year) — مرتبة تصاعدياً.
+    year_rows = (
+        db.query(Student.bacc_year, func.count(Student.id))
+        .filter(Student.bacc_year.isnot(None))
+        .group_by(Student.bacc_year)
+        .order_by(Student.bacc_year.asc())
+        .all()
+    )
+    year_distribution = [
+        {"year": year, "count": count} for year, count in year_rows
+    ]
+
+    # الفرع الثانوي — علمي/أدبي (الفئتان مدرجتان دائماً حتى لو بصفر).
+    cert_rows = (
+        db.query(Student.certificate_type, func.count(Student.id))
+        .filter(Student.certificate_type.isnot(None))
+        .group_by(Student.certificate_type)
+        .all()
+    )
+    cert_count_map = {cert: count for cert, count in cert_rows}
+    certificate_distribution = [
+        {"certificate_type": cert, "count": cert_count_map.get(cert, 0)}
+        for cert in (CertificateType.scientific, CertificateType.literary)
+    ]
+
+    return {
+        "college_visits": college_visits,
+        "lecture_attendance": lecture_attendance,
+        "score_distribution": score_distribution,
+        "year_distribution": year_distribution,
+        "certificate_distribution": certificate_distribution,
+    }
