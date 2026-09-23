@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { apiGet } from '../../api/api';
 import GeneralDirectorDashboard from './GeneralDirectorDashboard';
@@ -27,11 +27,23 @@ const STATS = {
   walkin_completed_count: 6,
 };
 
-function mockEndpoints(smsStatus) {
+function mockEndpoints(smsStatus, accountsResponse) {
   apiGet.mockImplementation((path) => {
-    if (path.startsWith('/admin/accounts')) return Promise.resolve({ items: [] });
+    if (path.startsWith('/admin/accounts'))
+      return Promise.resolve(accountsResponse || { items: [] });
     if (path === '/admin/dashboard/stats') return Promise.resolve(STATS);
     if (path === '/admin/dashboard/rooms-occupancy') return Promise.resolve({ rooms: [] });
+    if (path === '/admin/dashboard/analytics')
+      return Promise.resolve({
+        college_visits: [{ college: 'medicine', count: 2 }],
+        lecture_attendance: [],
+        score_distribution: [],
+        year_distribution: [],
+        certificate_distribution: [
+          { certificate_type: 'scientific', count: 2 },
+          { certificate_type: 'literary', count: 1 },
+        ],
+      });
     if (path === '/admin/dashboard/sms-status') return Promise.resolve(smsStatus);
     return Promise.reject(new Error(`unexpected path ${path}`));
   });
@@ -88,5 +100,87 @@ describe('GeneralDirectorDashboard - SMS status card', () => {
     expect(card).toHaveTextContent('بانتظار الإرسال: 0');
     expect(card).toHaveTextContent('مرسلة: 0');
     expect(card).toHaveTextContent('فاشلة: 0');
+  });
+});
+
+describe('GeneralDirectorDashboard - team accounts pagination & search', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  function makeAccount(username, role) {
+    return { username, role, college: null, password_hash: 'x', token_version: 0 };
+  }
+
+  it('renders accounts with pagination info derived from total', async () => {
+    const items = Array.from({ length: 10 }, (_, i) => makeAccount(`gt_user_${i}`, 'gate_scanner'));
+    mockEndpoints({ counts: {}, worker_online: true }, { items, total: 25, page: 1, limit: 10 });
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('gt_user_0')).toBeInTheDocument());
+
+    expect(screen.getByText('الإجمالي: 25')).toBeInTheDocument();
+    expect(screen.getByText('صفحة 1 من 3')).toBeInTheDocument();
+
+    const calls = apiGet.mock.calls.map((c) => c[0]);
+    expect(calls.some((p) => p.startsWith('/admin/accounts?page=1&limit=10'))).toBe(true);
+  });
+
+  it('renders empty state when no accounts match search', async () => {
+    mockEndpoints({ counts: {}, worker_online: true }, { items: [], total: 0, page: 1, limit: 10 });
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('ما في حسابات مطابقة')).toBeInTheDocument());
+    expect(screen.getByText('الإجمالي: 0')).toBeInTheDocument();
+  });
+
+  it('debounces the search query and passes it to the backend', async () => {
+    mockEndpoints({ counts: {}, worker_online: true }, { items: [], total: 0, page: 1, limit: 10 });
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('الإجمالي: 0')).toBeInTheDocument());
+
+    const input = screen.getByPlaceholderText('بحث بالاسم...');
+    fireEvent.change(input, { target: { value: 'sedra' } });
+
+    apiGet.mockClear();
+    await waitFor(
+      () => {
+        const calls = apiGet.mock.calls.map((c) => c[0]);
+        expect(calls.some((p) => p.startsWith('/admin/accounts?page=1&limit=10&search=sedra'))).toBe(
+          true
+        );
+      },
+      { timeout: 2000 }
+    );
+  });
+});
+
+describe('GeneralDirectorDashboard - collapsible analytics sections', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('starts collapsed and expands on click', async () => {
+    mockEndpoints({ counts: {}, worker_online: true });
+    renderDashboard();
+
+    // العنصر غير ظاهر حتى ينفتح (مقفول افتراضياً)
+    await waitFor(() => expect(screen.getByText('المُرسِل متصل')).toBeInTheDocument());
+    expect(screen.queryByText(/علمي: \d+٪/)).not.toBeInTheDocument();
+
+    // الكليك على رأس القسم يفتحه
+    fireEvent.click(screen.getByText('علمي / أدبي'));
+    expect(await screen.findByText(/علمي: 67٪ \(2\)/)).toBeInTheDocument();
   });
 });
