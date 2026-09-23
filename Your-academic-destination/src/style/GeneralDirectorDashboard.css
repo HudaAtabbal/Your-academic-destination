@@ -382,3 +382,170 @@
     gap: 8px;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* التحليلات التفصيلية: زيارات الكليات، حضور المحاضرات، التوزيعات، فرع الثانوي */ 
+/* ------------------------------------------------------------------ */
+
+.gd-dash-analytics-total {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #E25D1D;
+}
+
+/* قائمة مرتبة (كل كلية + عدد زياردتها) */
+.gd-dash-ranked-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(15, 59, 52, 0.06);
+  padding: 16px 20px;
+}
+
+.gd-dash-ranked-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid #F3E8D8;
+}
+
+.gd-dash-ranked-item:last-child {
+  border-bottom: none;
+}
+
+.gd-dash-ranked-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #0F3B34;
+}
+
+.gd-dash-ranked-num {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #8C2432;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* أعمدة رأسية (bars) — بدون أي مكتبة، CSS فقط */
+.gd-dash-chart-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(15, 59, 52, 0.06);
+  padding: 20px 16px 12px;
+  overflow-x: auto;
+}
+
+.gd-dash-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  min-height: 180px;
+}
+
+.gd-dash-bar-col {
+  flex: 1;
+  min-width: 26px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  height: 180px;
+}
+
+.gd-dash-bar {
+  width: 70%;
+  max-width: 34px;
+  min-height: 2px;
+  background: #8C2432;
+  border-radius: 4px 4px 0 0;
+  transition: height 0.3s ease;
+}
+
+.gd-dash-bar-count {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #0F3B34;
+}
+
+.gd-dash-bar-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #7A6855;
+  white-space: nowrap;
+}
+
+/* تسميات المحاضرات طويلة — بتتداخل أفقياً، فنخلي النص أصغر */
+.gd-dash-bar-label-tiny {
+  font-size: 0.56rem;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+  max-height: 44px;
+  overflow: hidden;
+}
+
+/* دونات علمي/أدبي */
+.gd-dash-donut-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 10px rgba(15, 59, 52, 0.06);
+  padding: 24px;
+}
+
+.gd-dash-donut {
+  width: 130px;
+  height: 130px;
+  transform: rotate(-90deg);
+}
+
+.gd-dash-donut-track {
+  fill: none;
+  stroke: #F3E8D8;
+  stroke-width: 5.2;
+}
+
+.gd-dash-donut-segment {
+  fill: none;
+  stroke-width: 5.2;
+  stroke-linecap: round;
+}
+
+.gd-dash-donut-scientific {
+  stroke: #8C2432;
+}
+
+.gd-dash-donut-literary {
+  stroke: #E25D1D;
+}
+
+.gd-dash-donut-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.gd-dash-donut-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F3B34;
+}
+
+.gd-dash-donut-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  display: inline-block;
+}
