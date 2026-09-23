@@ -7,4 +7,5 @@ export const ROLE_LABELS = {
   gate_scanner: 'مسؤول المسح',
   college_staff: 'مسؤول الكلية',
   game_corner_manager: 'مسؤول ركن الترفيه',
+  union: 'مسؤول الاتحاد',
 };

@@ -25,6 +25,8 @@ const STATS = {
   survey_completed_count: 4,
   walkin_pending_count: 5,
   walkin_completed_count: 6,
+  game_scans_total: 12,
+  union_scans_total: 7,
 };
 
 function mockEndpoints(smsStatus, accountsResponse) {
@@ -182,5 +184,16 @@ describe('GeneralDirectorDashboard - collapsible analytics sections', () => {
     // الكليك على رأس القسم يفتحه
     fireEvent.click(screen.getByText('علمي / أدبي'));
     expect(await screen.findByText(/علمي: 67٪ \(2\)/)).toBeInTheDocument();
+  });
+
+  it('shows the scan totals badge on the scientific/literary section header', async () => {
+    mockEndpoints({ counts: {}, worker_online: true });
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('المُرسِل متصل')).toBeInTheDocument());
+    // الـ badge بيظهر براس القسم حتى وهو مقفول (ما بيحتاج فتح القسم)
+    expect(
+      screen.getByText('مسحات ركن الترفيه: 12 · الاتحاد: 7')
+    ).toBeInTheDocument();
   });
 });

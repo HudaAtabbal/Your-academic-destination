@@ -89,6 +89,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
   const [hallStudents, setHallStudents] = useState([]);
   const [smsStatus, setSmsStatus] = useState(null); // null = ما في بيانات حالة المُرسِل لسا
   const [analytics, setAnalytics] = useState(null); // null = ما في بيانات التحليلات لسا
+  const [scanTotals, setScanTotals] = useState(null); // إجمالي مسحات ركن الترفيه + الاتحاد (كل الأيام)
 
   // الإحصاءات + إشغال القاعات — بتتحدث كل 15 ثانية مثل حالة المُرسِل
   useEffect(() => {
@@ -106,6 +107,11 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: res.walkin_pending_count, link: '/gate-incomplete' },
             { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: res.walkin_completed_count },
           ]);
+          // إجمالي مسحات ركن الترفيه + الاتحاد — بيظهرن بـ badge على قسم علمي/أدبي
+          setScanTotals({
+            game: res.game_scans_total ?? 0,
+            union: res.union_scans_total ?? 0,
+          });
         })
         .catch(() => {});
 
@@ -639,7 +645,16 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
         </CollapsibleSection>
 
         {/* علمي/أدبي — دونات بنسب مئوية */}
-        <CollapsibleSection title="علمي / أدبي">
+        <CollapsibleSection
+          title="علمي / أدبي"
+          badge={
+            scanTotals && (
+              <span className="gd-dash-analytics-total">
+                مسحات ركن الترفيه: {scanTotals.game} · الاتحاد: {scanTotals.union}
+              </span>
+            )
+          }
+        >
           {analytics && certTotal > 0 ? (
             <div className="gd-dash-donut-card">
               <svg viewBox="0 0 42 42" className="gd-dash-donut" aria-label="توزيع علمي/أدبي">

@@ -13,6 +13,7 @@ const ROLE_LANDING_PAGES = {
   // فبنوجّهه لصفحة اختيار المحطة، وهي يلي بتقرر أي شاشة يفتح
   college_staff: '/select-staff',
   game_corner_manager: '/team-game',
+  union: '/team-union',
 };
 
 const TeamLoginPage = () => {

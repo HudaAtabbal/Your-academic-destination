@@ -21,6 +21,7 @@ import CollegePage from "./pages/scanners/CollegePage";
 import StadiumPage from "./pages/scanners/StadiumPage";
 import ConsultationPage from "./pages/scanners/ConsultationPage";
 import GamePage from "./pages/scanners/GamePage";
+import UnionPage from "./pages/scanners/UnionPage";
 
 
 
@@ -73,6 +74,7 @@ function App() {
         <Route path="/team-consultation" element={<TeamPrivateRoute><ConsultationPage/></TeamPrivateRoute>}/>
         <Route path="/team-stadium" element={<TeamPrivateRoute><StadiumPage/></TeamPrivateRoute>}/>
         <Route path="/team-game" element={<TeamPrivateRoute><GamePage/></TeamPrivateRoute>}/>
+        <Route path="/team-union" element={<TeamPrivateRoute><UnionPage/></TeamPrivateRoute>}/>
 
 
         {/* بوابة الجامعة وإدارة بيانات الطلاب — محتاجة تسجيل دخول (JWT) */}
