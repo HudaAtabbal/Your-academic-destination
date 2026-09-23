@@ -34,6 +34,7 @@ BASE_ACCOUNTS = [
     ("rima_staff", "staff123", AccountRole.college_staff, Faculty.medicine),
     ("hadi_gate", "gate123", AccountRole.gate_scanner, None),
     ("nour_game", "game123", AccountRole.game_corner_manager, None),
+    ("sara_union", "union123", AccountRole.union, None),
 ]
 
 DEFAULT_STUDENT_CODE = "R-9001"
@@ -42,6 +43,20 @@ DEFAULT_STUDENT_CODE = "R-9001"
 @pytest.fixture(scope="session", autouse=True)
 def _init_test_db():
     Base.metadata.create_all(bind=engine)
+    # القيم الجديدة للأونكس ما بتتضاف تلقائياً عبر create_all للأونكس الموجودة —
+    # بزوّدها هون (IF NOT EXISTS) حتى تكون قاعدة الاختبار محدّثة دائماً.
+    # ALTER TYPE ADD VALUE لازم يكون كل واحد بمعاملة لحال + إنشاء الـ index بعدين
+    # بمعاملة تانية (PostgreSQL ما بيسمح باستخدام قيمة enum جديد بنفس المعاملة).
+    with engine.begin() as conn:
+        conn.execute(text("ALTER TYPE account_role_enum ADD VALUE IF NOT EXISTS 'union'"))
+        conn.execute(text("ALTER TYPE activity_type_enum ADD VALUE IF NOT EXISTS 'union'"))
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "CREATE UNIQUE INDEX IF NOT EXISTS unique_union_checkin "
+                "ON checkins (student_id) WHERE activity_type = 'union'"
+            )
+        )
     yield
 
 
@@ -124,6 +139,11 @@ def gate_scanner_headers(auth_headers):
 @pytest.fixture
 def game_corner_headers(auth_headers):
     return auth_headers("nour_game", "game123")
+
+
+@pytest.fixture
+def union_headers(auth_headers):
+    return auth_headers("sara_union", "union123")
 
 
 @pytest.fixture

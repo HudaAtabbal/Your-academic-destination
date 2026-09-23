@@ -445,6 +445,59 @@ def test_game_unauthenticated_401(client, student_factory):
     assert resp.status_code == 401
 
 
+# ---------- union (مسؤول الاتحاد) ----------
+# شروط المسح عند الاتحاد: يكفي دخول الحرم بنفس اليوم (بدون حجز/جولات) — بدون نقاط.
+
+
+def test_union_happy(client, student_factory, students_admin_headers, union_headers):
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    resp = client.post("/checkins/union", json={"unique_code": STUDENT}, headers=union_headers)
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["student_name"] == "طالب تجريبي"
+    assert body["college"] is None
+    assert body["lecture_name"] is None
+    assert "checked_in_at" in body
+
+    # الاتحاد بدون نقاط: 5 بوابة فقط
+    pts = client.get(f"/students/{STUDENT}/points")
+    assert pts.json()["total_points"] == 5
+
+
+def test_union_without_campus_entry_409(client, student_factory, union_headers):
+    student_factory(STUDENT)
+    resp = client.post("/checkins/union", json={"unique_code": STUDENT}, headers=union_headers)
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "missing_campus_entry"
+
+
+def test_union_duplicate_409(
+    client, student_factory, students_admin_headers, union_headers
+):
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    payload = {"unique_code": STUDENT}
+    assert client.post("/checkins/union", json=payload, headers=union_headers).status_code == 201
+    resp = client.post("/checkins/union", json=payload, headers=union_headers)
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "duplicate_checkin"
+
+
+def test_union_forbidden_for_other_roles(client, student_factory, students_admin_headers):
+    student_factory(STUDENT)
+    resp = client.post(
+        "/checkins/union", json={"unique_code": STUDENT}, headers=students_admin_headers
+    )
+    assert resp.status_code == 403
+
+
+def test_union_unauthenticated_401(client, student_factory):
+    student_factory(STUDENT)
+    resp = client.post("/checkins/union", json={"unique_code": STUDENT}, headers={})
+    assert resp.status_code == 401
+
+
 # ---------- counts ----------
 
 

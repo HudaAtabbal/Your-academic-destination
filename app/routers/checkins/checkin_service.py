@@ -30,6 +30,7 @@ _ACTIVITY_LABELS = {
     ActivityType.campus_entry: "الدخول من بوابة الجامعة اليوم",
     ActivityType.consultation: "الاستشارة الفردية",
     ActivityType.game: "ركن الترفيه",
+    ActivityType.union: "الاتحاد",
 }
 
 # الأسماء العربية للمحاضرات — مطابقة لقائمة LECTURES بالواجهة (StadiumPage).
@@ -344,6 +345,39 @@ def create_game_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | N
         unique_code,
         ActivityType.game,
         _ACTIVITY_LABELS[ActivityType.game],
+    )
+    db.refresh(checkin)
+    return checkin, student.full_name
+
+
+def create_union_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | None]:
+    """
+    مسح ركن الاتحاد — مثل الاستشارة من ناحية الشروط المسبقة: يكفي أن يكون
+    الطالب دخل الحرم بنفس اليوم (بدون حجز أو جولات). بدون نقاط.
+    """
+    student = get_student_or_raise(db, unique_code)
+
+    if not _has_campus_entry_today(db, student.id):
+        raise missing_campus_entry()
+
+    existing = _find_existing_checkin(db, student.id, ActivityType.union)
+    _raise_if_duplicate(
+        existing,
+        student.full_name,
+        unique_code,
+        ActivityType.union,
+        _ACTIVITY_LABELS[ActivityType.union],
+    )
+
+    checkin = Checkin(student_id=student.id, activity_type=ActivityType.union)
+    db.add(checkin)
+    _flush_commit_checkin(
+        db,
+        lambda: _find_existing_checkin(db, student.id, ActivityType.union),
+        student,
+        unique_code,
+        ActivityType.union,
+        _ACTIVITY_LABELS[ActivityType.union],
     )
     db.refresh(checkin)
     return checkin, student.full_name

@@ -24,6 +24,8 @@ from app import time_utils
 from app.errors import checkin_not_found
 from app.models import (
     ActivityType,
+    Booking,
+    BookingType,
     CertificateType,
     Checkin,
     Faculty,
@@ -107,6 +109,21 @@ def get_dashboard_stats(db: Session) -> dict:
         .count()
     )
 
+    # مسحات ركن الترفيه وركن الاتحاد — إجمالية (تراكمي لكل الأيام).
+    # كل طالب بينمسح مرة وحدة بطول الفعالية (فهرس unique_game_checkin /
+    # unique_union_checkin)، فالعدد يساوي عدد الطلاب الممسوحين.
+    game_scans_total = (
+        db.query(Checkin)
+        .filter(Checkin.activity_type == ActivityType.game)
+        .count()
+    )
+
+    union_scans_total = (
+        db.query(Checkin)
+        .filter(Checkin.activity_type == ActivityType.union)
+        .count()
+    )
+
     return {
         "registered_online_count": registered_online_count,
         "students_inside_today": students_inside_today,
@@ -115,6 +132,8 @@ def get_dashboard_stats(db: Session) -> dict:
         "walkin_pending_count": walkin_pending_count,
         "walkin_completed_count": walkin_completed_count,
         "total_consultations": total_consultations,
+        "game_scans_total": game_scans_total,
+        "union_scans_total": union_scans_total,
     }
 
 
@@ -294,9 +313,10 @@ def get_dashboard_analytics(db: Session) -> dict:
     """
     إحصائيات تفصيلية للوحة المدير العام — كلها إجمالية لكل الأيام (تراكمية).
 
-    - college_visits: "زيارة الكلية (ركن التوجيه)" — شيكيات جولات الكلية
-      (activity_type=tour) المجمّعة حسب الكلية. تُعرض كل أعضاء Faculty الخمسة والعشرين
-      (الكلية بلا زيارات = صفر)، مرتّبة تنازلياً بعدد الزيارات.
+    - college_visits: "زيارة الكلية (ركن التوجيه)" — عدد الطلاب المميزين اللي
+      زاروا الكلية إمّا عبر مسح ركن التوجيه (حجز جولة) أو عبر شيك جولة منفذ عند
+      باب الكلية. تُعرض كل أعضاء Faculty الخمسة والعشرين (الكلية بلا زيارات =
+      صفر)، مرتّبة تنازلياً بعدد الزيارات.
     - lecture_attendance: حضور المحاضرات — كل الـ16 مضمنة (صفر للفاضي)،
       بترتيب enum، مع الاسم العربي الرسمي لكل محاضرة.
     - score_distribution: توزيع معدل الطالب (bacc_average) على فترات عرض 10
@@ -306,11 +326,30 @@ def get_dashboard_analytics(db: Session) -> dict:
     - certificate_distribution: الفرع الثانوي — علمي/أدبي (certificate_type).
       الفئتان مدرجتان دائماً حتى لو كانت إحداهما صفراً.
     """
-    # "زيارة الكلية (ركن التوجيه)" — التجميع فقط للزيارات المنفذة (شيكيات الجولات).
+    # "زيارة الكلية (ركن التوجيه)" — عدد الطلاب المميزين (distinct) اللي زاروا
+    # الكلية، إمّا عبر مسح ركن التوجيه (حجز جولة) أو عبر شيك جولة منفذ عند باب
+    # الكلية. كل طالب يُحسب مرة واحدة لكل كلية حتى لو عمل الحجز والشيك معاً
+    # (union + distinct) — فارح لأي مصدر تاني بس يثبت مرور الطالب.
+    college_visit_sources = (
+        db.query(
+            Booking.college.label("college"),
+            Booking.student_id.label("student_id"),
+        )
+        .filter(Booking.booking_type == BookingType.tour)
+        .union(
+            db.query(
+                Checkin.college.label("college"),
+                Checkin.student_id.label("student_id"),
+            ).filter(Checkin.activity_type == ActivityType.tour)
+        )
+        .subquery()
+    )
     college_visits_rows = (
-        db.query(Checkin.college, func.count(Checkin.id))
-        .filter(Checkin.activity_type == ActivityType.tour)
-        .group_by(Checkin.college)
+        db.query(
+            college_visit_sources.c.college,
+            func.count(func.distinct(college_visit_sources.c.student_id)),
+        )
+        .group_by(college_visit_sources.c.college)
         .all()
     )
     college_count_map = {college: count for college, count in college_visits_rows}

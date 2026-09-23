@@ -17,6 +17,8 @@ class DashboardStatsResponse(BaseModel):
     walkin_pending_count: int
     walkin_completed_count: int
     total_consultations: int
+    game_scans_total: int
+    union_scans_total: int
 
 
 class RoomOccupancyItem(BaseModel):

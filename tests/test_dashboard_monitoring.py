@@ -70,6 +70,8 @@ def test_stats_empty_db_all_zeros(client, super_headers):
     assert body["students_inside_all_days"] == 0
     assert body["survey_completed_count"] == 0
     assert body["walkin_pending_count"] == 0
+    assert body["game_scans_total"] == 0
+    assert body["union_scans_total"] == 0
 
 
 # ---------- sms-status ----------

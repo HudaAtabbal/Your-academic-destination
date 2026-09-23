@@ -28,6 +28,7 @@ class ActivityType(str, enum.Enum):
     tour = "tour"
     consultation = "consultation"
     game = "game"
+    union = "union"
 
 
 class BookingType(str, enum.Enum):
@@ -156,6 +157,7 @@ class AccountRole(str, enum.Enum):
     college_staff = "college_staff"
     gate_scanner = "gate_scanner"
     game_corner_manager = "game_corner_manager"
+    union = "union"
 
 
 class CertificateType(str, enum.Enum):

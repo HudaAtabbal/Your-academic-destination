@@ -9,3 +9,7 @@ __pycache__/
 # SMS worker runtime logs
 worker/sms_worker.log*
 passenger_wsgi.log
+# temp / local files
+__x__
+_req_no_pg.txt
+package-lock.json

@@ -99,6 +99,9 @@ def test_dashboard_stats(
     assert body["students_inside_all_days"] == 1
     assert body["survey_completed_count"] == 1
     assert body["walkin_pending_count"] == 0
+    # لا يوجد مسحات لركن الترفيه/الاتحاد في هذا السيناريو — الحقلان يظهران دائماً
+    assert body["game_scans_total"] == 0
+    assert body["union_scans_total"] == 0
 
 
 def test_dashboard_stats_walkin_pending_count(

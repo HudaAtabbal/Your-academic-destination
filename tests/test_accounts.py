@@ -5,8 +5,8 @@ def test_list_accounts(client, super_headers):
     resp = client.get("/admin/accounts", headers=super_headers)
     assert resp.status_code == 200
     body = resp.json()
-    assert body["total"] == 5
-    assert len(body["items"]) == 5
+    assert body["total"] == 6
+    assert len(body["items"]) == 6
     assert body["page"] == 1
     assert body["limit"] == 20
 
@@ -18,7 +18,7 @@ def test_list_pagination(client, super_headers):
     assert resp.status_code == 200
     body = resp.json()
     assert len(body["items"]) == 2
-    assert body["total"] == 5
+    assert body["total"] == 6
     assert body["total_pages"] == 3
 
 
