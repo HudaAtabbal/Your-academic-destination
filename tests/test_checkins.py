@@ -140,6 +140,35 @@ def test_lecture_forbidden_for_students_admin(client, student_factory, students_
     assert resp.status_code == 403
 
 
+def test_opening_lecture_happy(client, student_factory, students_admin_headers, gate_scanner_headers):
+    """محاضرة الافتتاح (opening) تعمل مثل أي محاضرة عادية."""
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    resp = client.post(
+        "/checkins/lecture",
+        json={"unique_code": STUDENT, "lecture_name": "opening"},
+        headers=gate_scanner_headers,
+    )
+    assert resp.status_code == 201
+    assert resp.json()["lecture_name"] == "opening"
+
+
+def test_opening_lecture_duplicate_409(
+    client, student_factory, students_admin_headers, gate_scanner_headers
+):
+    """محاضرة الافتتاح محسوبة ضمن المحاضرات — التكرار له محظور."""
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    payload = {"unique_code": STUDENT, "lecture_name": "opening"}
+    assert (
+        client.post("/checkins/lecture", json=payload, headers=gate_scanner_headers).status_code
+        == 201
+    )
+    resp = client.post("/checkins/lecture", json=payload, headers=gate_scanner_headers)
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "duplicate_checkin"
+
+
 # ---------- tour (college_staff) ----------
 
 

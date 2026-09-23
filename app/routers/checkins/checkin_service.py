@@ -36,6 +36,7 @@ _ACTIVITY_LABELS = {
 # قيمة enum Lecture (lecture_1..lecture_16) رمز تقني؛ الرسائل للمستخدم لازم
 # تعرض الاسم الرسمي العربي مش الرمز.
 _LECTURE_DISPLAY_NAMES = {
+    Lecture.opening: "حفل الافتتاح",
     Lecture.lecture_1: "ندوة كليات العلوم الإنسانية",
     Lecture.lecture_2: "ندوة مركزية: كيف تختار تخصصك الجامعي",
     Lecture.lecture_3: "ندوة الكليات الطبية",

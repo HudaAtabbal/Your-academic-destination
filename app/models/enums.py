@@ -132,6 +132,7 @@ class Faculty(str, enum.Enum):
 
 # ⚠️ TODO: استبدال الـ placeholders بأسماء المحاضرات الفعلية قبل الإطلاق.
 class Lecture(str, enum.Enum):
+    opening = "opening"  # حفل الافتتاح
     lecture_1 = "lecture_1"
     lecture_2 = "lecture_2"
     lecture_3 = "lecture_3"
