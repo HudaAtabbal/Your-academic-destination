@@ -150,6 +150,8 @@ const RegisterStep1Page = () => {
       newErrors.certificateYear = 'سنة الشهادة مطلوبة';
     } else if (!/^\d{4}$/.test(formData.certificateYear.trim())) {
       newErrors.certificateYear = 'سنة الشهادة يجب أن تكون 4 أرقام';
+    } else if (Number(formData.certificateYear) > 2026) {
+      newErrors.certificateYear = 'سنة الشهادة لا يمكن أن تكون بعد 2026';
     }
 
     if (!formData.certificateType) {
