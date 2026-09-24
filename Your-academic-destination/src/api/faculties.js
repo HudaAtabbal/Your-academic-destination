@@ -2,7 +2,7 @@
 // بالباك وبنفس ترتيبه المعتمد (قائمة منفصلة عن اختيارات الطلاب).
 export const FACULTY_OPTIONS = [
   { value: 'medicine', label: 'كلية الطب البشري' },
-  { value: 'dentistry', label: 'كلية طب الأسنان' },
+  { value: 'dentistry', label: 'المجمع الطبي' },
   { value: 'pharmacy', label: 'كلية الصيدلة' },
   { value: 'health_sciences', label: 'كلية العلوم الصحية' },
   { value: 'informatics', label: 'كلية الهندسة المعلوماتية' },

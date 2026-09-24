@@ -4,7 +4,7 @@
 export const COLLEGE_OPTIONS = [
   { id: 'medicine', name: 'الطب البشري' },
   { id: 'pharmacy', name: 'الصيدلة' },
-  { id: 'dentistry', name: 'طب الأسنان' },
+  { id: 'dentistry', name: 'المجمع الطبي' },
   { id: 'health_labs', name: 'علوم صحيّة مخابر' },
   { id: 'health_nutrition', name: 'علوم صحيّة تغذية' },
   { id: 'health_physiotherapy', name: 'علوم صحية علاج فيزيائي' },
