@@ -51,12 +51,21 @@ def book_tour(
     "/consultation",
     response_model=BookingResponse,
     status_code=201,
-    dependencies=[Depends(require_role(AccountRole.college_staff))],
 )
-def book_consultation(payload: BookingRequest, db: Session = Depends(get_db)) -> BookingResponse:
-    booking, student_name = booking_service.create_consultation_booking(db, payload.unique_code)
+def book_consultation(
+    payload: BookingRequest,
+    db: Session = Depends(get_db),
+    current_account: Account = Depends(require_role(AccountRole.college_staff)),
+) -> BookingResponse:
+    college = _get_account_college(current_account)
+    booking, student_name = booking_service.create_consultation_booking(
+        db, payload.unique_code, college
+    )
     return BookingResponse(
-        booking_id=booking.id, student_name=student_name, booked_at=booking.booked_at
+        booking_id=booking.id,
+        student_name=student_name,
+        booked_at=booking.booked_at,
+        college=booking.college,
     )
 
 

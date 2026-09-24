@@ -25,7 +25,6 @@ from app.errors import checkin_not_found
 from app.models import (
     ActivityType,
     Booking,
-    BookingType,
     CertificateType,
     Checkin,
     Faculty,
@@ -315,9 +314,9 @@ def get_dashboard_analytics(db: Session) -> dict:
     إحصائيات تفصيلية للوحة المدير العام — كلها إجمالية لكل الأيام (تراكمية).
 
     - college_visits: "زيارة الكلية (ركن التوجيه)" — عدد الطلاب المميزين اللي
-      زاروا الكلية إمّا عبر مسح ركن التوجيه (حجز جولة) أو عبر شيك جولة منفذ عند
-      باب الكلية. تُعرض كل أعضاء Faculty الخمسة والعشرين (الكلية بلا زيارات =
-      صفر)، مرتّبة تنازلياً بعدد الزيارات.
+      زاروا الكلية عبر أي مسح بيسجّل كلية (حجز/شيك جولة أو استشارة عند الكلية).
+      تُعرض كل أعضاء Faculty الخمسة والعشرين (الكلية بلا زيارات = صفر)، مرتّبة
+      تنازلياً بعدد الزيارات.
     - lecture_attendance: حضور المحاضرات — كل الـ16 مضمنة (صفر للفاضي)،
       بترتيب enum، مع الاسم العربي الرسمي لكل محاضرة.
     - score_distribution: توزيع معدل الطالب (bacc_average) على فترات عرض 10
@@ -330,7 +329,7 @@ def get_dashboard_analytics(db: Session) -> dict:
       نادي التركي) — إجمالية لكل الأيام، الأقسام الثلاثة مدرجة دائماً (صفر للفاضي).
     """
     # "زيارة الكلية (ركن التوجيه)" — عدد الطلاب المميزين (distinct) اللي زاروا
-    # الكلية، إمّا عبر مسح ركن التوجيه (حجز جولة) أو عبر شيك جولة منفذ عند باب
+    # الكلية، عبر أي مسح سجّل كلية: حجز/شيك جولة، أو حجز/شيك استشارة عند باب
     # الكلية. كل طالب يُحسب مرة واحدة لكل كلية حتى لو عمل الحجز والشيك معاً
     # (union + distinct) — فارح لأي مصدر تاني بس يثبت مرور الطالب.
     college_visit_sources = (
@@ -338,12 +337,12 @@ def get_dashboard_analytics(db: Session) -> dict:
             Booking.college.label("college"),
             Booking.student_id.label("student_id"),
         )
-        .filter(Booking.booking_type == BookingType.tour)
+        .filter(Booking.college.is_not(None))
         .union(
             db.query(
                 Checkin.college.label("college"),
                 Checkin.student_id.label("student_id"),
-            ).filter(Checkin.activity_type == ActivityType.tour)
+            ).filter(Checkin.college.is_not(None))
         )
         .subquery()
     )

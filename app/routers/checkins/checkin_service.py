@@ -291,7 +291,9 @@ def create_tour_checkin(
     return checkin, student.full_name
 
 
-def create_consultation_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | None]:
+def create_consultation_checkin(
+    db: Session, unique_code: str, college: Faculty
+) -> tuple[Checkin, str | None]:
     student = get_student_or_raise(db, unique_code)
 
     if not _has_campus_entry_today(db, student.id):
@@ -309,7 +311,9 @@ def create_consultation_checkin(db: Session, unique_code: str) -> tuple[Checkin,
         _ACTIVITY_LABELS[ActivityType.consultation],
     )
 
-    checkin = Checkin(student_id=student.id, activity_type=ActivityType.consultation)
+    checkin = Checkin(
+        student_id=student.id, activity_type=ActivityType.consultation, college=college
+    )
     db.add(checkin)
     _flush_commit_checkin(
         db,

@@ -89,14 +89,28 @@ def tour_checkin(
     "/consultation",
     response_model=CheckinResponse,
     status_code=201,
-    dependencies=[Depends(require_role(AccountRole.college_staff))],
 )
 def consultation_checkin(
-    payload: UniqueCodeRequest, db: Session = Depends(get_db)
+    payload: UniqueCodeRequest,
+    db: Session = Depends(get_db),
+    current_account: Account = Depends(require_role(AccountRole.college_staff)),
 ) -> CheckinResponse:
-    checkin, student_name = checkin_service.create_consultation_checkin(db, payload.unique_code)
+    # الكلية بتنجلب من حساب الموظف نفسه — مش من جسم الطلب (نفس نمط tour_checkin)
+    if current_account.college is None:
+        raise AppError(
+            status_code=400,
+            error_code="validation_error",
+            message="حساب مسؤول الكلية هاد مش مربوط بأي كلية — راجعي الأدمن",
+        )
+
+    checkin, student_name = checkin_service.create_consultation_checkin(
+        db, payload.unique_code, current_account.college
+    )
     return CheckinResponse(
-        checkin_id=checkin.id, student_name=student_name, checked_in_at=checkin.checked_in_at
+        checkin_id=checkin.id,
+        student_name=student_name,
+        checked_in_at=checkin.checked_in_at,
+        college=checkin.college,
     )
 
 

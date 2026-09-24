@@ -67,7 +67,9 @@ def create_tour_booking(db: Session, unique_code: str, college: Faculty) -> tupl
     return booking, student.full_name
 
 
-def create_consultation_booking(db: Session, unique_code: str) -> tuple[Booking, str | None]:
+def create_consultation_booking(
+    db: Session, unique_code: str, college: Faculty
+) -> tuple[Booking, str | None]:
     student = get_student_or_raise(db, unique_code)
 
     if not _has_campus_entry(db, student.id):
@@ -77,7 +79,9 @@ def create_consultation_booking(db: Session, unique_code: str) -> tuple[Booking,
     if existing is not None:
         raise duplicate_booking(student.full_name or unique_code, unique_code, "استشارة فردية")
 
-    booking = Booking(student_id=student.id, booking_type=BookingType.consultation)
+    booking = Booking(
+        student_id=student.id, booking_type=BookingType.consultation, college=college
+    )
     db.add(booking)
     db.commit()
     db.refresh(booking)
