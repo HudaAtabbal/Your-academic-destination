@@ -23,6 +23,7 @@ const STATS = {
   students_inside_today: 2,
   students_inside_all_days: 3,
   survey_completed_count: 4,
+  registered_no_show_count: 2,
   walkin_pending_count: 5,
   walkin_completed_count: 6,
   game_scans_total: 12,
@@ -165,6 +166,32 @@ describe('GeneralDirectorDashboard - team accounts pagination & search', () => {
       },
       { timeout: 2000 }
     );
+  });
+});
+
+describe('GeneralDirectorDashboard - admin list card links', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+    vi.clearAllMocks();
+  });
+
+  it('renders survey completions and no-shows cards with counts and links', async () => {
+    mockEndpoints({ counts: {}, worker_online: true });
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('المُرسِل متصل')).toBeInTheDocument());
+
+    const surveyCard = screen.getByText('أكملوا الاستبيان').closest('.gd-dash-metric-card');
+    expect(surveyCard).toHaveTextContent('4');
+    expect(surveyCard).toHaveClass('gd-dash-metric-card-clickable');
+
+    const noShowsCard = screen.getByText('مسجّلون بلا حضور').closest('.gd-dash-metric-card');
+    expect(noShowsCard).toHaveTextContent('2');
+    expect(noShowsCard).toHaveClass('gd-dash-metric-card-clickable');
   });
 });
 

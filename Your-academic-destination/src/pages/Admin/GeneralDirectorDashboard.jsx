@@ -58,10 +58,11 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
     { id: 'registered', label: 'مسجّلون إلكترونياً', value: '—', link: '/gate-registered' },
     { id: 'inside', label: 'داخل الحرم اليوم', value: '—' },
     { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: '—', link: '/dashboard-students-inside' },
-    { id: 'survey', label: 'أكملوا الاستبيان', value: '—' },
+    { id: 'survey', label: 'أكملوا الاستبيان', value: '—', link: '/dashboard-survey-completions' },
     { id: 'consultations', label: 'إجمالي الاستشارات', value: '—' },
     { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: '—', link: '/gate-incomplete' },
     { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: '—' },
+    { id: 'no_shows', label: 'مسجّلون بلا حضور', value: '—', link: '/dashboard-no-shows' },
   ]);
   const [smsStatus, setSmsStatus] = useState(null); // null = ما في بيانات حالة المُرسِل لسا
   const [analytics, setAnalytics] = useState(null); // null = ما في بيانات التحليلات لسا
@@ -78,10 +79,11 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             { id: 'registered', label: 'مسجّلون إلكترونياً', value: res.registered_online_count, link: '/gate-registered' },
             { id: 'inside', label: 'داخل الحرم اليوم', value: res.students_inside_today },
             { id: 'cumulative', label: 'إجمالي الطلاب داخل الجامعة (كل الأيام)', value: res.students_inside_all_days, link: '/dashboard-students-inside' },
-            { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count },
+            { id: 'survey', label: 'أكملوا الاستبيان', value: res.survey_completed_count, link: '/dashboard-survey-completions' },
             { id: 'consultations', label: 'إجمالي الاستشارات', value: res.total_consultations },
             { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: res.walkin_pending_count, link: '/gate-incomplete' },
             { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: res.walkin_completed_count },
+            { id: 'no_shows', label: 'مسجّلون بلا حضور', value: res.registered_no_show_count ?? 0, link: '/dashboard-no-shows' },
           ]);
           // إجمالي مسحات ركن الترفيه + الاتحاد — الترفيه بيظهر بقسم مخصص، والاتحاد بدونات قسمه
           setScanTotals({

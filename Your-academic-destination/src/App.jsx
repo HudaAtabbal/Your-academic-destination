@@ -37,6 +37,8 @@ import CreateTeamAccountPage from "./pages/Admin/CreateTeamAccountPage";
 import GenerateWalkInCodesPage from "./pages/Admin/GenerateWalkInCodesPage";
 import StudentsInsideAllDaysPage from "./pages/Admin/StudentsInsideAllDaysPage";
 import RegisteredStudentsListPage from "./pages/Admin/RegisteredStudentsListPage";
+import SurveyCompletionsPage from "./pages/Admin/SurveyCompletionsPage";
+import RegisteredNoShowsPage from "./pages/Admin/RegisteredNoShowsPage";
 
 
 
@@ -88,6 +90,8 @@ function App() {
         {/* لوحة الإدارة العامة — محتاجة تسجيل دخول (JWT) */}
         <Route path="/dashboard" element={<TeamPrivateRoute><GeneralDirectorDashboard/></TeamPrivateRoute>}/>
         <Route path="/dashboard-students-inside" element={<TeamPrivateRoute><StudentsInsideAllDaysPage/></TeamPrivateRoute>}/>
+        <Route path="/dashboard-survey-completions" element={<TeamPrivateRoute><SurveyCompletionsPage/></TeamPrivateRoute>}/>
+        <Route path="/dashboard-no-shows" element={<TeamPrivateRoute><RegisteredNoShowsPage/></TeamPrivateRoute>}/>
         <Route path="/gate-registered" element={<TeamPrivateRoute><RegisteredStudentsListPage/></TeamPrivateRoute>}/>
         <Route path="/create-team-account" element={<TeamPrivateRoute><CreateTeamAccountPage/></TeamPrivateRoute>}/>
         <Route path="/generate-walkin-code" element={<TeamPrivateRoute><GenerateWalkInCodesPage/></TeamPrivateRoute>}/>
