@@ -45,6 +45,11 @@ function mockEndpoints(smsStatus, accountsResponse) {
           { certificate_type: 'scientific', count: 2 },
           { certificate_type: 'literary', count: 1 },
         ],
+        union_sections: [
+          { section: 'central', label: 'الركن المركزي', count: 2 },
+          { section: 'major_guide', label: 'دليل التخصص', count: 1 },
+          { section: 'turkish_club', label: 'نادي التركي', count: 0 },
+        ],
       });
     if (path === '/admin/dashboard/sms-status') return Promise.resolve(smsStatus);
     return Promise.reject(new Error(`unexpected path ${path}`));
@@ -195,5 +200,22 @@ describe('GeneralDirectorDashboard - collapsible analytics sections', () => {
     expect(
       screen.getByText('مسحات ركن الترفيه: 12 · الاتحاد: 7')
     ).toBeInTheDocument();
+  });
+
+  it('shows the union sections ranked list and total badge', async () => {
+    mockEndpoints({ counts: {}, worker_online: true });
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('المُرسِل متصل')).toBeInTheDocument());
+    // الـ badge (الإجمالي) بيظهر براس القسم حتى وهو مقفول
+    expect(screen.getByText('الإجمالي: 3')).toBeInTheDocument();
+
+    // فتح القسم يعرض الأقسام الثلاثة بأرقامها
+    fireEvent.click(screen.getByText('مسحات ركن الاتحاد'));
+    const section = screen.getByText('مسحات ركن الاتحاد').closest('section');
+    expect(section).toHaveTextContent('الركن المركزي');
+    expect(section).toHaveTextContent('2');
+    expect(section).toHaveTextContent('دليل التخصص');
+    expect(section).toHaveTextContent('نادي التركي');
   });
 });

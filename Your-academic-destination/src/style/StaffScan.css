@@ -450,3 +450,53 @@
   background: rgba(19, 79, 71, 0.85); /* نفس أخضر البرايمري بالمشروع */
   border-radius: 12px;
 }
+
+/* اختيار أقسام ركن الاتحاد (الركن المركزي / دليل التخصص / نادي التركي) */
+.union-section-prompt {
+  background-color: #FFFFFF;
+  border-radius: 24px;
+  padding: 24px;
+  text-align: center;
+}
+
+.union-section-question {
+  color: #71122B;
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 0 0 16px 0;
+}
+
+.union-section-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.union-section-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 18px;
+  background-color: #FFFFFF;
+  border: 1.5px solid #E2D2B8;
+  color: #71122B;
+  font-family: 'Ghroob', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.union-section-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.union-section-btn:hover:not(:disabled) {
+  background-color: #DCF1E9;
+}
+
+.union-section-btn.selected {
+  background-color: #DCF1E9;
+  border-color: #134F47;
+  color: #0d3832;
+}

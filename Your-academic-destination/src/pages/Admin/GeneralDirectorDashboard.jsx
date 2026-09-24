@@ -29,6 +29,13 @@ const LECTURE_LABELS = {
   lecture_16: 'حفل الختام والتكريم وتوزيع جوائز النقاط',
 };
 
+// تسميات أقسام ركن الاتحاد بالعربي — مطابقة لـ enum UnionSection بالباك
+const UNION_SECTION_LABELS = {
+  central: 'الركن المركزي',
+  major_guide: 'دليل التخصص',
+  turkish_club: 'نادي التركي',
+};
+
 // قسم إحصائية قابل للطي — مقفول افتراضياً، وينفتح لما يكبس عالراس.
 // والمقصود "الاحصائيات يلي تحت" بالداشبورد كلها صارت هيك.
 const CollapsibleSection = ({ title, badge, children }) => {
@@ -530,6 +537,33 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             <p className="gd-dash-empty-note">ما في قاعات فيها نشاط حالياً</p>
           )}
         </section>
+
+        {/* مسحات ركن الاتحاد — تفصيل حسب القسم (إجمالي لكل الأيام) */}
+        <CollapsibleSection
+          title="مسحات ركن الاتحاد"
+          badge={
+            analytics?.union_sections && (
+              <span className="gd-dash-analytics-total">
+                الإجمالي: {analytics.union_sections.reduce((s, v) => s + v.count, 0)}
+              </span>
+            )
+          }
+        >
+          {analytics?.union_sections && analytics.union_sections.length > 0 ? (
+            <div className="gd-dash-ranked-list">
+              {analytics.union_sections.map((sec) => (
+                <div key={sec.section} className="gd-dash-ranked-item">
+                  <span className="gd-dash-ranked-name">
+                    {UNION_SECTION_LABELS[sec.section] || sec.label || sec.section}
+                  </span>
+                  <span className="gd-dash-ranked-num">{sec.count}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="gd-dash-empty-note">ما في بيانات عن مسحات ركن الاتحاد للآن</p>
+          )}
+        </CollapsibleSection>
 
         {/* زيارات الكلية (ركن التوجيه) — قائمة مرتبة بكل الكليات */}
         <CollapsibleSection
