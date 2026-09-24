@@ -312,25 +312,33 @@ def test_dashboard_analytics_college_visits_all_faculties(
     client,
     student_factory,
     students_admin_headers,
-    college_staff_headers,
+    create_custom_staff,
     super_headers,
 ):
     """زيارة الكلية (ركن التوجيه) = شيكيات جولات الكلية المنفذة؛ تُعرض كل
-    الكليات الـ24 حتى اللي بدون زيارات، بأعداد تنازلية."""
+    الكليات إلا الموسيقا (بالاتحاد) والطب البشري والصيدلة (دُمجتا بالمجمع الطبي)."""
+    create_custom_staff("dent_staff2", "staff123", Faculty.dentistry)
+    headers = {
+        "Authorization": f"Bearer {client.post('/auth/login', json={'username':'dent_staff2','password':'staff123'}).json()['access_token']}"
+    }
     for code in ("R-9001", "R-9002"):
         student_factory(code)
         assert _campus_entry(client, students_admin_headers, code).status_code == 201
-        assert _tour_booking(client, college_staff_headers, code).status_code == 201
-        assert _tour_checkin(client, college_staff_headers, code).status_code == 201
+        assert _tour_booking(client, headers, code).status_code == 201
+        assert _tour_checkin(client, headers, code).status_code == 201
     resp = client.get("/admin/dashboard/analytics", headers=super_headers)
     assert resp.status_code == 200
     visits = resp.json()["college_visits"]
-    assert len(visits) == len(Faculty) - 1  # كلية الموسيقا دمجت بالاتحاد
-    # رما (college_staff) مرتبطة بكلية الطِّب — زيارتاها تُحسبان عليها
+    # الموسيقا بالاتحاد، والطب البشري والصيدلة دُمجتا بالمجمع الطبي
+    assert len(visits) == len(Faculty) - 3
+    # زيارات طب الأسنان (المجمع الطبي) = زيارتان بعد الدمج
     by_college = {v["college"]: v["count"] for v in visits}
-    assert by_college["medicine"] == 2
-    assert by_college["informatics"] == 0  # كلية بلا زيارات — ما زالت حاضرة بصفر
+    assert by_college["dentistry"] == 2
+    # الطب البشري والصيدلة ما عادا صفّين مستقلين بالجدول
+    assert "medicine" not in by_college
+    assert "pharmacy" not in by_college
     assert "music" not in by_college
+    assert by_college["informatics"] == 0  # كلية بلا زيارات — ما زالت حاضرة بصفر
     # إجمالي الزيارات = 2، والترتيب تنازلي
     totals = [v["count"] for v in visits]
     assert sum(totals) == 2

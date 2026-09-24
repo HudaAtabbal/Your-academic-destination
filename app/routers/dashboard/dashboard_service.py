@@ -451,9 +451,10 @@ def get_dashboard_analytics(db: Session) -> dict:
 
     - college_visits: "زيارة الكلية (ركن التوجيه)" — عدد الطلاب المميزين اللي
       زاروا الكلية عبر أي مسح بيسجّل كلية (حجز/شيك جولة أو استشارة عند الكلية).
-      تُعرض كل أعضاء Faculty عدا كلية الموسيقا (الكلية بلا زيارات = صفر)، مرتّبة
-      تنازلياً بعدد الزيارات. كلية الموسيقا ما عادت ركن مستقل — زياراتها تُدمج
-      ضمن «الركن المركزي» بالاتحاد.
+      تُعرض كل أعضاء Faculty عدا كلية الموسيقا (دُمجت ضمن «الركن المركزي»
+      بالاتحاد). الطب البشري والصيدلة ما عادن ركنان مستقلان — دُمجتا ضمن
+      مجموعة واحدة باسم «المجمع الطبي» (كلية طب الأسنان) بعملية دمج بيانات
+      لمرة وحدة، ولذلك لا تكونان كصفين منفصلين هنا. مرتّبة تنازلياً.
     - lecture_attendance: حضور المحاضرات — كل الـ16 مضمنة (صفر للفاضي)،
       بترتيب enum، مع الاسم العربي الرسمي لكل محاضرة.
     - score_distribution: توزيع معدل الطالب (bacc_average) على فترات عرض 10
@@ -491,11 +492,15 @@ def get_dashboard_analytics(db: Session) -> dict:
         .group_by(college_visit_sources.c.college)
         .all()
     )
+    # الكليات المدمجة/المحذوفة لا تُعرض كصفوف مستقلة بجدول الزيارات:
+    # - الموسيقا دُمجت ضمن الركن المركزي بالاتحاد
+    # - الطب البشري والصيدلة دُمجت بمجموعة واحدة باسم «المجمع الطبي» (طب الأسنان)
+    _VISITS_EXCLUDED = {Faculty.music, Faculty.medicine, Faculty.pharmacy}
     college_count_map = {college: count for college, count in college_visits_rows}
     college_visits = [
         {"college": college, "count": college_count_map.get(college, 0)}
         for college in Faculty
-        if college is not Faculty.music
+        if college not in _VISITS_EXCLUDED
     ]
     college_visits.sort(key=lambda item: item["count"], reverse=True)
 
