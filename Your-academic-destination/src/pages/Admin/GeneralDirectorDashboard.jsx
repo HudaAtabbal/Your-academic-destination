@@ -8,27 +8,6 @@ import '../../style/GeneralDirectorDashboard.css';
 
 const TEAM_PAGE_SIZE = 10;
 
-// تسميات المحاضرات بالعربي — مطابقة لـ enum Lecture بالباك (id = القيمة الخام)
-const LECTURE_LABELS = {
-  opening: 'حفل الافتتاح',
-  lecture_1: 'ندوة كليات العلوم الإنسانية',
-  lecture_2: 'ندوة مركزية: كيف تختار تخصصك الجامعي',
-  lecture_3: 'ندوة الكليات الطبية',
-  lecture_4: 'ندوة مركزية: اتجاهات سوق العمل والمهن الصاعدة',
-  lecture_5: 'ندوة أولياء الأمور',
-  lecture_6: 'ندوة كليات العلوم الأساسية والاقتصادية',
-  lecture_7: 'ندوة مركزية 2',
-  lecture_8: 'ندوة كلية الهندسة المعلوماتية مع نبذة عن الكلية التطبيقية',
-  lecture_9: 'ندوة الكليات: الهندسية المدنية · الهندسة المدنية · المعمارية · الزراعة',
-  lecture_10: 'ندوة مركزية: التخصصات المستجدة',
-  lecture_11: 'ندوة كلية الهندسة الميكانيكية',
-  lecture_12: 'ندوة كلية الهندسة الكيميائية والبترولية',
-  lecture_13: 'ندوة كلية الهندسة الكهربائية',
-  lecture_14: 'ندوة صناعة الحياة الجامعية',
-  lecture_15: 'ندوة المعاهد المتوسطة والعليا',
-  lecture_16: 'حفل الختام والتكريم وتوزيع جوائز النقاط',
-};
-
 // قسم إحصائية قابل للطي — مقفول افتراضياً، وينفتح لما يكبس عالراس.
 // والمقصود "الاحصائيات يلي تحت" بالداشبورد كلها صارت هيك.
 const CollapsibleSection = ({ title, badge, children }) => {
@@ -84,14 +63,11 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
     { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: '—', link: '/gate-incomplete' },
     { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: '—' },
   ]);
-  const [hallRooms, setHallRooms] = useState([]); // كل القاعات المشغولة حالياً
-  const [expandedHall, setExpandedHall] = useState(null); // lecture_name المعروض طلابه
-  const [hallStudents, setHallStudents] = useState([]);
   const [smsStatus, setSmsStatus] = useState(null); // null = ما في بيانات حالة المُرسِل لسا
   const [analytics, setAnalytics] = useState(null); // null = ما في بيانات التحليلات لسا
   const [scanTotals, setScanTotals] = useState(null); // إجمالي مسحات ركن الترفيه + الاتحاد (كل الأيام)
 
-  // الإحصاءات + إشغال القاعات — بتتحدث كل 15 ثانية مثل حالة المُرسِل
+  // الإحصاءات — بتتحدث كل 15 ثانية مثل حالة المُرسِل
   useEffect(() => {
     const fetchStats = () => {
       // الإحصاءات السبع — endpoint جديد مخصص للداشبورد صار متوفر
@@ -119,11 +95,6 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
       // إجمالية لكل الأيام، بتتحدث مع نفس دورة الـ 15 ثانية مثل بقية الداشبورد
       apiGet('/admin/dashboard/analytics')
         .then(setAnalytics)
-        .catch(() => {});
-
-      // إشغال القاعات — كل القاعات النشطة بالقائمة (وليست الأولى فقط)
-      apiGet('/admin/dashboard/rooms-occupancy')
-        .then((res) => setHallRooms(res.rooms || []))
         .catch(() => {});
     };
 
@@ -223,63 +194,6 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
 
   const handleTeamPrev = () => setTeamPage((p) => Math.max(1, p - 1));
   const handleTeamNext = () => setTeamPage((p) => Math.min(teamTotalPages, p + 1));
-
-  const lectureLabel = (lectureName) => LECTURE_LABELS[lectureName] || lectureName;
-
-  const handleClearHall = async (room) => {
-    const confirmed = window.confirm(
-      `متأكدة إنك بدك تفرغي قاعة "${lectureLabel(room.lecture_name)}" بالكامل؟`
-    );
-    if (!confirmed) return;
-
-    try {
-      // الحذف غير مقيّد بسعة القاعة — حتى لو قلّلنا السعة تحت عدد الموجودين،
-      // نضل قادرين على مسح دخول الطلاب (لا يوجد فحص سعة بالباك).
-      await apiRequest(`/admin/dashboard/rooms-occupancy/${room.lecture_name}`, { method: 'DELETE' });
-      if (expandedHall === room.lecture_name) {
-        setExpandedHall(null);
-        setHallStudents([]);
-      }
-      apiGet('/admin/dashboard/rooms-occupancy')
-        .then((res) => setHallRooms(res.rooms || []))
-        .catch(() => {});
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
-    }
-  };
-
-  const toggleHallStudents = async (room) => {
-    if (expandedHall === room.lecture_name) {
-      setExpandedHall(null);
-      setHallStudents([]);
-      return;
-    }
-    setExpandedHall(room.lecture_name);
-    try {
-      const res = await apiGet(`/admin/dashboard/rooms-occupancy/${room.lecture_name}`);
-      setHallStudents(res.students || []);
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'تعذّر تحميل الطلاب داخل القاعة');
-      setHallStudents([]);
-    }
-  };
-
-  const handleDeleteStudent = async (student) => {
-    const confirmed = window.confirm(
-      `متأكدة إنك بدك تحذفي دخول الطالب "${student.unique_code}" من القاعة؟`
-    );
-    if (!confirmed) return;
-
-    try {
-      await apiRequest(`/admin/dashboard/checkins/${student.checkin_id}`, { method: 'DELETE' });
-      setHallStudents((prev) => prev.filter((s) => s.checkin_id !== student.checkin_id));
-      apiGet('/admin/dashboard/rooms-occupancy')
-        .then((res) => setHallRooms(res.rooms || []))
-        .catch(() => {});
-    } catch (err) {
-      alert(err instanceof ApiError ? err.message : 'صار خطأ غير متوقع، حاولي مرة تانية');
-    }
-  };
 
   return (
     <div className="gd-dash-viewport">
@@ -437,108 +351,6 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
                 التالي
               </button>
             </div>
-          )}
-        </section>
-
-        {/* Hall Occupancy Section — كل القاعات المشغولة + حذف/إفراغ */}
-        <section className="gd-dash-section-wrapper">
-          <div className="gd-dash-section-heading-row">
-            <h2 className="gd-dash-section-heading">إشغال القاعات الآن</h2>
-            {hallRooms.length > 0 && (
-              <span className="gd-dash-analytics-total">
-                قاعات مشغولة: {hallRooms.length}
-              </span>
-            )}
-          </div>
-
-          {hallRooms.length > 0 ? (
-            <div className="gd-dash-hall-list">
-              {hallRooms.map((room) => (
-                <div key={room.lecture_name} className="gd-dash-occupancy-card gd-dash-hall-card">
-                  <div className="gd-dash-occupancy-info">
-                    <span className="gd-dash-occupancy-count">
-                      {room.current_count} طالب
-                    </span>
-                    <span className="gd-dash-occupancy-location">
-                      {room.hall_label} • {lectureLabel(room.lecture_name)}
-                    </span>
-                    <span className="gd-dash-occupancy-time">
-                      {room.last_updated
-                        ? new Date(room.last_updated).toLocaleTimeString('ar', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : ''}
-                    </span>
-                  </div>
-
-                  <div className="gd-dash-hall-actions">
-                    <button
-                      type="button"
-                      className="gd-dash-view-btn"
-                      onClick={() => toggleHallStudents(room)}
-                    >
-                      {expandedHall === room.lecture_name ? 'إخفاء الطلاب' : 'عرض الطلاب'}
-                    </button>
-                    <button
-                      type="button"
-                      className="gd-dash-delete-btn"
-                      onClick={() => handleClearHall(room)}
-                    >
-                      إفراغ القاعة
-                    </button>
-                  </div>
-
-                  {expandedHall === room.lecture_name && (
-                    <div className="gd-dash-hall-students">
-                      {hallStudents.length === 0 ? (
-                        <p className="gd-dash-empty-note">ما في طلاب داخل القاعة حالياً</p>
-                      ) : (
-                        <table className="gd-dash-hall-table">
-                          <thead>
-                            <tr>
-                              <th>الرمز</th>
-                              <th>الاسم</th>
-                              <th>وقت الدخول</th>
-                              <th></th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {hallStudents.map((student) => (
-                              <tr key={student.checkin_id}>
-                                <td className="gd-dash-hall-code" dir="ltr">
-                                  {student.unique_code}
-                                </td>
-                                <td>{student.full_name || '—'}</td>
-                                <td>
-                                  {student.checked_in_at
-                                    ? new Date(student.checked_in_at).toLocaleTimeString('ar', {
-                                        hour: '2-digit',
-                                        minute: '2-digit',
-                                      })
-                                    : '—'}
-                                </td>
-                                <td>
-                                  <button
-                                    type="button"
-                                    className="gd-dash-delete-btn"
-                                    onClick={() => handleDeleteStudent(student)}
-                                  >
-                                    حذف الدخول
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p className="gd-dash-empty-note">ما في قاعات فيها نشاط حالياً</p>
           )}
         </section>
 

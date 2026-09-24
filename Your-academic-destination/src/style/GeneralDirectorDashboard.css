@@ -213,41 +213,13 @@
   color: #7B1B2B;
 }
 
-/* Hall Occupancy Component */
+/* عناصر عامة */
 .gd-dash-empty-note {
   color: #7A6855;
   font-size: 0.95rem;
   font-weight: 600;
   text-align: center;
   padding: 16px;
-}
-
-.gd-dash-occupancy-card {
-  background-color: #FFFFFF;
-  border-radius: 18px;
-  padding: 24px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 2px 8px rgba(15, 59, 52, 0.03);
-}
-
-.gd-dash-occupancy-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.gd-dash-occupancy-count {
-  color: #8C2432;
-  font-size: 1.25rem;
-  font-weight: 800;
-}
-
-.gd-dash-occupancy-location {
-  color: #0F3B34;
-  font-size: 1.05rem;
-  font-weight: 700;
 }
 
 .gd-dash-progress-track {
@@ -370,16 +342,6 @@
 
   .gd-dash-team-table {
     min-width: 560px;
-  }
-
-  .gd-dash-occupancy-card {
-    padding: 20px 16px;
-  }
-
-  .gd-dash-occupancy-info {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
   }
 }
 
@@ -665,89 +627,6 @@
   justify-content: center;
   align-items: center;
   gap: 16px;
-}
-
-/* ------------------------------------------------------------------ */
-/* إشغال القاعات — كل القاعات + الطلاب + الإفراغ/الحذف */
-/* ------------------------------------------------------------------ */
-
-.gd-dash-hall-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.gd-dash-hall-card {
-  padding: 20px 24px;
-}
-
-.gd-dash-occupancy-time {
-  color: #A99B85;
-  font-size: 0.9rem;
-  font-weight: 700;
-}
-
-.gd-dash-hall-actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  flex-wrap: wrap;
-}
-
-.gd-dash-view-btn {
-  background-color: #0F3B34;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 50px;
-  padding: 10px 22px;
-  font-family: inherit;
-  font-size: 0.9rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.gd-dash-view-btn:hover {
-  background-color: #0A2B26;
-}
-
-.gd-dash-hall-students {
-  padding: 16px 0 4px;
-  border-top: 1px solid #F3E8D8;
-}
-
-.gd-dash-hall-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.gd-dash-hall-table th {
-  background-color: #F8ECD7;
-  color: #7A6855;
-  font-size: 0.9rem;
-  font-weight: 700;
-  padding: 10px 16px;
-  text-align: right;
-}
-
-.gd-dash-hall-table td {
-  padding: 10px 16px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: #0F3B34;
-  border-bottom: 1px solid #F6EBD9;
-  text-align: right;
-}
-
-.gd-dash-hall-table tr:last-child td {
-  border-bottom: none;
-}
-
-.gd-dash-hall-code {
-  direction: ltr;
-  text-align: left;
-  font-family: monospace, sans-serif;
 }
 
 /* ------------------------------------------------------------------ */
