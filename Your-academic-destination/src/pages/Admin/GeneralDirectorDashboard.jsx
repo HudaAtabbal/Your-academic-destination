@@ -29,13 +29,6 @@ const LECTURE_LABELS = {
   lecture_16: 'حفل الختام والتكريم وتوزيع جوائز النقاط',
 };
 
-// تسميات أقسام ركن الاتحاد بالعربي — مطابقة لـ enum UnionSection بالباك
-const UNION_SECTION_LABELS = {
-  central: 'الركن المركزي',
-  major_guide: 'دليل التخصص',
-  turkish_club: 'نادي التركي',
-};
-
 // قسم إحصائية قابل للطي — مقفول افتراضياً، وينفتح لما يكبس عالراس.
 // والمقصود "الاحصائيات يلي تحت" بالداشبورد كلها صارت هيك.
 const CollapsibleSection = ({ title, badge, children }) => {
@@ -195,6 +188,17 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
   const certLiterary = certData.find((c) => c.certificate_type === 'literary')?.count || 0;
   const pctScientific = certTotal > 0 ? Math.round((certScientific / certTotal) * 100) : 0;
   const pctLiterary = certTotal > 0 ? Math.round((certLiterary / certTotal) * 100) : 0;
+
+  // تحليلات مسحات ركن الاتحاد — نسب مئوية من إجمالي المسحات، مقسّمة على الأقسام الثلاثة
+  const unionData = analytics?.union_sections || [];
+  const unionTotal = unionData.reduce((sum, item) => sum + item.count, 0);
+  const unionCount = (key) => unionData.find((u) => u.section === key)?.count || 0;
+  const unionCentral = unionCount('central');
+  const unionMajorGuide = unionCount('major_guide');
+  const unionTurkish = unionCount('turkish_club');
+  const pctUnionCentral = unionTotal > 0 ? Math.round((unionCentral / unionTotal) * 100) : 0;
+  const pctUnionMajorGuide = unionTotal > 0 ? Math.round((unionMajorGuide / unionTotal) * 100) : 0;
+  const pctUnionTurkish = unionTotal > 0 ? Math.round((unionTurkish / unionTotal) * 100) : 0;
 
   const handleCreateAccount = () => {
     navigate('/create-team-account');
@@ -549,16 +553,53 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             )
           }
         >
-          {analytics?.union_sections && analytics.union_sections.length > 0 ? (
-            <div className="gd-dash-ranked-list">
-              {analytics.union_sections.map((sec) => (
-                <div key={sec.section} className="gd-dash-ranked-item">
-                  <span className="gd-dash-ranked-name">
-                    {UNION_SECTION_LABELS[sec.section] || sec.label || sec.section}
-                  </span>
-                  <span className="gd-dash-ranked-num">{sec.count}</span>
-                </div>
-              ))}
+          {analytics?.union_sections && unionTotal > 0 ? (
+            <div className="gd-dash-donut-card">
+              <svg
+                viewBox="0 0 42 42"
+                className="gd-dash-donut"
+                aria-label="توزيع مسحات ركن الاتحاد"
+              >
+                <circle cx="21" cy="21" r="15.9" className="gd-dash-donut-track" />
+                {pctUnionCentral > 0 && (
+                  <circle
+                    cx="21" cy="21" r="15.9"
+                    className="gd-dash-donut-segment gd-dash-donut-union-central"
+                    strokeDasharray={`${pctUnionCentral} ${100 - pctUnionCentral}`}
+                    strokeDashoffset="25"
+                  />
+                )}
+                {pctUnionMajorGuide > 0 && (
+                  <circle
+                    cx="21" cy="21" r="15.9"
+                    className="gd-dash-donut-segment gd-dash-donut-union-major-guide"
+                    strokeDasharray={`${pctUnionMajorGuide} ${100 - pctUnionMajorGuide}`}
+                    strokeDashoffset={25 - pctUnionCentral}
+                  />
+                )}
+                {pctUnionTurkish > 0 && (
+                  <circle
+                    cx="21" cy="21" r="15.9"
+                    className="gd-dash-donut-segment gd-dash-donut-union-turkish"
+                    strokeDasharray={`${pctUnionTurkish} ${100 - pctUnionTurkish}`}
+                    strokeDashoffset={25 - pctUnionCentral - pctUnionMajorGuide}
+                  />
+                )}
+              </svg>
+              <div className="gd-dash-donut-legend">
+                <span className="gd-dash-donut-legend-item">
+                  <span className="gd-dash-donut-swatch gd-dash-donut-union-central"></span>
+                  الركن المركزي: {pctUnionCentral}٪ ({unionCentral})
+                </span>
+                <span className="gd-dash-donut-legend-item">
+                  <span className="gd-dash-donut-swatch gd-dash-donut-union-major-guide"></span>
+                  دليل التخصص: {pctUnionMajorGuide}٪ ({unionMajorGuide})
+                </span>
+                <span className="gd-dash-donut-legend-item">
+                  <span className="gd-dash-donut-swatch gd-dash-donut-union-turkish"></span>
+                  نادي التركي: {pctUnionTurkish}٪ ({unionTurkish})
+                </span>
+              </div>
             </div>
           ) : (
             <p className="gd-dash-empty-note">ما في بيانات عن مسحات ركن الاتحاد للآن</p>

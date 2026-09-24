@@ -528,6 +528,18 @@
   stroke: #E25D1D;
 }
 
+.gd-dash-donut-union-central {
+  stroke: #0F3B34;
+}
+
+.gd-dash-donut-union-major-guide {
+  stroke: #E25D1D;
+}
+
+.gd-dash-donut-union-turkish {
+  stroke: #2B6B9C;
+}
+
 .gd-dash-donut-legend {
   display: flex;
   flex-direction: column;
