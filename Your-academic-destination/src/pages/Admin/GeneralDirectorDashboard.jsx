@@ -8,6 +8,13 @@ import '../../style/GeneralDirectorDashboard.css';
 
 const TEAM_PAGE_SIZE = 10;
 
+// كلية الأسنان صارت "المجمع الطبي" — الطب البشري والصيدلة اندمجت فيها.
+// نطبق الاسم هون بجدول زيارات الكلية بس (داخل الداشبورد).
+const COLLEGE_VISIT_LABELS = {
+  ...FACULTY_LABELS,
+  dentistry: 'المجمع الطبي',
+};
+
 // قسم إحصائية قابل للطي — مقفول افتراضياً، وينفتح لما يكبس عالراس.
 // والمقصود "الاحصائيات يلي تحت" بالداشبورد كلها صارت هيك.
 const CollapsibleSection = ({ title, badge, children }) => {
@@ -466,7 +473,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
               {analytics.college_visits.map((visit) => (
                 <div key={visit.college} className="gd-dash-ranked-item">
                   <span className="gd-dash-ranked-name">
-                    {FACULTY_LABELS[visit.college] || visit.college}
+                    {COLLEGE_VISIT_LABELS[visit.college] || visit.college}
                   </span>
                   <span className="gd-dash-ranked-num">{visit.count}</span>
                 </div>
