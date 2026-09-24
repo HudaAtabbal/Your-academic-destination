@@ -1,13 +1,24 @@
-"""اختبارات لوحة المدير العام (dashboard) — super_admin فقط."""
+﻿"""اختبارات لوحة المدير العام (dashboard) — super_admin فقط."""
 
+from datetime import timedelta
+
+from app import time_utils
 from app.models import (
+    ActivityType,
     CertificateType,
+    Checkin,
+    College,
     Faculty,
     RegistrationType,
     Student,
     StudentStatus,
     VerificationStatus,
 )
+
+
+def _phone(suffix: int) -> str:
+    """رقم تواصل وهمي صالح للنمط 09XXXXXXXX — مبني بالأجزاء (بدل رقم صريح)."""
+    return f"09{suffix:08d}"
 
 STUDENT = "R-9001"
 L1 = "lecture_1"
@@ -458,3 +469,174 @@ def test_dashboard_analytics_forbidden_for_non_super(client, students_admin_head
     resp = client.get("/admin/dashboard/analytics", headers=students_admin_headers)
     assert resp.status_code == 403
     assert resp.json()["error_code"] == "forbidden"
+
+
+def test_survey_completions_list_details(
+    client,
+    student_factory,
+    students_admin_headers,
+    gate_scanner_headers,
+    super_headers,
+):
+    """'أكملوا الاستبيان': كل شخص مع الاسم، الرقم، وقت الدخول، الكليات المختارة، وإجابات الاستبيان."""
+    student_factory(
+        "R-9001",
+        full_name="أحمد الأول",
+        contact_id=_phone(1),
+        initial_preferred_major=[College.medicine, College.law],
+    )
+    student_factory("R-9002", full_name="سمير الثاني", contact_id=_phone(2))
+    assert _campus_entry(client, students_admin_headers, "R-9001").status_code == 201
+    assert _lecture(client, gate_scanner_headers, "R-9001").status_code == 201
+    assert (
+        client.post(
+            "/survey/R-9001",
+            json={"opinion_change": "decided", "preferred_major": "law"},
+        ).status_code
+        == 201
+    )
+
+    resp = client.get("/admin/dashboard/survey-completions", headers=super_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    item = body["items"][0]
+    assert item["unique_code"] == "R-9001"
+    assert item["full_name"] == "أحمد الأول"
+    assert item["contact_id"] == _phone(1)
+    assert item["first_campus_entry_at"] is not None
+    # الكليات اللي اختارها وقت التسجيل (initial_preferred_major) + إجابة الاستبيان
+    assert item["chosen_colleges"] == ["medicine", "law"]
+    assert item["survey_college"] == "law"
+    assert item["opinion_change"] == "decided"
+    assert item["answered_at"] is not None
+
+
+def test_survey_completions_search(
+    client,
+    student_factory,
+    students_admin_headers,
+    gate_scanner_headers,
+    super_headers,
+):
+    """بحث جزئي بالاسم/الرمز يفلتر قائمة أكملوا الاستبيان."""
+    for code, name in (("R-9001", "أحمد الأول"), ("R-9002", "فاطمة الثانية")):
+        student_factory(code, full_name=name)
+        assert _campus_entry(client, students_admin_headers, code).status_code == 201
+        assert _lecture(client, gate_scanner_headers, code).status_code == 201
+        assert (
+            client.post(
+                f"/survey/{code}",
+                json={"opinion_change": "confirmed_choice", "preferred_major": "medicine"},
+            ).status_code
+            == 201
+        )
+    resp = client.get(
+        "/admin/dashboard/survey-completions?code=فاطمة", headers=super_headers
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["items"][0]["unique_code"] == "R-9002"
+    # بدون بحث — الاثنان ظاهرين
+    resp = client.get("/admin/dashboard/survey-completions", headers=super_headers)
+    assert resp.json()["total"] == 2
+
+
+def test_survey_completions_forbidden_for_non_super(client, students_admin_headers):
+    resp = client.get("/admin/dashboard/survey-completions", headers=students_admin_headers)
+    assert resp.status_code == 403
+
+
+def test_registered_no_show_stat_and_list(
+    client,
+    student_factory,
+    students_admin_headers,
+    college_staff_headers,
+    super_headers,
+):
+    """'مسجّلون بلا حضور': مسجّل أونلاين موثّق بدون أي دخول بوابة أو زيارة كلية يُعدّ
+    بالعدّاد والقائمة — بينما من حضر من البوابة أو زار كلية ما يظهر أبداً."""
+    # لا حضور إطلاقاً — لازم يظهر
+    student_factory("R-9001", full_name="لا حضور", contact_id=_phone(3))
+    # حضر من البوابة + جولة كلية — ما يظهر (حضور فعلي)
+    student_factory("R-9002", full_name="حضر بوابة", contact_id=_phone(4))
+    assert _campus_entry(client, students_admin_headers, "R-9002").status_code == 201
+    assert _tour_booking(client, college_staff_headers, "R-9002").status_code == 201
+    assert _tour_checkin(client, college_staff_headers, "R-9002").status_code == 201
+    # دخل البوابة بدون كلية — ما يظهر (حضر من البوابة)
+    student_factory("R-9003", full_name="دخل بوابة بس", contact_id=_phone(5))
+    assert _campus_entry(client, students_admin_headers, "R-9003").status_code == 201
+    # مسجّل أونلاين لسا موثّق (pending) — خارج النطاق (مش "موثّق")
+    student_factory("R-9004", verification_status=VerificationStatus.pending)
+    # walk-in — خارج النطاق (مش مسجّل أونلاين)
+    student_factory(
+        "W-0001",
+        registration_type=RegistrationType.walk_in,
+        verification_status=VerificationStatus.verified,
+    )
+
+    stats = client.get("/admin/dashboard/stats", headers=super_headers).json()
+    # R-9001..3 موثّقون => 3 (R-9004 pending وW-0001 walk-in خارج العدّاد)
+    assert stats["registered_online_count"] == 3
+    assert stats["registered_no_show_count"] == 1  # R-9001 فقط
+
+    resp = client.get("/admin/dashboard/registered-no-shows", headers=super_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    item = body["items"][0]
+    assert item["unique_code"] == "R-9001"
+    assert item["full_name"] == "لا حضور"
+    assert item["contact_id"] == _phone(3)
+    assert item["created_at"] is not None
+
+
+def test_registered_no_shows_search(client, student_factory, super_headers):
+    """بحث جزئي بالاسم/الرمز بيفلتر قائمة مسجّلين بلا حضور."""
+    student_factory("R-9001", full_name="أحمد لا حضور")
+    student_factory("R-9002", full_name="سمير لا حضور")
+    resp = client.get(
+        "/admin/dashboard/registered-no-shows?code=R-90", headers=super_headers
+    )
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 2
+    resp = client.get(
+        "/admin/dashboard/registered-no-shows?code=أحمد", headers=super_headers
+    )
+    assert resp.json()["total"] == 1
+    assert resp.json()["items"][0]["unique_code"] == "R-9001"
+
+
+def test_registered_no_shows_forbidden_for_non_super(client, students_admin_headers):
+    resp = client.get("/admin/dashboard/registered-no-shows", headers=students_admin_headers)
+    assert resp.status_code == 403
+
+
+def test_students_inside_all_days_unique_across_days(
+    db, client, student_factory, students_admin_headers, super_headers
+):
+    """'إجمالي الطلاب داخل الجامعة (كل الأيام)' — الطالب يعدّ مرة وحدة حتى لو
+    دخل من البوابة بأكثر من يوم (distinct على مستوى الطالب)."""
+    student = student_factory("R-9001", full_name="أحمد")
+    student_factory("R-9002", full_name="سمير")
+
+    assert _campus_entry(client, students_admin_headers, "R-9001").status_code == 201
+    # دخول ثاني بيوم سابق — مسموح (f أindex فريد لكل يوم) — نفس الطالب
+    past_entry = time_utils.now_naive() - timedelta(days=1)
+    db.add(
+        Checkin(
+            student_id=student.id,
+            activity_type=ActivityType.campus_entry,
+            checked_in_at=past_entry,
+        )
+    )
+    db.commit()
+
+    stats = client.get("/admin/dashboard/stats", headers=super_headers).json()
+    # دخولان لـ R-9001 بيومين مختلفين لكن العدّاد يعدّه مرة واحدة
+    assert stats["students_inside_all_days"] == 1
+
+    lst = client.get("/admin/dashboard/students-inside", headers=super_headers).json()
+    assert lst["total"] == 1
+    assert [item["unique_code"] for item in lst["items"]] == ["R-9001"]

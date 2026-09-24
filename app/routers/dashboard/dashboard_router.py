@@ -22,6 +22,8 @@ from app.routers.dashboard.dashboard_schema import (
     HallStudentItem,
     HallStudentsResponse,
     LectureAttendanceItem,
+    RegisteredNoShowItem,
+    RegisteredNoShowListResponse,
     RoomOccupancyItem,
     RoomsOccupancyResponse,
     ScoreBucketItem,
@@ -29,6 +31,8 @@ from app.routers.dashboard.dashboard_schema import (
     SmsStatusResponse,
     StudentsInsideItem,
     StudentsInsideListResponse,
+    SurveyCompletionItem,
+    SurveyCompletionsResponse,
     UnionSectionCountItem,
     YearCountItem,
 )
@@ -108,6 +112,44 @@ def students_inside(
     )
     return StudentsInsideListResponse(
         items=[StudentsInsideItem(**item) for item in items],
+        page=page,
+        limit=limit,
+        total=total,
+        total_pages=max(1, math.ceil(total / limit)),
+    )
+
+
+@router.get("/survey-completions", response_model=SurveyCompletionsResponse)
+def survey_completions(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    code: str | None = Query(default=None, max_length=50),
+    db: Session = Depends(get_db),
+) -> SurveyCompletionsResponse:
+    items, total = dashboard_service.list_survey_completions(
+        db, page, limit, code=code
+    )
+    return SurveyCompletionsResponse(
+        items=[SurveyCompletionItem(**item) for item in items],
+        page=page,
+        limit=limit,
+        total=total,
+        total_pages=max(1, math.ceil(total / limit)),
+    )
+
+
+@router.get("/registered-no-shows", response_model=RegisteredNoShowListResponse)
+def registered_no_shows(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    code: str | None = Query(default=None, max_length=50),
+    db: Session = Depends(get_db),
+) -> RegisteredNoShowListResponse:
+    items, total = dashboard_service.list_registered_no_shows(
+        db, page, limit, code=code
+    )
+    return RegisteredNoShowListResponse(
+        items=[RegisteredNoShowItem(**item) for item in items],
         page=page,
         limit=limit,
         total=total,

@@ -17,7 +17,7 @@
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from app import time_utils
@@ -82,6 +82,11 @@ def get_dashboard_stats(db: Session) -> dict:
 
     survey_completed_count = db.query(PostSurvey).count()
 
+    # "مسجّلون سجّالوا عالموقع وما حضرولها" — طلاب مسجّلون موثّقون (verified)
+    # بدون أي دخول من بوابة الجامعة على الإطلاق، وبدون أي زيارة لكلية (لا حجز
+    # ولا شيك جولة/استشارة مسجّل على كلية). نفس منطق count/list بالنازل.
+    registered_no_show_count = _registered_no_show_query(db).count()
+
     walkin_pending_count = (
         db.query(Student)
         .filter(
@@ -129,6 +134,7 @@ def get_dashboard_stats(db: Session) -> dict:
         "students_inside_today": students_inside_today,
         "students_inside_all_days": students_inside_all_days,
         "survey_completed_count": survey_completed_count,
+        "registered_no_show_count": registered_no_show_count,
         "walkin_pending_count": walkin_pending_count,
         "walkin_completed_count": walkin_completed_count,
         "total_consultations": total_consultations,
@@ -305,6 +311,135 @@ def list_students_inside_all_days(
             "total_points": student.total_points,
         }
         for student in rows
+    ]
+    return items, total
+
+
+def _registered_no_show_query(db: Session):
+    """
+    استعلام الـ"مسجّلون بلا حضور": طلاب مسجّلون أونلاين وموثّقون (verified)
+    أولّ ما جاوُ للفعالية إطلاقاً — بدون أي دخول من بوابة الجامعة (لا يوجد
+    checkin بنوع campus_entry)، وبدون أي زيارة لكلية (لا حجز ولا شيك جولة/
+    استشارة مسجّل على كلية). يستخدمه count الخاص بالبطاقة وقائمة الصفحة.
+    """
+    has_campus_entry = (
+        db.query(Checkin.student_id)
+        .filter(
+            Checkin.activity_type == ActivityType.campus_entry,
+            Checkin.student_id == Student.id,
+        )
+        .exists()
+    )
+    has_college_visit = or_(
+        db.query(Booking.student_id)
+        .filter(Booking.college.isnot(None), Booking.student_id == Student.id)
+        .exists(),
+        db.query(Checkin.student_id)
+        .filter(Checkin.college.isnot(None), Checkin.student_id == Student.id)
+        .exists(),
+    )
+    return db.query(Student).filter(
+        Student.registration_type == RegistrationType.registered,
+        Student.verification_status == VerificationStatus.verified,
+        ~has_campus_entry,
+        ~has_college_visit,
+    )
+
+
+def list_registered_no_shows(
+    db: Session, page: int, limit: int, code: str | None = None
+) -> tuple[list[dict], int]:
+    """
+    قائمة "مسجّلون بلا حضور" — الطلاب اللي سجّالوا عالموقع وموثّقين بس أولّ
+    ما دخلو من بوابة الجامعة ولا فاتو ع أي كلية. مرتبة من الأحدث تسجيلاً.
+    البحث بـ code اختياري (بحث جزئي بالرمز/الاسم على التوالي).
+    """
+    query = _registered_no_show_query(db)
+
+    if code:
+        query = query.filter(
+            or_(
+                Student.unique_code.ilike(f"%{code}%"),
+                Student.full_name.ilike(f"%{code}%"),
+            )
+        )
+
+    total = query.count()
+    rows = (
+        query.order_by(Student.created_at.desc(), Student.unique_code.asc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
+    items = [
+        {
+            "unique_code": student.unique_code,
+            "full_name": student.full_name,
+            "contact_id": student.contact_id,
+            "created_at": student.created_at,
+        }
+        for student in rows
+    ]
+    return items, total
+
+
+def list_survey_completions(
+    db: Session, page: int, limit: int, code: str | None = None
+) -> tuple[list[dict], int]:
+    """
+    قائمة "أكملوا الاستبيان" — كل شخص عبّى الاستبيان البعدي، مع:
+    الاسم، الرمز، رقم التواصل، وقت أول دخول من بوابة الجامعة، الكليات اللي
+    اختارها وقت التسجيل (initial_preferred_major)، وإجابات الاستبيان
+    (opinion_change + preferred_major) + وقت الإجابة. مرتبة من الأحدث إجابةً.
+    """
+    first_campus_entry_at = (
+        db.query(Checkin.checked_in_at)
+        .filter(
+            Checkin.student_id == Student.id,
+            Checkin.activity_type == ActivityType.campus_entry,
+        )
+        .order_by(Checkin.checked_in_at.asc())
+        .limit(1)
+        .scalar_subquery()
+    )
+
+    query = (
+        db.query(PostSurvey, Student, first_campus_entry_at.label("first_campus_entry_at"))
+        .join(Student, PostSurvey.student_id == Student.id)
+    )
+
+    total_query = db.query(PostSurvey).join(
+        Student, PostSurvey.student_id == Student.id
+    )
+
+    if code:
+        filter_ = or_(
+            Student.unique_code.ilike(f"%{code}%"),
+            Student.full_name.ilike(f"%{code}%"),
+        )
+        query = query.filter(filter_)
+        total_query = total_query.filter(filter_)
+
+    total = total_query.count()
+    rows = (
+        query.order_by(PostSurvey.answered_at.desc(), Student.unique_code.asc())
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
+
+    items = [
+        {
+            "unique_code": student.unique_code,
+            "full_name": student.full_name,
+            "contact_id": student.contact_id,
+            "first_campus_entry_at": first_entry,
+            "chosen_colleges": [c for c in (student.initial_preferred_major or [])],
+            "survey_college": survey.preferred_major,
+            "opinion_change": survey.opinion_change,
+            "answered_at": survey.answered_at,
+        }
+        for survey, student, first_entry in rows
     ]
     return items, total
 

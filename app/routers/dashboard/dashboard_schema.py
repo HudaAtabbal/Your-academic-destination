@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.models.enums import CertificateType, Faculty, Lecture, UnionSection
+from app.models.enums import CertificateType, College, Faculty, Lecture, OpinionChange, UnionSection
 
 
 class DashboardStatsResponse(BaseModel):
@@ -14,6 +14,7 @@ class DashboardStatsResponse(BaseModel):
     students_inside_today: int
     students_inside_all_days: int
     survey_completed_count: int
+    registered_no_show_count: int
     walkin_pending_count: int
     walkin_completed_count: int
     total_consultations: int
@@ -66,6 +67,40 @@ class StudentsInsideItem(BaseModel):
 
 class StudentsInsideListResponse(BaseModel):
     items: list[StudentsInsideItem]
+    page: int
+    limit: int
+    total: int
+    total_pages: int
+
+
+class SurveyCompletionItem(BaseModel):
+    unique_code: str
+    full_name: str | None = None
+    contact_id: str | None = None
+    first_campus_entry_at: datetime | None = None
+    chosen_colleges: list[College] = []
+    survey_college: College | None = None
+    opinion_change: OpinionChange | None = None
+    answered_at: datetime | None = None
+
+
+class SurveyCompletionsResponse(BaseModel):
+    items: list[SurveyCompletionItem]
+    page: int
+    limit: int
+    total: int
+    total_pages: int
+
+
+class RegisteredNoShowItem(BaseModel):
+    unique_code: str
+    full_name: str | None = None
+    contact_id: str | None = None
+    created_at: datetime
+
+
+class RegisteredNoShowListResponse(BaseModel):
+    items: list[RegisteredNoShowItem]
     page: int
     limit: int
     total: int
