@@ -151,6 +151,12 @@ class Lecture(str, enum.Enum):
     lecture_15 = "lecture_15"
     lecture_16 = "lecture_16"
 
+class UnionSection(str, enum.Enum):
+    central = "central"           # الركن المركزي
+    major_guide = "major_guide"   # دليل التخصص
+    turkish_club = "turkish_club" # نادي التركي
+
+
 class AccountRole(str, enum.Enum):
     super_admin = "super_admin"
     students_admin = "students_admin"

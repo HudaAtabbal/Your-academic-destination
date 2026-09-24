@@ -399,6 +399,33 @@ def test_dashboard_analytics_certificate_distribution(db, client, super_headers)
     assert by_cert["literary"] == 1
 
 
+def test_dashboard_analytics_union_sections(
+    client, student_factory, students_admin_headers, union_headers, super_headers
+):
+    """مسحات ركن الاتحاد حسب القسم: الأقسام الثلاثة مدرجة دائماً بترتيب enum
+    مع تسميات عربية، والمسح يُحتسب على قسمه فقط (الركن المركزي 2 / الباقي صفر)."""
+    for code in ("R-9001", "R-9002"):
+        student_factory(code)
+        assert _campus_entry(client, students_admin_headers, code).status_code == 201
+        assert (
+            client.post(
+                "/checkins/union",
+                json={"unique_code": code, "union_section": "central"},
+                headers=union_headers,
+            ).status_code
+            == 201
+        )
+    resp = client.get("/admin/dashboard/analytics", headers=super_headers)
+    assert resp.status_code == 200
+    rows = resp.json()["union_sections"]
+    assert len(rows) == 3
+    by_section = {r["section"]: r for r in rows}
+    assert by_section["central"]["count"] == 2
+    assert by_section["major_guide"]["count"] == 0
+    assert by_section["turkish_club"]["count"] == 0
+    assert all(r["label"] for r in rows)
+
+
 def test_dashboard_analytics_forbidden_for_non_super(client, students_admin_headers):
     resp = client.get("/admin/dashboard/analytics", headers=students_admin_headers)
     assert resp.status_code == 403

@@ -447,17 +447,24 @@ def test_game_unauthenticated_401(client, student_factory):
 
 # ---------- union (مسؤول الاتحاد) ----------
 # شروط المسح عند الاتحاد: يكفي دخول الحرم بنفس اليوم (بدون حجز/جولات) — بدون نقاط.
+# قاعدة التكرار: مرة وحدة لكل قسم (union_section) — الطالب فيه يزور الأقسام
+# الثلاثة (3 سجلات منفصلة)، بس مش نفس القسم مرتين.
 
 
 def test_union_happy(client, student_factory, students_admin_headers, union_headers):
     student_factory(STUDENT)
     assert _campus_entry(client, students_admin_headers).status_code == 201
-    resp = client.post("/checkins/union", json={"unique_code": STUDENT}, headers=union_headers)
+    resp = client.post(
+        "/checkins/union",
+        json={"unique_code": STUDENT, "union_section": "central"},
+        headers=union_headers,
+    )
     assert resp.status_code == 201
     body = resp.json()
     assert body["student_name"] == "طالب تجريبي"
     assert body["college"] is None
     assert body["lecture_name"] is None
+    assert body["union_section"] == "central"
     assert "checked_in_at" in body
 
     # الاتحاد بدون نقاط: 5 بوابة فقط
@@ -465,37 +472,71 @@ def test_union_happy(client, student_factory, students_admin_headers, union_head
     assert pts.json()["total_points"] == 5
 
 
+def test_union_all_sections_same_student(
+    client, student_factory, students_admin_headers, union_headers
+):
+    """نفس الطالب يزور الأقسام الثلاثة — 3 سجلات checkins منفصلة مسموحة."""
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    for section in ("central", "major_guide", "turkish_club"):
+        resp = client.post(
+            "/checkins/union",
+            json={"unique_code": STUDENT, "union_section": section},
+            headers=union_headers,
+        )
+        assert resp.status_code == 201
+        assert resp.json()["union_section"] == section
+
+
 def test_union_without_campus_entry_409(client, student_factory, union_headers):
     student_factory(STUDENT)
-    resp = client.post("/checkins/union", json={"unique_code": STUDENT}, headers=union_headers)
+    resp = client.post(
+        "/checkins/union",
+        json={"unique_code": STUDENT, "union_section": "central"},
+        headers=union_headers,
+    )
     assert resp.status_code == 409
     assert resp.json()["error_code"] == "missing_campus_entry"
 
 
-def test_union_duplicate_409(
+def test_union_duplicate_same_section_409(
     client, student_factory, students_admin_headers, union_headers
 ):
     student_factory(STUDENT)
     assert _campus_entry(client, students_admin_headers).status_code == 201
-    payload = {"unique_code": STUDENT}
+    payload = {"unique_code": STUDENT, "union_section": "central"}
     assert client.post("/checkins/union", json=payload, headers=union_headers).status_code == 201
     resp = client.post("/checkins/union", json=payload, headers=union_headers)
     assert resp.status_code == 409
     assert resp.json()["error_code"] == "duplicate_checkin"
+    assert "الركن المركزي" in resp.json()["message"]
 
 
 def test_union_forbidden_for_other_roles(client, student_factory, students_admin_headers):
     student_factory(STUDENT)
     resp = client.post(
-        "/checkins/union", json={"unique_code": STUDENT}, headers=students_admin_headers
+        "/checkins/union",
+        json={"unique_code": STUDENT, "union_section": "central"},
+        headers=students_admin_headers,
     )
     assert resp.status_code == 403
 
 
 def test_union_unauthenticated_401(client, student_factory):
     student_factory(STUDENT)
-    resp = client.post("/checkins/union", json={"unique_code": STUDENT}, headers={})
+    resp = client.post(
+        "/checkins/union",
+        json={"unique_code": STUDENT, "union_section": "central"},
+        headers={},
+    )
     assert resp.status_code == 401
+
+
+def test_union_missing_section_422(client, student_factory, union_headers):
+    """union_section حقل إلزامي — بدونو الطلب مرفوض (FastAPI 422 موحّد)."""
+    student_factory(STUDENT)
+    resp = client.post("/checkins/union", json={"unique_code": STUDENT}, headers=union_headers)
+    assert resp.status_code == 422
 
 
 # ---------- counts ----------
@@ -559,6 +600,41 @@ def test_count_lecture_filtered(
         headers=gate_scanner_headers,
     )
     assert r1.json()["count"] == 1
+
+
+def test_count_union_filtered_by_section(
+    client, student_factory, students_admin_headers, union_headers
+):
+    """عداد ركن الاتحاد لليوم ينفلتر حسب القسم — العد الكلي 2 والفرز حسب القسم 1 / 0."""
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    for section in ("central", "major_guide"):
+        assert (
+            client.post(
+                "/checkins/union",
+                json={"unique_code": STUDENT, "union_section": section},
+                headers=union_headers,
+            ).status_code
+            == 201
+        )
+    total = client.get(
+        "/checkins/count/today",
+        params={"activity_type": "union"},
+        headers=union_headers,
+    )
+    assert total.json()["count"] == 2
+    r1 = client.get(
+        "/checkins/count/today",
+        params={"activity_type": "union", "union_section": "central"},
+        headers=union_headers,
+    )
+    assert r1.json()["count"] == 1
+    r2 = client.get(
+        "/checkins/count/today",
+        params={"activity_type": "union", "union_section": "turkish_club"},
+        headers=union_headers,
+    )
+    assert r2.json()["count"] == 0
 
 
 def test_count_invalid_activity_type_422(client, gate_scanner_headers):

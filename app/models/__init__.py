@@ -19,6 +19,7 @@ from app.models.enums import (
     RegistrationType,
     SmsJobStatus,
     StudentStatus,
+    UnionSection,
     VerificationStatus,
 )
 from app.models.student import Student
@@ -51,4 +52,5 @@ __all__ = [
     "AccountRole",
     "CertificateType",
     "SmsJobStatus",
+    "UnionSection",
 ]

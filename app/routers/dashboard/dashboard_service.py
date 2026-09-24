@@ -34,6 +34,7 @@ from app.models import (
     RegistrationType,
     Student,
     StudentStatus,
+    UnionSection,
     VerificationStatus,
 )
 from app.routers.checkins import checkin_service
@@ -325,6 +326,8 @@ def get_dashboard_analytics(db: Session) -> dict:
       تصاعدياً، والفارغة متجاهلة.
     - certificate_distribution: الفرع الثانوي — علمي/أدبي (certificate_type).
       الفئتان مدرجتان دائماً حتى لو كانت إحداهما صفراً.
+    - union_sections: مسحات ركن الاتحاد لكل قسم (الركن المركزي / دليل التخصص /
+      نادي التركي) — إجمالية لكل الأيام، الأقسام الثلاثة مدرجة دائماً (صفر للفاضي).
     """
     # "زيارة الكلية (ركن التوجيه)" — عدد الطلاب المميزين (distinct) اللي زاروا
     # الكلية، إمّا عبر مسح ركن التوجيه (حجز جولة) أو عبر شيك جولة منفذ عند باب
@@ -412,10 +415,29 @@ def get_dashboard_analytics(db: Session) -> dict:
         for cert in (CertificateType.scientific, CertificateType.literary)
     ]
 
+    # مسحات ركن الاتحاد لكل قسم — الأقسام الثلاثة مدرجة دائماً (صفر للفاضي)،
+    # بنفس نمط حضور المحاضرات، مع الاسم العربي الرسمي لكل قسم.
+    union_rows = (
+        db.query(Checkin.union_section, func.count(Checkin.id))
+        .filter(Checkin.activity_type == ActivityType.union)
+        .group_by(Checkin.union_section)
+        .all()
+    )
+    union_count_map = {section: count for section, count in union_rows}
+    union_sections = [
+        {
+            "section": section,
+            "label": checkin_service.union_section_label(section),
+            "count": union_count_map.get(section, 0),
+        }
+        for section in UnionSection
+    ]
+
     return {
         "college_visits": college_visits,
         "lecture_attendance": lecture_attendance,
         "score_distribution": score_distribution,
         "year_distribution": year_distribution,
         "certificate_distribution": certificate_distribution,
+        "union_sections": union_sections,
     }

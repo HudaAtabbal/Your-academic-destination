@@ -22,7 +22,7 @@ from app.errors import (
     missing_booking,
     missing_campus_entry,
 )
-from app.models import ActivityType, Booking, BookingType, Checkin, Faculty, Lecture, Student
+from app.models import ActivityType, Booking, BookingType, Checkin, Faculty, Lecture, Student, UnionSection
 from app.routers.points import point_service
 from app.student_lookup import get_student_or_raise
 
@@ -31,6 +31,13 @@ _ACTIVITY_LABELS = {
     ActivityType.consultation: "الاستشارة الفردية",
     ActivityType.game: "ركن الترفيه",
     ActivityType.union: "الاتحاد",
+}
+
+# أسماء أقسام ركن الاتحاد بالعربي — معروضة للمستخدم في رسائل التكرار والواجهات.
+_UNION_SECTION_LABELS = {
+    UnionSection.central: "الركن المركزي",
+    UnionSection.major_guide: "دليل التخصص",
+    UnionSection.turkish_club: "نادي التركي",
 }
 
 # الأسماء العربية للمحاضرات — مطابقة لقائمة LECTURES بالواجهة (StadiumPage).
@@ -64,6 +71,11 @@ def _lecture_label(lecture: Lecture) -> str:
 def lecture_display_name(lecture: Lecture) -> str:
     """الاسم الرسمي العربي للمحاضرة — واجهة عامة يعيد استخدامها dashboard."""
     return _lecture_label(lecture)
+
+
+def union_section_label(section: UnionSection) -> str:
+    """الاسم العربي لقسم ركن الاتحاد — واجهة عامة يعيد استخدامها dashboard."""
+    return _UNION_SECTION_LABELS.get(section, section.value)
 
 
 def _today_range() -> tuple[datetime, datetime]:
@@ -112,6 +124,7 @@ def _find_existing_checkin(
     activity_type: ActivityType,
     lecture_name: Lecture | None = None,
     college: Faculty | None = None,
+    union_section: UnionSection | None = None,
 ) -> Checkin | None:
     query = db.query(Checkin).filter(
         Checkin.student_id == student_id, Checkin.activity_type == activity_type
@@ -120,6 +133,8 @@ def _find_existing_checkin(
         query = query.filter(Checkin.lecture_name == lecture_name)
     elif activity_type == ActivityType.tour:
         query = query.filter(Checkin.college == college)
+    elif activity_type == ActivityType.union:
+        query = query.filter(Checkin.union_section == union_section)
     return query.first()
 
 
@@ -350,34 +365,50 @@ def create_game_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | N
     return checkin, student.full_name
 
 
-def create_union_checkin(db: Session, unique_code: str) -> tuple[Checkin, str | None]:
+def create_union_checkin(
+    db: Session, unique_code: str, union_section: UnionSection
+) -> tuple[Checkin, str | None]:
     """
     مسح ركن الاتحاد — مثل الاستشارة من ناحية الشروط المسبقة: يكفي أن يكون
     الطالب دخل الحرم بنفس اليوم (بدون حجز أو جولات). بدون نقاط.
+
+    قاعدة التكرار: مرة وحدة لكل قسم (union_section) — الطالب فيه يزور الأقسام
+    الثلاثة (3 سجلات منفصلة)، بس مش نفس القسم مرتين.
     """
     student = get_student_or_raise(db, unique_code)
 
     if not _has_campus_entry_today(db, student.id):
         raise missing_campus_entry()
 
-    existing = _find_existing_checkin(db, student.id, ActivityType.union)
+    section_label = _UNION_SECTION_LABELS.get(union_section, union_section.value)
+    activity_label = f"{_ACTIVITY_LABELS[ActivityType.union]} ({section_label})"
+
+    existing = _find_existing_checkin(
+        db, student.id, ActivityType.union, union_section=union_section
+    )
     _raise_if_duplicate(
         existing,
         student.full_name,
         unique_code,
         ActivityType.union,
-        _ACTIVITY_LABELS[ActivityType.union],
+        activity_label,
     )
 
-    checkin = Checkin(student_id=student.id, activity_type=ActivityType.union)
+    checkin = Checkin(
+        student_id=student.id,
+        activity_type=ActivityType.union,
+        union_section=union_section,
+    )
     db.add(checkin)
     _flush_commit_checkin(
         db,
-        lambda: _find_existing_checkin(db, student.id, ActivityType.union),
+        lambda: _find_existing_checkin(
+            db, student.id, ActivityType.union, union_section=union_section
+        ),
         student,
         unique_code,
         ActivityType.union,
-        _ACTIVITY_LABELS[ActivityType.union],
+        activity_label,
     )
     db.refresh(checkin)
     return checkin, student.full_name
@@ -388,6 +419,7 @@ def count_checkins_today(
     activity_type: ActivityType,
     college: Faculty | None = None,
     lecture_name: Lecture | None = None,
+    union_section: UnionSection | None = None,
 ) -> int:
     """
     عدّاد "اليوم" — بتوقيت سوريا عبر time_utils.
@@ -404,5 +436,7 @@ def count_checkins_today(
         query = query.filter(Checkin.college == college)
     if lecture_name is not None:
         query = query.filter(Checkin.lecture_name == lecture_name)
+    if union_section is not None:
+        query = query.filter(Checkin.union_section == union_section)
 
     return query.count()

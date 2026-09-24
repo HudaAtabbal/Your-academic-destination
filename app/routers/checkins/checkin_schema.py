@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.models.enums import Faculty, Lecture
+from app.models.enums import Faculty, Lecture, UnionSection
 
 
 class UniqueCodeRequest(BaseModel):
@@ -20,12 +20,18 @@ class LectureCheckinRequest(BaseModel):
     lecture_name: Lecture
 
 
+class UnionCheckinRequest(BaseModel):
+    unique_code: str
+    union_section: UnionSection
+
+
 class CheckinResponse(BaseModel):
     checkin_id: int
     student_name: str | None = None
     checked_in_at: datetime
     lecture_name: Lecture | None = None
     college: Faculty | None = None
+    union_section: UnionSection | None = None
 
 
 class CheckinCountResponse(BaseModel):

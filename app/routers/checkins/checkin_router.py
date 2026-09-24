@@ -8,12 +8,13 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.dependencies import get_current_account, require_role
 from app.errors import AppError
-from app.models import Account, ActivityType, AccountRole, Faculty, Lecture
+from app.models import Account, ActivityType, AccountRole, Faculty, Lecture, UnionSection
 from app.routers.checkins import checkin_service
 from app.routers.checkins.checkin_schema import (
     CheckinCountResponse,
     CheckinResponse,
     LectureCheckinRequest,
+    UnionCheckinRequest,
     UniqueCodeRequest,
 )
 
@@ -121,11 +122,16 @@ def game_checkin(
     dependencies=[Depends(require_role(AccountRole.union))],
 )
 def union_checkin(
-    payload: UniqueCodeRequest, db: Session = Depends(get_db)
+    payload: UnionCheckinRequest, db: Session = Depends(get_db)
 ) -> CheckinResponse:
-    checkin, student_name = checkin_service.create_union_checkin(db, payload.unique_code)
+    checkin, student_name = checkin_service.create_union_checkin(
+        db, payload.unique_code, payload.union_section
+    )
     return CheckinResponse(
-        checkin_id=checkin.id, student_name=student_name, checked_in_at=checkin.checked_in_at
+        checkin_id=checkin.id,
+        student_name=student_name,
+        checked_in_at=checkin.checked_in_at,
+        union_section=checkin.union_section,
     )
 
 
@@ -136,12 +142,17 @@ def count_checkins_today(
     activity_type: ActivityType,
     college: Faculty | None = None,
     lecture_name: Lecture | None = None,
+    union_section: UnionSection | None = None,
     db: Session = Depends(get_db),
     # أي حساب فريق عمل مسجّل دخول يقدر يشوف العداد — مش محصور بدور معيّن،
     # لأنه مستخدم من أكتر من شاشة بأدوار مختلفة (بوابة، باب كلية، مدرج، لوحة المدير)
     current_account: Account = Depends(get_current_account),
 ) -> CheckinCountResponse:
     count = checkin_service.count_checkins_today(
-        db, activity_type, college=college, lecture_name=lecture_name
+        db,
+        activity_type,
+        college=college,
+        lecture_name=lecture_name,
+        union_section=union_section,
     )
     return CheckinCountResponse(count=count)

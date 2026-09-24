@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.models.enums import CertificateType, Faculty, Lecture
+from app.models.enums import CertificateType, Faculty, Lecture, UnionSection
 
 
 class DashboardStatsResponse(BaseModel):
@@ -111,9 +111,16 @@ class CertificateCountItem(BaseModel):
     count: int
 
 
+class UnionSectionCountItem(BaseModel):
+    section: UnionSection
+    label: str
+    count: int
+
+
 class AnalyticsResponse(BaseModel):
     college_visits: list[CollegeVisitItem]
     lecture_attendance: list[LectureAttendanceItem]
     score_distribution: list[ScoreBucketItem]
     year_distribution: list[YearCountItem]
     certificate_distribution: list[CertificateCountItem]
+    union_sections: list[UnionSectionCountItem]

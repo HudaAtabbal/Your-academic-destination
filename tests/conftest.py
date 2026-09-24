@@ -50,11 +50,31 @@ def _init_test_db():
     with engine.begin() as conn:
         conn.execute(text("ALTER TYPE account_role_enum ADD VALUE IF NOT EXISTS 'union'"))
         conn.execute(text("ALTER TYPE activity_type_enum ADD VALUE IF NOT EXISTS 'union'"))
+        conn.execute(text("ALTER TYPE lecture_enum ADD VALUE IF NOT EXISTS 'opening'"))
+    # أقسام ركن الاتحاد: نوع + عمود — يُضافان على قاعدة الاختبار الحية لأن
+    # الجدول موجود مسبقاً و الـ create_all ما بيعدّل جدولاً قائماً.
     with engine.begin() as conn:
         conn.execute(
             text(
-                "CREATE UNIQUE INDEX IF NOT EXISTS unique_union_checkin "
-                "ON checkins (student_id) WHERE activity_type = 'union'"
+                "DO $$ BEGIN "
+                "CREATE TYPE union_section_enum AS ENUM "
+                "('central', 'major_guide', 'turkish_club'); "
+                "EXCEPTION WHEN duplicate_object THEN NULL; END $$"
+            )
+        )
+        conn.execute(
+            text(
+                "ALTER TABLE checkins ADD COLUMN IF NOT EXISTS union_section union_section_enum"
+            )
+        )
+    # كتسجيل فريد لكل قسم (بدل "مرة وحدة بالكامل" القديمة) — يُحذف الفهرس
+    # القديم أولاً لأن إعادة تعريف بنفس الاسم تحتاج DROP على قاعدة موجودة.
+    with engine.begin() as conn:
+        conn.execute(text("DROP INDEX IF EXISTS unique_union_checkin"))
+        conn.execute(
+            text(
+                "CREATE UNIQUE INDEX unique_union_checkin "
+                "ON checkins (student_id, union_section) WHERE activity_type = 'union'"
             )
         )
     yield

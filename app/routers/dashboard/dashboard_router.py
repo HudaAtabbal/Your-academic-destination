@@ -29,6 +29,7 @@ from app.routers.dashboard.dashboard_schema import (
     SmsStatusResponse,
     StudentsInsideItem,
     StudentsInsideListResponse,
+    UnionSectionCountItem,
     YearCountItem,
 )
 from app.models import Lecture
@@ -126,5 +127,8 @@ def dashboard_analytics(db: Session = Depends(get_db)) -> AnalyticsResponse:
         year_distribution=[YearCountItem(**i) for i in analytics["year_distribution"]],
         certificate_distribution=[
             CertificateCountItem(**i) for i in analytics["certificate_distribution"]
+        ],
+        union_sections=[
+            UnionSectionCountItem(**i) for i in analytics["union_sections"]
         ],
     )

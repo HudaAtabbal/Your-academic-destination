@@ -10,7 +10,7 @@ from sqlalchemy.sql import func
 
 from app import time_utils
 from app.database import Base
-from app.models.enums import ActivityType, Faculty, Lecture
+from app.models.enums import ActivityType, Faculty, Lecture, UnionSection
 
 
 class Checkin(Base):
@@ -24,6 +24,7 @@ class Checkin(Base):
     activity_type = Column(SAEnum(ActivityType, name="activity_type_enum"), nullable=False)
     lecture_name = Column(SAEnum(Lecture, name="lecture_enum"), nullable=True)
     college = Column(SAEnum(Faculty, name="faculty_enum"), nullable=True)
+    union_section = Column(SAEnum(UnionSection, name="union_section_enum"), nullable=True)
 
     checked_in_at = Column(
         DateTime,
@@ -75,5 +76,14 @@ class Checkin(Base):
             "student_id",
             unique=True,
             postgresql_where=(activity_type == ActivityType.game),
+        ),
+        # ركن الاتحاد: مرة وحدة لكل قسم (union_section) — الطالب فيه يزور
+        # الأقسام الثلاثة (3 سجلات منفصلة)، بس مش نفس القسم مرتين.
+        Index(
+            "unique_union_checkin",
+            "student_id",
+            "union_section",
+            unique=True,
+            postgresql_where=(activity_type == ActivityType.union),
         ),
     )
