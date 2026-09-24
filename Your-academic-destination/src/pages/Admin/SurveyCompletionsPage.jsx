@@ -15,6 +15,17 @@ const OPINION_LABELS = {
   still_confused: 'لسا محتار',
 };
 
+// عرض "الاختيار الأول" وقت التسجيل — walk-in ما فعنده اختيار مسبق أبداً
+const renderChosenColleges = (item) => {
+  if (item.registration_type === 'walk_in') {
+    return 'ووك إن — ما الك اختيار مسبق';
+  }
+  const labels = (item.chosen_colleges || [])
+    .map((c) => COLLEGE_LABELS[c] || c)
+    .filter(Boolean);
+  return labels.length > 0 ? labels.join('، ') : '—';
+};
+
 const formatDateTime = (value) => {
   if (!value) return '—';
   try {
@@ -157,13 +168,7 @@ const SurveyCompletionsPage = () => {
                             <td className="name-cell">{item.full_name || 'لم يُدخل بعد'}</td>
                             <td className="phone-cell" dir="ltr">{item.contact_id || '—'}</td>
                             <td className="time-cell">{formatDateTime(item.first_campus_entry_at)}</td>
-                            <td className="majors-cell">
-                              {(item.chosen_colleges || []).length > 0
-                                ? item.chosen_colleges
-                                    .map((c) => COLLEGE_LABELS[c] || c)
-                                    .join('، ')
-                                : '—'}
-                            </td>
+                            <td className="majors-cell">{renderChosenColleges(item)}</td>
                             <td className="opinion-cell">
                               {OPINION_LABELS[item.opinion_change] || item.opinion_change || '—'}
                             </td>
