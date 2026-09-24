@@ -191,15 +191,15 @@ describe('GeneralDirectorDashboard - collapsible analytics sections', () => {
     expect(await screen.findByText(/علمي: 67٪ \(2\)/)).toBeInTheDocument();
   });
 
-  it('shows the scan totals badge on the scientific/literary section header', async () => {
+  it('shows the entertainment scans section with the total', async () => {
     mockEndpoints({ counts: {}, worker_online: true });
     renderDashboard();
 
     await waitFor(() => expect(screen.getByText('المُرسِل متصل')).toBeInTheDocument());
-    // الـ badge بيظهر براس القسم حتى وهو مقفول (ما بيحتاج فتح القسم)
-    expect(
-      screen.getByText('مسحات ركن الترفيه: 12 · الاتحاد: 7')
-    ).toBeInTheDocument();
+    fireEvent.click(screen.getByText('مسحات ركن الترفيه'));
+    const section = screen.getByText('مسحات ركن الترفيه').closest('section');
+    expect(section).toHaveTextContent('إجمالي مسحات ركن الترفيه');
+    expect(section).toHaveTextContent('12');
   });
 
   it('shows the union sections ranked list and total badge', async () => {

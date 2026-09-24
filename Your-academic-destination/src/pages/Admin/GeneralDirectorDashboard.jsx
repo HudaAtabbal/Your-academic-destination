@@ -107,7 +107,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
             { id: 'walkin_pending', label: 'سجلات تنتظر الإكمال', value: res.walkin_pending_count, link: '/gate-incomplete' },
             { id: 'walkin_completed', label: 'سجلات تم إكمالها', value: res.walkin_completed_count },
           ]);
-          // إجمالي مسحات ركن الترفيه + الاتحاد — بيظهرن بـ badge على قسم علمي/أدبي
+          // إجمالي مسحات ركن الترفيه + الاتحاد — الترفيه بيظهر بقسم مخصص، والاتحاد بدونات قسمه
           setScanTotals({
             game: res.game_scans_total ?? 0,
             union: res.union_scans_total ?? 0,
@@ -606,6 +606,36 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
           )}
         </CollapsibleSection>
 
+        {/* مسحات ركن الترفيه — إجمالي المسحات (كل الأيام) */}{' '}
+        <CollapsibleSection title="مسحات ركن الترفيه">
+          {scanTotals && scanTotals.game > 0 ? (
+            <div className="gd-dash-scan-card">
+              <div className="gd-dash-scan-ringwrap">
+                <svg
+                  viewBox="0 0 42 42"
+                  className="gd-dash-scan-ring"
+                  aria-label="إجمالي مسحات ركن الترفيه"
+                >
+                  <circle cx="21" cy="21" r="15.9" className="gd-dash-donut-track" />
+                  <circle
+                    cx="21" cy="21" r="15.9"
+                    className="gd-dash-donut-segment gd-dash-scan-game"
+                    strokeDasharray="100 0"
+                    strokeDashoffset="25"
+                  />
+                </svg>
+                <span className="gd-dash-scan-value">{scanTotals.game}</span>
+              </div>
+              <div className="gd-dash-scan-info">
+                <strong>إجمالي مسحات ركن الترفيه</strong>
+                <span>كل الأيام · مسح واحد لكل طالب طوال الفعالية</span>
+              </div>
+            </div>
+          ) : (
+            <p className="gd-dash-empty-note">ما في مسحات ركن الترفيه للآن</p>
+          )}
+        </CollapsibleSection>
+
         {/* زيارات الكلية (ركن التوجيه) — قائمة مرتبة بكل الكليات */}
         <CollapsibleSection
           title="زيارة الكلية (ركن التوجيه)"
@@ -720,16 +750,7 @@ const GeneralDirectorDashboard = ({ userRole = 'المدير العام' }) => {
         </CollapsibleSection>
 
         {/* علمي/أدبي — دونات بنسب مئوية */}
-        <CollapsibleSection
-          title="علمي / أدبي"
-          badge={
-            scanTotals && (
-              <span className="gd-dash-analytics-total">
-                مسحات ركن الترفيه: {scanTotals.game} · الاتحاد: {scanTotals.union}
-              </span>
-            )
-          }
-        >
+        <CollapsibleSection title="علمي / أدبي">
           {analytics && certTotal > 0 ? (
             <div className="gd-dash-donut-card">
               <svg viewBox="0 0 42 42" className="gd-dash-donut" aria-label="توزيع علمي/أدبي">
