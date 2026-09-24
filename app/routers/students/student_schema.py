@@ -46,7 +46,7 @@ class StudentUpdateRequest(BaseModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=255)
     birth_date: date | None = None
     contact_id: str | None = Field(default=None, min_length=1, max_length=255)
-    bacc_year: int | None = Field(default=None, ge=1900, le=2100)
+    bacc_year: int | None = Field(default=None, ge=1900, le=2026)
     bacc_average: float | None = Field(default=None, ge=0, le=100)
     certificate_type: CertificateType | None = None
     initial_preferred_major: list[College] | None = None

@@ -77,6 +77,18 @@ def test_register_certificate_year_out_of_bounds_422(client, _no_sms):
     assert resp.json()["error_code"] == "validation_error"
 
 
+def test_register_certificate_year_future_2027_422(client, _no_sms):
+    """قيد التسجيل: سنة الشهادة الأقصى هي سنة الفعالية 2026 — اللي بعدها ممنوع."""
+    resp = client.post("/students/register", json=_register_payload(certificate_year=2027))
+    assert resp.status_code == 422
+    assert resp.json()["error_code"] == "validation_error"
+
+
+def test_register_certificate_year_2026_ok(client, _no_sms):
+    resp = client.post("/students/register", json=_register_payload(certificate_year=2026))
+    assert resp.status_code == 201
+
+
 def test_register_negative_average_score_422(client):
     resp = client.post("/students/register", json=_register_payload(average_score=-1))
     assert resp.status_code == 422
