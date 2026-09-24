@@ -16,6 +16,8 @@ const OPINION_LABELS = {
 };
 
 // عرض "الاختيار الأول" وقت التسجيل — walk-in ما فعنده اختيار مسبق أبداً
+// لو اختار كذا كلية بعرض أول 2 + "+N" والتسمية الكاملة بتظهر عند التمرير
+const MAX_CHOSEN_VISIBLE = 2;
 const renderChosenColleges = (item) => {
   if (item.registration_type === 'walk_in') {
     return 'ووك إن — ما الك اختيار مسبق';
@@ -23,7 +25,16 @@ const renderChosenColleges = (item) => {
   const labels = (item.chosen_colleges || [])
     .map((c) => COLLEGE_LABELS[c] || c)
     .filter(Boolean);
-  return labels.length > 0 ? labels.join('، ') : '—';
+  if (labels.length === 0) return '—';
+  const fullList = labels.join('، ');
+  const shown = labels.slice(0, MAX_CHOSEN_VISIBLE).join('، ');
+  const extraCount = labels.length - MAX_CHOSEN_VISIBLE;
+  return (
+    <span className="majors-cell-inner" title={fullList}>
+      {shown}
+      {extraCount > 0 ? ` +${extraCount}` : ''}
+    </span>
+  );
 };
 
 const formatDateTime = (value) => {
