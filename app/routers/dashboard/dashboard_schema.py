@@ -6,7 +6,15 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.models.enums import CertificateType, College, Faculty, Lecture, OpinionChange, UnionSection
+from app.models.enums import (
+    CertificateType,
+    College,
+    Faculty,
+    Lecture,
+    OpinionChange,
+    RegistrationType,
+    UnionSection,
+)
 
 
 class DashboardStatsResponse(BaseModel):
@@ -77,6 +85,7 @@ class SurveyCompletionItem(BaseModel):
     unique_code: str
     full_name: str | None = None
     contact_id: str | None = None
+    registration_type: RegistrationType
     first_campus_entry_at: datetime | None = None
     chosen_colleges: list[College] = []
     survey_college: College | None = None

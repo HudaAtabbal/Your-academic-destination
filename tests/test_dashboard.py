@@ -504,12 +504,51 @@ def test_survey_completions_list_details(
     assert item["unique_code"] == "R-9001"
     assert item["full_name"] == "أحمد الأول"
     assert item["contact_id"] == _phone(1)
+    assert item["registration_type"] == "registered"
     assert item["first_campus_entry_at"] is not None
     # الكليات اللي اختارها وقت التسجيل (initial_preferred_major) + إجابة الاستبيان
     assert item["chosen_colleges"] == ["medicine", "law"]
     assert item["survey_college"] == "law"
     assert item["opinion_change"] == "decided"
     assert item["answered_at"] is not None
+
+
+def test_survey_completions_walkin_no_prior_choice(
+    client,
+    student_factory,
+    students_admin_headers,
+    gate_scanner_headers,
+    super_headers,
+):
+    """walk-in عبّى الاستبيان — registration_type=walk_in وبدون اختيار مسبق."""
+    student_factory(
+        "W-0001",
+        full_name="وائل ووك إن",
+        registration_type="walk_in",
+        verification_status="verified",
+        status="complete",
+    )
+    assert _campus_entry(client, students_admin_headers, "W-0001").status_code == 201
+    assert _lecture(client, gate_scanner_headers, "W-0001").status_code == 201
+    assert (
+        client.post(
+            "/survey/W-0001",
+            json={"opinion_change": "still_confused", "preferred_major": "sharia"},
+        ).status_code
+        == 201
+    )
+
+    resp = client.get("/admin/dashboard/survey-completions", headers=super_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    item = body["items"][0]
+    assert item["unique_code"] == "W-0001"
+    assert item["registration_type"] == "walk_in"
+    # ما عندو اختيار مسبق — initial_preferred_major فارغ
+    assert item["chosen_colleges"] == []
+    assert item["survey_college"] == "sharia"
+    assert item["opinion_change"] == "still_confused"
 
 
 def test_survey_completions_search(

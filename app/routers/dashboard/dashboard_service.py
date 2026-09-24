@@ -433,6 +433,7 @@ def list_survey_completions(
             "unique_code": student.unique_code,
             "full_name": student.full_name,
             "contact_id": student.contact_id,
+            "registration_type": student.registration_type,
             "first_campus_entry_at": first_entry,
             "chosen_colleges": [c for c in (student.initial_preferred_major or [])],
             "survey_college": survey.preferred_major,
