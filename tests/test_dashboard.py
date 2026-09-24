@@ -314,11 +314,12 @@ def test_dashboard_analytics_college_visits_all_faculties(
     resp = client.get("/admin/dashboard/analytics", headers=super_headers)
     assert resp.status_code == 200
     visits = resp.json()["college_visits"]
-    assert len(visits) == len(Faculty)  # كل كليات الـ Faculty مدرجة (25) حتى بلا زيارات
+    assert len(visits) == len(Faculty) - 1  # كلية الموسيقا دمجت بالاتحاد
     # رما (college_staff) مرتبطة بكلية الطِّب — زيارتاها تُحسبان عليها
     by_college = {v["college"]: v["count"] for v in visits}
     assert by_college["medicine"] == 2
     assert by_college["informatics"] == 0  # كلية بلا زيارات — ما زالت حاضرة بصفر
+    assert "music" not in by_college
     # إجمالي الزيارات = 2، والترتيب تنازلي
     totals = [v["count"] for v in visits]
     assert sum(totals) == 2
@@ -424,6 +425,33 @@ def test_dashboard_analytics_union_sections(
     assert by_section["major_guide"]["count"] == 0
     assert by_section["turkish_club"]["count"] == 0
     assert all(r["label"] for r in rows)
+
+
+def test_dashboard_analytics_music_merges_to_union_central(
+    client,
+    student_factory,
+    students_admin_headers,
+    create_custom_staff,
+    super_headers,
+):
+    """زيارات كلية الموسيقا تُدمج ضمن الركن المركزي في اتحاد."""
+    staff = create_custom_staff("music_staff", "staff123", Faculty.music)
+    headers = {"Authorization": f"Bearer {client.post('/auth/login', json={'username':'music_staff','password':'staff123'}).json()['access_token']}"}
+    student_factory("R-8001")
+    assert _campus_entry(client, students_admin_headers, "R-8001").status_code == 201
+    assert client.post("/bookings/tour", json={"unique_code": "R-8001"}, headers=headers).status_code == 201
+    assert client.post("/checkins/tour", json={"unique_code": "R-8001"}, headers=headers).status_code == 201
+
+    resp = client.get("/admin/dashboard/analytics", headers=super_headers)
+    assert resp.status_code == 200
+    visits = resp.json()["college_visits"]
+    by_college = {v["college"]: v["count"] for v in visits}
+    assert "music" not in by_college
+    union = resp.json()["union_sections"]
+    by_section = {u["section"]: u for u in union}
+    assert by_section["central"]["count"] == 1
+    assert by_section["major_guide"]["count"] == 0
+    assert by_section["turkish_club"]["count"] == 0
 
 
 def test_dashboard_analytics_forbidden_for_non_super(client, students_admin_headers):

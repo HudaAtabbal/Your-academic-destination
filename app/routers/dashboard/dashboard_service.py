@@ -315,8 +315,9 @@ def get_dashboard_analytics(db: Session) -> dict:
 
     - college_visits: "زيارة الكلية (ركن التوجيه)" — عدد الطلاب المميزين اللي
       زاروا الكلية عبر أي مسح بيسجّل كلية (حجز/شيك جولة أو استشارة عند الكلية).
-      تُعرض كل أعضاء Faculty الخمسة والعشرين (الكلية بلا زيارات = صفر)، مرتّبة
-      تنازلياً بعدد الزيارات.
+      تُعرض كل أعضاء Faculty عدا كلية الموسيقا (الكلية بلا زيارات = صفر)، مرتّبة
+      تنازلياً بعدد الزيارات. كلية الموسيقا ما عادت ركن مستقل — زياراتها تُدمج
+      ضمن «الركن المركزي» بالاتحاد.
     - lecture_attendance: حضور المحاضرات — كل الـ16 مضمنة (صفر للفاضي)،
       بترتيب enum، مع الاسم العربي الرسمي لكل محاضرة.
     - score_distribution: توزيع معدل الطالب (bacc_average) على فترات عرض 10
@@ -358,6 +359,7 @@ def get_dashboard_analytics(db: Session) -> dict:
     college_visits = [
         {"college": college, "count": college_count_map.get(college, 0)}
         for college in Faculty
+        if college is not Faculty.music
     ]
     college_visits.sort(key=lambda item: item["count"], reverse=True)
 
@@ -423,6 +425,15 @@ def get_dashboard_analytics(db: Session) -> dict:
         .all()
     )
     union_count_map = {section: count for section, count in union_rows}
+
+    # دمج "كلية الموسيقا" ضمن "الركن المركزي" للاتحاد — كلية الموسيقا ما عادت ركن
+    # مستقل بالفعالية، فأي زيارة/إضافة مسجّلة عليها (حجز/شيك جولة أو استشارة)
+    # تُحسب على «الركن المركزي» وتختفي الموسيقا من قائمة زيارات الكليات.
+    music_visits = college_count_map.get(Faculty.music, 0)
+    union_count_map[UnionSection.central] = (
+        union_count_map.get(UnionSection.central, 0) + music_visits
+    )
+
     union_sections = [
         {
             "section": section,
