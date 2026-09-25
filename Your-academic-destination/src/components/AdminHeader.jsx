@@ -5,7 +5,7 @@ import { clearAuthToken } from '../api/api';
 import { ROLE_LABELS } from '../api/roles';
 import '../style/AdminHeader.css';
 
-const AdminHeader = ({ userRole }) => {
+const AdminHeader = ({ userRole, smsStatus }) => {
   const navigate = useNavigate();
 
   // إذا ما مررنا الدور كـ prop، منقرأه من localStorage ونعرض الترجمة العربية
@@ -19,6 +19,10 @@ const AdminHeader = ({ userRole }) => {
     localStorage.removeItem('accountCollege');
     navigate('/team-log');
   };
+
+  // حالة المُرسِل النصي (اختيارية — تمررها لوحة التحكم فقط). النقطة الخضراء/
+  // الحمراء تبقى حتى بأصغر المقاسات، والنص التفصيلي يختفي تحت 600px.
+  const smsOnline = smsStatus ? Boolean(smsStatus.worker_online) : null;
 
   return (
     <header className="admin-header">
@@ -38,7 +42,7 @@ const AdminHeader = ({ userRole }) => {
           الرئيسية
         </NavLink>
         <NavLink
-          to="/create-team-account"
+          to="/team-accounts"
           className={({ isActive }) => `admin-nav-link ${isActive ? 'active' : ''}`}
         >
           حسابات الفريق
@@ -52,6 +56,15 @@ const AdminHeader = ({ userRole }) => {
       </nav>
 
       <div className="admin-header-user">
+        {smsStatus && (
+          <span className={`admin-sms-pill ${smsOnline ? 'admin-sms-online' : 'admin-sms-offline'}`}>
+            <span className="admin-sms-dot"></span>
+            <span className="admin-sms-state">{smsOnline ? 'متصل' : 'منقطع'}</span>
+            <span className="admin-sms-detail">
+              · {smsStatus.counts?.pending ?? 0} بالانتظار · {smsStatus.counts?.failed ?? 0} فاشلة
+            </span>
+          </span>
+        )}
         <span className="admin-user-badge">{effectiveRole}</span>
         <button type="button" className="admin-logout-btn" onClick={handleLogout}>
           تسجيل خروج

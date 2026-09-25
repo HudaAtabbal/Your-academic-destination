@@ -1,0 +1,289 @@
+/* صفحة إدارة حسابات فريق العمل — مستقلة بعد نقلها من لوحة التحكم.
+   الحقول والنسب تأخذ التوكنز نفسها اللي بيستعملها الداشبورد (gd-*) مع
+   أزرار تعديل/حذف بنمط pill مخطط جديد. */
+
+.gd-dash-viewport {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #FFF4E0;
+  color: #134F47;
+  direction: rtl;
+  font-family: 'Ghroob', 'Segoe UI', Tahoma, sans-serif;
+  box-sizing: border-box;
+}
+
+.gd-dash-main-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.gd-dash-section-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gd-dash-section-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.gd-dash-section-heading {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #3D0F28;
+  margin: 0;
+}
+
+.gd-dash-create-btn {
+  background-color: #134F47;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 28px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.gd-dash-create-btn:hover {
+  background-color: #0d3a34;
+}
+
+/* شريط أدوات البحث */
+.gd-dash-team-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.gd-dash-team-search {
+  flex: 1;
+  min-width: 220px;
+  max-width: 360px;
+  padding: 12px 18px;
+  border: 1px solid #E5D9C2;
+  border-radius: 50px;
+  background-color: #FFFFFF;
+  color: #1d2b28;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.gd-dash-team-search::placeholder {
+  color: #A99B85;
+}
+
+.gd-dash-team-search:focus {
+  border-color: #E85B0D;
+  box-shadow: 0 0 0 4px rgba(232, 91, 13, 0.12);
+}
+
+.gd-dash-team-total {
+  color: #7a6b5a;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* الجدول */
+.gd-dash-table-card {
+  background-color: #fffdf8;
+  border: 1px solid #efe3cc;
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.gd-dash-team-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.gd-dash-team-table th {
+  background-color: #f3e6cf;
+  color: #7a6b5a;
+  font-size: 0.95rem;
+  font-weight: 700;
+  padding: 16px 24px;
+}
+
+.gd-dash-th-action { width: 15%; text-align: right; }
+.gd-dash-th-faculty { width: 25%; text-align: right; }
+.gd-dash-th-role { width: 25%; text-align: center; }
+.gd-dash-th-user { width: 35%; text-align: left; }
+
+.gd-dash-table-row {
+  border-bottom: 1px solid #efe3cc;
+}
+
+.gd-dash-table-row:last-child {
+  border-bottom: none;
+}
+
+.gd-dash-table-row td {
+  padding: 16px 24px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1d2b28;
+}
+
+.gd-dash-td-action { text-align: right; }
+.gd-dash-td-faculty { text-align: right; }
+.gd-dash-td-role { text-align: center; }
+.gd-dash-td-user { text-align: left; font-family: monospace, sans-serif; }
+
+.gd-dash-action-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* أزرار تعديل/حذف — pill مخطط (teal للتعديل، أحمر للحذف) */
+.ta-pill-btn {
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  padding: 7px 16px;
+  border-radius: 50px;
+  border: 1.5px solid;
+  background: none;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.ta-pill-edit {
+  color: #134F47;
+  border-color: #134F47;
+}
+
+.ta-pill-edit:hover {
+  background-color: rgba(19, 79, 71, 0.08);
+}
+
+.ta-pill-delete {
+  color: #B3261E;
+  border-color: #B3261E;
+}
+
+.ta-pill-delete:hover {
+  background-color: rgba(179, 38, 30, 0.08);
+}
+
+/* شارات الأدوار */
+.gd-dash-role-chip {
+  display: inline-block;
+  padding: 6px 20px;
+  border-radius: 50px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.gd-dash-role-college_staff {
+  background-color: #E2F4EE;
+  color: #134F47;
+}
+
+.gd-dash-role-gate_scanner {
+  background-color: #FCF0D3;
+  color: #7A5300;
+}
+
+.gd-dash-role-students_admin {
+  background-color: #E3F2F2;
+  color: #165253;
+}
+
+.gd-dash-role-super_admin {
+  background-color: #F8E2E6;
+  color: #7B1B2B;
+}
+
+.gd-dash-role-game_corner_manager {
+  background-color: #ECE3F6;
+  color: #4A2B6B;
+}
+
+.gd-dash-role-union {
+  background-color: #DCEBFF;
+  color: #1B4A7B;
+}
+
+/* عناصر عامة */
+.gd-dash-empty-note {
+  color: #7a6b5a;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 16px;
+}
+
+/* ترقيم الصفحات */
+.pagination-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+}
+
+.pagination-btn {
+  background-color: #134F47;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 50px;
+  padding: 10px 24px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pagination-btn:hover:not(:disabled) {
+  background-color: #0d3a34;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  color: #7a6b5a;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* استجابة */
+@media (max-width: 900px) {
+  .gd-dash-table-card {
+    overflow-x: auto;
+  }
+
+  .gd-dash-team-table {
+    min-width: 640px;
+  }
+}
+
+@media (max-width: 600px) {
+  .gd-dash-main-container {
+    padding: 20px 16px 40px 16px;
+    gap: 20px;
+  }
+
+  .gd-dash-create-btn {
+    width: 100%;
+  }
+}

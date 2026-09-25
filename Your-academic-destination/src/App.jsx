@@ -39,6 +39,8 @@ import StudentsInsideAllDaysPage from "./pages/Admin/StudentsInsideAllDaysPage";
 import RegisteredStudentsListPage from "./pages/Admin/RegisteredStudentsListPage";
 import SurveyCompletionsPage from "./pages/Admin/SurveyCompletionsPage";
 import RegisteredNoShowsPage from "./pages/Admin/RegisteredNoShowsPage";
+import TeamAccountsPage from "./pages/Admin/TeamAccountsPage";
+import TopStudentsPage from "./pages/Admin/TopStudentsPage";
 
 
 
@@ -94,6 +96,8 @@ function App() {
         <Route path="/dashboard-no-shows" element={<TeamPrivateRoute><RegisteredNoShowsPage/></TeamPrivateRoute>}/>
         <Route path="/gate-registered" element={<TeamPrivateRoute><RegisteredStudentsListPage/></TeamPrivateRoute>}/>
         <Route path="/create-team-account" element={<TeamPrivateRoute><CreateTeamAccountPage/></TeamPrivateRoute>}/>
+        <Route path="/team-accounts" element={<TeamPrivateRoute><TeamAccountsPage/></TeamPrivateRoute>}/>
+        <Route path="/dashboard-top-students" element={<TeamPrivateRoute><TopStudentsPage/></TeamPrivateRoute>}/>
         <Route path="/generate-walkin-code" element={<TeamPrivateRoute><GenerateWalkInCodesPage/></TeamPrivateRoute>}/>
       </Routes>
     </BrowserRouter>

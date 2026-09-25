@@ -1,0 +1,139 @@
+/* ============================================
+   TopStudentsPage — قائمة الطلاب المتميزين
+   مبنية على نفس القوالب (InWalkIncompletePage.css)
+   مع تخصيص هوية الداشبورد (teal/orange/plum).
+   ============================================ */
+
+/* Viewport — نفس مواصفات الـ dashboard بالكامل حتى يطلع الهيدر
+   والخلفية بنفس الشكل المتعارف عليه (متل يلي برا) */
+.gd-dash-viewport {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #FFF4E0;
+  color: #0F3B34;
+  direction: rtl;
+  font-family: 'Ghroob', 'Segoe UI', Tahoma, sans-serif;
+  box-sizing: border-box;
+}
+
+.gd-dash-viewport .card-wrapper.admin-gate-mode {
+  min-height: calc(100dvh - 80px) !important;
+}
+
+/* ضمان أبعاد الهيدر داخل هالصفحات عالشاشات الكبيرة (صف واحد 80px)
+   — على المقاسات الأصغر منسجم مع تلبينة الـ AdminHeader الرديفة */
+@media (min-width: 861px) {
+  .gd-dash-viewport .admin-header {
+    height: 80px;
+    flex: 0 0 80px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* رأس الصفحة: العنوان + الإجمالي */
+.tsp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tsp-title {
+  color: #3D0F28;
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.tsp-total {
+  color: #E85B0D;
+  font-size: 0.9rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* تابات المعايير — كبسولات بنفس منطق الـ DayFilter */
+.tsp-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.tsp-tab {
+  background-color: #f3e6cf;
+  border: none;
+  border-radius: 40px;
+  padding: 8px 16px;
+  font-family: 'Ghroob', 'Segoe UI', Tahoma, sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #7a6b5a;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.tsp-tab:hover {
+  color: #134f47;
+}
+
+.tsp-tab.is-on {
+  background-color: #3D0F28;
+  color: #FFFFFF;
+}
+
+.tsp-tab:focus-visible {
+  outline: 2px solid #E85B0D;
+  outline-offset: 2px;
+}
+
+/* الجدول — تفاوت على بيانات الهوية فوق ستايلات .data-table */
+.tsp-table .tsp-th-rank,
+.tsp-table .tsp-th-name,
+.tsp-table .tsp-th-code,
+.tsp-table .tsp-th-value {
+  text-align: center;
+}
+
+.tsp-table .tsp-th-code {
+  text-align: left;
+}
+
+.tsp-table .tsp-rank {
+  color: #E85B0D;
+  font-weight: 800;
+  text-align: center;
+}
+
+.tsp-table .tsp-name {
+  color: #3B0D23;
+  font-weight: 700;
+  text-align: center;
+}
+
+.tsp-table .tsp-code {
+  font-family: sans-serif;
+  letter-spacing: 0.5px;
+  text-align: left;
+}
+
+.tsp-table .tsp-value {
+  color: #134f47;
+  font-weight: 800;
+  text-align: center;
+}
+
+/* حساسية أكبر لعناصر اللمس على الأجهزة اللمسية */
+@media (pointer: coarse) {
+  .tsp-tab {
+    padding: 10px 18px;
+  }
+
+  .tsp-table th,
+  .tsp-table td {
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+}

@@ -46,7 +46,7 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
   };
 
   const handleBack = () => {
-    navigate('/dashboard');
+    navigate('/team-accounts');
   };
 
   const handleSubmit = async (e) => {
@@ -76,9 +76,9 @@ const CreateTeamAccountPage = ({ userRole = 'المدير العام', onSubmit 
         }
         await apiPatch(`/admin/accounts/${editMember.username}`, payload);
 
-        // بوضع التعديل منرجع عاللوحة متل ما كان قبل
+        // بوضع التعديل منرجع عصفحة الحسابات متل ما كان قبل
         if (onSubmit) onSubmit();
-        navigate('/dashboard');
+        navigate('/team-accounts');
       } else {
         const payload = {
           username: username.trim(),
