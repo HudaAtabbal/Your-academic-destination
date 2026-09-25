@@ -55,8 +55,6 @@ const validateStudentForm = (formData) => {
     errors.certificateYear = 'سنة الشهادة مطلوبة';
   } else if (!/^\d{4}$/.test(certYear)) {
     errors.certificateYear = 'سنة الشهادة يجب أن تكون 4 أرقام';
-  } else if (Number(certYear) > 2026) {
-    errors.certificateYear = 'سنة الشهادة لا يمكن أن تكون بعد 2026';
   }
 
   if (!formData.certificateType) {
