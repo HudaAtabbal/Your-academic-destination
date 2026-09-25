@@ -79,6 +79,17 @@ const TOP_LECTURES = {
   total_pages: 3,
 };
 
+const TOP_UNION_ALL = { metric: 'union_all', items: [], page: 1, limit: 1, total: 9, total_pages: 1 };
+
+const TOP_PRESENCE = {
+  metric: 'presence',
+  items: [{ rank: 1, unique_code: 'U001', full_name: 'طالب متميز', value: 160, days: 2 }],
+  page: 1,
+  limit: 5,
+  total: 1,
+  total_pages: 1,
+};
+
 const ACCOUNTS = { items: [], total: 37, page: 1, limit: 1 };
 
 function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections } = {}) {
@@ -103,7 +114,11 @@ function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections } = {
       return Promise.resolve(college);
     if (path.startsWith('/admin/dashboard/union-sections'))
       return Promise.resolve(union);
-    if (path.startsWith('/admin/dashboard/top-students')) return Promise.resolve(TOP_LECTURES);
+    if (path.startsWith('/admin/dashboard/top-students')) {
+      if (path.includes('metric=union_all')) return Promise.resolve(TOP_UNION_ALL);
+      if (path.includes('metric=presence')) return Promise.resolve(TOP_PRESENCE);
+      return Promise.resolve(TOP_LECTURES);
+    }
     if (path === '/admin/dashboard/stats') return Promise.resolve(STATS);
     if (path === '/admin/dashboard/sms-status')
       return Promise.resolve(
@@ -218,6 +233,43 @@ describe('GeneralDirectorDashboard - live data', () => {
     expect(screen.getByText('عرض القائمة الكاملة')).toBeInTheDocument();
   });
 
+  it('hero items are divs and only the CTA is a link', async () => {
+    const { container } = renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
+
+    const items = container.querySelectorAll('.gd-dash-trio__item');
+    expect(items.length).toBe(3);
+    items.forEach((el) => expect(el.tagName.toLowerCase()).toBe('div'));
+
+    const links = screen.getAllByRole('link', { name: 'عرض القائمة' });
+    expect(links.length).toBe(3);
+    const hrefs = links.map((l) => l.getAttribute('href')).sort();
+    expect(hrefs).toEqual(
+      ['/gate-registered', '/dashboard-students-inside', '/dashboard-survey-completions'].sort()
+    );
+  });
+
+  it('shows the union tab total without opening the tab', async () => {
+    renderDashboard();
+
+    await waitFor(() =>
+      expect(screen.getByRole('tab', { name: 'زاروا كل أركان الاتحاد (9)' })).toBeInTheDocument()
+    );
+  });
+
+  it('shows presence values with the days count', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole('tab', { name: 'أطول تواجد بالجامعة' }));
+
+    await waitFor(() =>
+      expect(screen.getByText('2س 40د · على يومين')).toBeInTheDocument()
+    );
+  });
+
   it('shows the team summary bar with the accounts total', async () => {
     renderDashboard();
 
@@ -226,7 +278,7 @@ describe('GeneralDirectorDashboard - live data', () => {
   });
 });
 
-describe('GeneralDirectorDashboard - day filter refetch', () => {
+describe('GeneralDirectorDashboard - independent day filters', () => {
   beforeEach(() => {
     localStorage.clear();
     mockEndpoints();
@@ -237,29 +289,103 @@ describe('GeneralDirectorDashboard - day filter refetch', () => {
     vi.clearAllMocks();
   });
 
-  it('refetches day-scoped endpoints when the filter changes', async () => {
+  const calledPaths = () => apiGet.mock.calls.map((c) => c[0]);
+
+  it('hero filter refetches only students-inside-count', async () => {
+    const { container } = renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
+
+    apiGet.mockClear();
+    const hero = container.querySelector('.gd-dash-hero');
+    fireEvent.click(within(hero).getByRole('button', { name: 'خميس' }));
+
+    await waitFor(() => {
+      expect(
+        calledPaths().some((p) => p.startsWith('/admin/dashboard/students-inside-count?day=thu'))
+      ).toBe(true);
+    }, { timeout: 2000 });
+
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/game-scans?day=thu'))).toBe(false);
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/college-visits?day=thu'))).toBe(
+      false
+    );
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/union-sections?day=thu'))).toBe(
+      false
+    );
+  });
+
+  it('game card filter refetches only game-scans', async () => {
     renderDashboard();
 
     await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
 
     apiGet.mockClear();
-    fireEvent.click(screen.getAllByRole('button', { name: 'خميس' })[0]);
+    const gameCard = cardByHeading('مسحات ركن الترفيه');
+    fireEvent.click(within(gameCard).getByRole('button', { name: 'خميس' }));
 
-    await waitFor(
-      () => {
-        const calls = apiGet.mock.calls.map((c) => c[0]);
-        expect(calls.some((p) => p.startsWith('/admin/dashboard/students-inside-count?day=thu'))).toBe(
-          true
-        );
-        expect(calls.some((p) => p.startsWith('/admin/dashboard/game-scans?day=thu'))).toBe(true);
-        expect(calls.some((p) => p.startsWith('/admin/dashboard/college-visits?day=thu'))).toBe(
-          true
-        );
-        expect(calls.some((p) => p.startsWith('/admin/dashboard/union-sections?day=thu'))).toBe(
-          true
-        );
-      },
-      { timeout: 2000 }
+    await waitFor(() => {
+      expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/game-scans?day=thu'))).toBe(
+        true
+      );
+    }, { timeout: 2000 });
+
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/students-inside-count?day=thu'))).toBe(
+      false
+    );
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/college-visits?day=thu'))).toBe(
+      false
+    );
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/union-sections?day=thu'))).toBe(
+      false
+    );
+  });
+
+  it('college card filter refetches only college-visits', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
+
+    apiGet.mockClear();
+    const collegeCard = cardByHeading('زيارة الكلية');
+    fireEvent.click(within(collegeCard).getByRole('button', { name: 'خميس' }));
+
+    await waitFor(() => {
+      expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/college-visits?day=thu'))).toBe(
+        true
+      );
+    }, { timeout: 2000 });
+
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/students-inside-count?day=thu'))).toBe(
+      false
+    );
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/game-scans?day=thu'))).toBe(false);
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/union-sections?day=thu'))).toBe(
+      false
+    );
+  });
+
+  it('union card filter refetches only union-sections', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
+
+    apiGet.mockClear();
+    const unionCard = cardByHeading('مسحات ركن الاتحاد');
+    fireEvent.click(within(unionCard).getByRole('button', { name: 'خميس' }));
+
+    await waitFor(() => {
+      expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/union-sections?day=thu'))).toBe(
+        true
+      );
+    }, { timeout: 2000 });
+
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/students-inside-count?day=thu'))).toBe(
+      false
+    );
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/game-scans?day=thu'))).toBe(false);
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/college-visits?day=thu'))).toBe(
+      false
     );
   });
 });

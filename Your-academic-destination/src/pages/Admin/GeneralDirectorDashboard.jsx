@@ -32,11 +32,31 @@ const MEDIUM_MS = 60_000;
 const SLOW_MS = 5 * 60_000;
 
 export default function GeneralDirectorDashboard({ userRole = 'المدير العام' }) {
-  const [day, setDay] = useState('all');
-  const dayRef = useRef(day);
+  // فلاتر الأيام — كل قسم بفلتر مستقل تبعاً لبطاقته
+  const [insideDay, setInsideDay] = useState('all');
+  const insideDayRef = useRef(insideDay);
   useEffect(() => {
-    dayRef.current = day;
-  }, [day]);
+    insideDayRef.current = insideDay;
+  }, [insideDay]);
+
+  const [gameDay, setGameDay] = useState('all');
+  const gameDayRef = useRef(gameDay);
+  useEffect(() => {
+    gameDayRef.current = gameDay;
+  }, [gameDay]);
+
+  const [collegeDay, setCollegeDay] = useState('all');
+  const collegeDayRef = useRef(collegeDay);
+  useEffect(() => {
+    collegeDayRef.current = collegeDay;
+  }, [collegeDay]);
+
+  const [unionDay, setUnionDay] = useState('all');
+  const unionDayRef = useRef(unionDay);
+  useEffect(() => {
+    unionDayRef.current = unionDay;
+  }, [unionDay]);
+
   const [metric, setMetric] = useState('lectures');
 
   const [stats, setStats] = useState(null);
@@ -50,6 +70,7 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
   const [peakHours, setPeakHours] = useState(null);
   const [topData, setTopData] = useState(null);
   const [teamTotal, setTeamTotal] = useState(null);
+  const [unionAllTotal, setUnionAllTotal] = useState(null);
 
   // كاش لكل معيار في الطلاب المتميزون — أول مرة بنجيب المعيار بنحفظه حتى
   // التنقل بين التابات ما يسبب إعادة جلب
@@ -73,54 +94,54 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
 
   usePolling(
     () => {
-      const requestedDay = day;
+      const requestedDay = insideDay;
       apiGet(`/admin/dashboard/students-inside-count?day=${requestedDay}`)
         .then((r) => {
-          if (requestedDay === dayRef.current) setStudentsInsideCount(r.count ?? null);
+          if (requestedDay === insideDayRef.current) setStudentsInsideCount(r.count ?? null);
         })
         .catch(() => {});
     },
     MEDIUM_MS,
-    [day]
+    [insideDay]
   );
 
   usePolling(
     () => {
-      const requestedDay = day;
+      const requestedDay = gameDay;
       apiGet(`/admin/dashboard/game-scans?day=${requestedDay}`)
         .then((r) => {
-          if (requestedDay === dayRef.current) setGameScans(r.count ?? null);
+          if (requestedDay === gameDayRef.current) setGameScans(r.count ?? null);
         })
         .catch(() => {});
     },
     MEDIUM_MS,
-    [day]
+    [gameDay]
   );
 
   usePolling(
     () => {
-      const requestedDay = day;
+      const requestedDay = collegeDay;
       apiGet(`/admin/dashboard/college-visits?day=${requestedDay}`)
         .then((r) => {
-          if (requestedDay === dayRef.current) setCollegeVisits(r);
+          if (requestedDay === collegeDayRef.current) setCollegeVisits(r);
         })
         .catch(() => {});
     },
     MEDIUM_MS,
-    [day]
+    [collegeDay]
   );
 
   usePolling(
     () => {
-      const requestedDay = day;
+      const requestedDay = unionDay;
       apiGet(`/admin/dashboard/union-sections?day=${requestedDay}`)
         .then((r) => {
-          if (requestedDay === dayRef.current) setUnionSections(r);
+          if (requestedDay === unionDayRef.current) setUnionSections(r);
         })
         .catch(() => {});
     },
     MEDIUM_MS,
-    [day]
+    [unionDay]
   );
 
   usePolling(
@@ -160,6 +181,18 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
     [metric]
   );
 
+  // إجمالي معيار "كل الأركان الثلاثة" — يظهر بعلامة التبويب فوراً من غير ما
+  // يفتح المستخدم التبويب؛ يُجاب على الجبل وعلى دورة الخمس دقائق
+  usePolling(
+    () => {
+      apiGet('/admin/dashboard/top-students?metric=union_all&page=1&limit=1')
+        .then((r) => setUnionAllTotal(r.total ?? null))
+        .catch(() => {});
+    },
+    SLOW_MS,
+    []
+  );
+
   usePolling(
     () => {
       apiGet('/admin/accounts?page=1&limit=1')
@@ -182,7 +215,7 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
   const lectureTotal = analytics?.lecture_attendance?.reduce((s, it) => s + it.count, 0) ?? null;
 
   const unionItems = unionSections?.items || [];
-  const unionSeries = (unionItems.length ? unionItems : day === 'all' ? analytics?.union_sections || [] : []).map((it) => ({
+  const unionSeries = (unionItems.length ? unionItems : unionDay === 'all' ? analytics?.union_sections || [] : []).map((it) => ({
     key: it.section,
     label: it.label || it.section,
     count: it.count,
@@ -202,8 +235,6 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
   const yearItems = (analytics?.year_distribution || []).map((it) => ({ label: it.year, count: it.count }));
 
   const topStudents = topCache[metric] || (topData?.metric === metric ? topData : null);
-  const unionAllTotal =
-    topCache.union_all?.total ?? (topData?.metric === 'union_all' ? topData.total : null);
 
   return (
     <div className="gd-dash-viewport">
@@ -214,17 +245,17 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
           studentsInsideToday={stats?.students_inside_today}
           studentsInsideCount={studentsInsideCount}
           stats={stats}
-          day={day}
-          onDayChange={setDay}
+          day={insideDay}
+          onDayChange={setInsideDay}
         />
 
-        <SummaryCards stats={stats} gameScans={gameScans} day={day} onDayChange={setDay} />
+        <SummaryCards stats={stats} gameScans={gameScans} day={gameDay} onDayChange={setGameDay} />
 
         <PresenceRow presence={presence} />
 
         <div className="gd-dash-sechd">
           <h2 className="gd-dash-sechd__title">التحليلات</h2>
-          <span className="gd-dash-sechd__sub">بتتحدث كل 15 ثانية</span>
+          <span className="gd-dash-sechd__sub">بتتحدث تلقائياً</span>
         </div>
 
         <PeakHoursHeatmap peakHours={peakHours} />
@@ -234,7 +265,7 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
             title="زيارة الكلية"
             items={collegeItems}
             totalText={collegeVisits?.total ?? null}
-            filter={<DayFilter value={day} onChange={setDay} />}
+            filter={<DayFilter value={collegeDay} onChange={setCollegeDay} />}
             accent="teal"
             empty="ما في بيانات عن زيارات الكليات للآن"
             expandable
@@ -253,7 +284,7 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
           <Donut
             title="مسحات ركن الاتحاد"
             headerTotal={unionSections?.total ?? null}
-            filter={<DayFilter value={day} onChange={setDay} />}
+            filter={<DayFilter value={unionDay} onChange={setUnionDay} />}
             series={unionSeries}
             empty="ما في بيانات عن مسحات ركن الاتحاد للآن"
           />

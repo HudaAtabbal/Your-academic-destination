@@ -25,6 +25,14 @@ function fmtPresence(val) {
   return `${h}س ${m}د`;
 }
 
+function fmtDays(d) {
+  const n = Number(d);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  if (n === 1) return 'يوم واحد';
+  if (n === 2) return 'يومين';
+  return `${n} أيام`;
+}
+
 export default function TopStudents({ metric, onMetricChange, data, unionTotal }) {
   const items = data?.items?.length ? data.items : [];
 
@@ -67,9 +75,9 @@ export default function TopStudents({ metric, onMetricChange, data, unionTotal }
                   : metric === 'union_all'
                     ? 'الأركان الثلاثة'
                     : metric === 'presence'
-                      ? fmtPresence(s.value)
+                      ? `${fmtPresence(s.value)}${s.days != null && fmtDays(s.days) ? ` · على ${fmtDays(s.days)}` : ''}`
                       : s.value}
-                {s.value != null && metric !== 'union_all' && (
+                {s.value != null && (metric === 'lectures' || metric === 'tours') && (
                   <small>
                     {' '}
                     {UNIT[metric] || 'مرة'}

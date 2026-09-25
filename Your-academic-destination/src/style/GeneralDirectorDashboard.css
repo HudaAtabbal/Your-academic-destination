@@ -106,7 +106,8 @@
   transition: background-color 0.15s ease;
 }
 
-.gd-dash-trio__item.is-anchor {
+a.gd-dash-trio__go {
+  text-decoration: none;
   cursor: pointer;
 }
 
@@ -750,6 +751,7 @@ a.gd-dash-more {
 
 .gd-dash-team {
   display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -757,7 +759,7 @@ a.gd-dash-more {
 
 .gd-dash-team__info h2 {
   margin: 0 0 4px;
-  font-size: 1.35rem;
+  font-size: 1.05rem;
   font-weight: 800;
   color: var(--gd-plum);
 }
@@ -961,8 +963,42 @@ a.gd-dash-more {
   }
 
   .gd-dash-hb__r {
-    grid-template-columns: 110px 1fr 40px;
+    grid-template-columns: 1fr 40px;
+    grid-template-rows: auto auto;
+    row-gap: 4px;
+    column-gap: 12px;
     font-size: 0.82rem;
+  }
+
+  .gd-dash-hb__t {
+    grid-column: 1 / -1;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .gd-dash-donut {
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .gd-dash-donut__lg {
+    width: 100%;
+  }
+
+  .gd-dash-donut__lg-item {
+    white-space: nowrap;
+  }
+
+  .gd-dash-cols__col small {
+    font-size: 0.62rem;
+    line-height: 1.25;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+    text-align: center;
   }
 
   .gd-dash-lead__item {

@@ -4,7 +4,7 @@ const DASH = '—';
 
 export default function TeamSummaryBar({ total }) {
   return (
-    <section className="gd-dash-team">
+    <section className="gd-dash-card gd-dash-team">
       <div className="gd-dash-team__info">
         <h2>حسابات فريق العمل</h2>
         <p>{total == null ? DASH : `${total} حساب`}</p>
