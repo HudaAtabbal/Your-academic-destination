@@ -550,7 +550,9 @@ def get_dashboard_analytics(db: Session) -> dict:
     ]
     college_visits.sort(key=lambda item: item["count"], reverse=True)
 
-    # حضور المحاضرات — كل الـ16 مضمنة بترتيب enum.
+    # حضور المحاضرات — كل الـ16 مضمنة بترتيب enum، إلّا العناصر اللي ضمن مجموعة
+    # دمج (ندوات الهندسة الثلاث) بتنعرض وحدة: العنصر الأول بالمجموعة بياخد
+    # الأرقام كلها، والباقي بينحذف من القائمة.
     lecture_rows = (
         db.query(Checkin.lecture_name, func.count(Checkin.id))
         .filter(Checkin.activity_type == ActivityType.lecture)
@@ -562,9 +564,13 @@ def get_dashboard_analytics(db: Session) -> dict:
         {
             "lecture_name": lecture,
             "label": checkin_service.lecture_display_name(lecture),
-            "count": lecture_count_map.get(lecture, 0),
+            "count": sum(
+                lecture_count_map.get(member, 0)
+                for member in checkin_service.lecture_merge_group(lecture)
+            ),
         }
         for lecture in Lecture
+        if checkin_service.lecture_canonical(lecture) == lecture
     ]
 
     # توزيع المعدل (bacc_average) على فترات عرض 10 — 0-10 … 90-100.
