@@ -1,0 +1,237 @@
+"""اختبارات إدارة حسابات فريق العمل — super_admin فقط."""
+
+
+def test_list_accounts(client, super_headers):
+    resp = client.get("/admin/accounts", headers=super_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 6
+    assert len(body["items"]) == 6
+    assert body["page"] == 1
+    assert body["limit"] == 20
+
+
+def test_list_pagination(client, super_headers):
+    resp = client.get(
+        "/admin/accounts", params={"page": 1, "limit": 2}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body["items"]) == 2
+    assert body["total"] == 6
+    assert body["total_pages"] == 3
+
+
+def test_create_account_with_password(client, super_headers):
+    resp = client.post(
+        "/admin/accounts",
+        json={
+            "username": "new_staff",
+            "password": "pw12345",
+            "role": "college_staff",
+            "college": "dentistry",
+        },
+        headers=super_headers,
+    )
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["generated_password"] is None
+    assert body["college"] == "dentistry"
+    login = client.post(
+        "/auth/login", json={"username": "new_staff", "password": "pw12345"}
+    )
+    assert login.status_code == 200
+    assert login.json()["role"] == "college_staff"
+
+
+def test_create_account_auto_password(client, super_headers):
+    resp = client.post(
+        "/admin/accounts",
+        json={"username": "auto_admin", "role": "students_admin"},
+        headers=super_headers,
+    )
+    assert resp.status_code == 201
+    generated = resp.json()["generated_password"]
+    assert isinstance(generated, str) and generated
+    login = client.post(
+        "/auth/login", json={"username": "auto_admin", "password": generated}
+    )
+    assert login.status_code == 200
+
+
+def test_create_duplicate_username_409(client, super_headers):
+    payload = {"username": "dup_user", "role": "gate_scanner"}
+    assert client.post("/admin/accounts", json=payload, headers=super_headers).status_code == 201
+    resp = client.post("/admin/accounts", json=payload, headers=super_headers)
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "duplicate_username"
+
+
+def test_create_college_stripped_for_non_staff(client, super_headers):
+    resp = client.post(
+        "/admin/accounts",
+        json={"username": "gate_x", "role": "gate_scanner", "college": "medicine"},
+        headers=super_headers,
+    )
+    assert resp.status_code == 201
+    assert resp.json()["college"] is None
+
+
+def test_create_invalid_role_422(client, super_headers):
+    resp = client.post(
+        "/admin/accounts", json={"username": "x", "role": "bogus"}, headers=super_headers
+    )
+    assert resp.status_code == 422
+
+
+def test_patch_account_role(client, super_headers):
+    resp = client.patch(
+        "/admin/accounts/sedra_admin", json={"role": "super_admin"}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    assert resp.json()["role"] == "super_admin"
+
+
+def test_patch_account_password(client, super_headers):
+    assert (
+        client.patch(
+            "/admin/accounts/sedra_admin", json={"password": "brand_new"}, headers=super_headers
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            "/auth/login", json={"username": "sedra_admin", "password": "brand_new"}
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            "/auth/login", json={"username": "sedra_admin", "password": "admin123"}
+        ).status_code
+        == 401
+    )
+
+
+def test_patch_unknown_account_404(client, super_headers):
+    resp = client.patch(
+        "/admin/accounts/ghost", json={"role": "gate_scanner"}, headers=super_headers
+    )
+    assert resp.status_code == 404
+    assert resp.json()["error_code"] == "account_not_found"
+
+
+def test_accounts_forbidden_for_non_super(client, students_admin_headers):
+    resp = client.get("/admin/accounts", headers=students_admin_headers)
+    assert resp.status_code == 403
+    assert resp.json()["error_code"] == "forbidden"
+
+
+def test_accounts_unauthenticated_401(client):
+    resp = client.get("/admin/accounts")
+    assert resp.status_code == 401
+
+
+def test_list_accounts_search_by_username(client, super_headers):
+    """بحث جزئي باسم المستخدم (ILIKE) — يطابق الموجود ولا ينسخ الصفحات."""
+    resp = client.get(
+        "/admin/accounts", params={"search": "admin"}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["items"][0]["username"] == "sedra_admin"
+
+    resp = client.get(
+        "/admin/accounts", params={"search": "taher"}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 1
+    assert body["items"][0]["username"] == "taher_super"
+
+    # لا يوجد أي حساب مطابق — قائمة فارغة
+    resp = client.get(
+        "/admin/accounts", params={"search": "ghost"}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    assert resp.json()["total"] == 0
+    assert resp.json()["items"] == []
+
+
+def test_list_accounts_search_with_pagination(client, super_headers):
+    """البحث يتقاطع مع الصفحات: الفلترة أولاً ثم الترقيم."""
+    for i in range(3):
+        client.post(
+            "/admin/accounts",
+            json={"username": f"zaker_{i}", "role": "gate_scanner"},
+            headers=super_headers,
+        )
+    resp = client.get(
+        "/admin/accounts", params={"search": "zaker", "limit": 2, "page": 2}, headers=super_headers
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["total"] == 3
+    assert body["total_pages"] == 2
+    assert len(body["items"]) == 1
+    assert body["items"][0]["username"] == "zaker_2"
+
+
+# ---------- DELETE ----------
+
+
+def test_delete_account_204(client, super_headers):
+    client.post(
+        "/admin/accounts",
+        json={"username": "to_delete", "role": "gate_scanner"},
+        headers=super_headers,
+    )
+    resp = client.delete("/admin/accounts/to_delete", headers=super_headers)
+    assert resp.status_code == 204
+    # إعادة الحذف → 404
+    resp2 = client.delete("/admin/accounts/to_delete", headers=super_headers)
+    assert resp2.status_code == 404
+
+
+def test_delete_cannot_delete_self(client, super_headers):
+    resp = client.delete("/admin/accounts/taher_super", headers=super_headers)
+    assert resp.status_code == 400
+    assert resp.json()["error_code"] == "cannot_delete_self"
+
+
+def test_delete_unknown_404(client, super_headers):
+    resp = client.delete("/admin/accounts/nonexistent_user", headers=super_headers)
+    assert resp.status_code == 404
+    assert resp.json()["error_code"] == "account_not_found"
+
+
+# ---------- PATCH college ----------
+
+
+def test_patch_account_college(client, super_headers):
+    resp = client.patch(
+        "/admin/accounts/rima_staff",
+        json={"college": "dentistry"},
+        headers=super_headers,
+    )
+    assert resp.status_code == 200
+    assert resp.json()["college"] == "dentistry"
+
+
+# ---------- create super_admin by super ----------
+
+
+def test_create_super_admin_by_super(client, super_headers):
+    resp = client.post(
+        "/admin/accounts",
+        json={"username": "new_super", "password": "sup123", "role": "super_admin"},
+        headers=super_headers,
+    )
+    assert resp.status_code == 201
+    assert resp.json()["role"] == "super_admin"
+    login = client.post(
+        "/auth/login", json={"username": "new_super", "password": "sup123"}
+    )
+    assert login.status_code == 200
+    assert login.json()["role"] == "super_admin"

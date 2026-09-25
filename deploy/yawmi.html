@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>برنامج الملتقى — وجهتك الأكاديمية 2</title>
+<style>
+:root{--teal:#0e3e37;--teal2:#134f47;--cream:#fff4e0;--card:#fff;--red:#71122b;--orange:#e65100;--sand:#7a6953;--line:#f0e3cf}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);color:var(--teal);font-family:Ghroob,"Segoe UI",Tahoma,sans-serif;font-weight:700}
+.wrap{max-width:560px;margin:0 auto;padding:14px 14px 32px}
+.tabs{display:flex;gap:8px;position:sticky;top:0;background:var(--cream);padding:8px 0 10px;z-index:5}
+.tab{flex:1;background:#fff;border:1.5px solid var(--line);border-radius:18px;padding:10px 6px;cursor:pointer;font-family:inherit;color:var(--sand);display:flex;flex-direction:column;gap:3px;align-items:center}
+.tab b{font-size:.92rem;font-weight:800}
+.tab span{font-size:.72rem;font-weight:700;opacity:.85}
+.tab.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.pane{display:none}
+.pane.on{display:block}
+.dayhead{padding:10px 4px 14px}
+.dayhead h2{margin:0;font-size:1.25rem;color:var(--red)}
+.dayhead p{margin:4px 0 0;font-size:.85rem;color:var(--sand)}
+.it{display:flex;gap:10px;margin-bottom:12px}
+.tm{flex:0 0 76px;background:var(--teal);color:#fff;border-radius:16px;padding:10px 4px;text-align:center;height:fit-content;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tm b{font-size:.84rem;font-weight:800;direction:ltr}
+.tm i{font-size:.74rem;font-weight:700;font-style:normal;opacity:.75;direction:ltr}
+.tm i::before{content:'—';display:block;opacity:.5;font-size:.6rem;line-height:.9}
+.bd{flex:1;background:var(--card);border-radius:20px;padding:14px 14px 12px;box-shadow:0 2px 8px #0f3b340d}
+.bd h3{margin:0 0 8px;font-size:1rem;font-weight:800;color:var(--teal)}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.hall{background:#e9f2f0;color:var(--teal2);border-radius:12px;padding:4px 10px;font-size:.76rem;font-weight:700}
+.hall.alt{background:#fdf0d5;color:#b4690e}
+.sp{font-size:.85rem;color:var(--teal2);margin-top:3px}
+.sp.alt{color:var(--sand);font-size:.8rem}
+.lbl{display:inline-block;background:var(--orange);color:#fff;border-radius:8px;padding:1px 7px;font-size:.68rem;font-weight:800;margin-left:6px}
+.sp.alt .lbl{background:#cbb89b}
+.subs{margin-top:10px;border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:8px}
+.sub .nm{font-size:.88rem;font-weight:800;color:var(--red)}
+.note{margin:10px 0 0;font-size:.78rem;font-weight:700;color:var(--sand);line-height:1.6}
+.foot{margin-top:18px;text-align:center;font-size:.76rem;color:var(--sand);line-height:1.8}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="tabs"><button class="tab on" data-i="0"><b>اليوم الأول</b><span>الأربعاء 23 أيلول</span></button><button class="tab" data-i="1"><b>اليوم الثاني</b><span>الخميس 24 أيلول</span></button><button class="tab" data-i="2"><b>اليوم الثالث</b><span>السبت 26 أيلول</span></button></div>
+<section class="pane on" data-i="0"><div class="dayhead"><h2>الأربعاء 23 أيلول 2026</h2><p>الإنساني والطبي</p></div><div class="it"><div class="tm"><b>09:30</b></div><div class="bd"><h3>فتح الأبواب والتسجيل · تفعيل رموز QR والخط السريع</h3><div class="meta"><span class="hall">البوابة الرئيسية</span></div></div></div><div class="it"><div class="tm"><b>10:00</b><i>11:00</i></div><div class="bd"><h3>حفل الافتتاح</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div></div></div><div class="it"><div class="tm"><b>11:00</b><i>13:00</i></div><div class="bd"><h3>ندوة كليات العلوم الإنسانية</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div><div class="subs"><div class="sub"><div class="nm">كلية الآداب والعلوم الإنسانية</div></div><div class="sub"><div class="nm">كلية الحقوق</div></div><div class="sub"><div class="nm">كلية الشريعة</div></div><div class="sub"><div class="nm">كلية التربية</div></div><div class="sub"><div class="nm">كلية السياحة</div></div><div class="sub"><div class="nm">كلية التربية الموسيقية</div></div></div><p class="note">لكل كلية محاضرة مختصرة ضمن الندوة</p></div></div><div class="it"><div class="tm"><b>13:00</b><i>15:00</i></div><div class="bd"><h3>ورشة عمل: كيف تختار تخصصك الجامعي</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div><div class="sp"><span class="lbl">المحاضر</span> د. ياسر بكار</div><p class="note">ورشة لساعتين</p></div></div><div class="it"><div class="tm"><b>15:00</b><i>17:00</i></div><div class="bd"><h3>ندوة الكليات الطبية</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div><div class="subs"><div class="sub"><div class="nm">كلية الطب البشري</div></div><div class="sub"><div class="nm">كلية طب الأسنان</div></div><div class="sub"><div class="nm">كلية الصيدلة</div></div><div class="sub"><div class="nm">كلية العلوم الصحية</div></div></div><p class="note">لكل كلية محاضرة مختصرة ضمن الندوة</p></div></div><div class="it"><div class="tm"><b>طوال اليوم</b></div><div class="bd"><h3>جولات الكليات: 11:00 · 12:00 · 14:00</h3><div class="meta"><span class="hall">قاعات الجولات 1–10</span></div><p class="note">الكورنرات مفتوحة · مكتب المفاضلة · الاستشارات الفردية · المنطقة الخدمية</p></div></div></section><section class="pane" data-i="1"><div class="dayhead"><h2>الخميس 24 أيلول 2026</h2><p>الأساسي والمعلوماتي والمدني</p></div><div class="it"><div class="tm"><b>09:30</b></div><div class="bd"><h3>فتح الأبواب والتسجيل</h3><div class="meta"><span class="hall">البوابة الرئيسية</span></div></div></div><div class="it"><div class="tm"><b>10:00</b><i>11:00</i></div><div class="bd"><h3>ندوة مركزية: اتجاهات سوق العمل والمهن الصاعدة</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div></div></div><div class="it"><div class="tm"><b>10:00</b><i>11:00</i></div><div class="bd"><h3>ندوة أولياء الأمور</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div></div></div><div class="it"><div class="tm"><b>11:00</b><i>13:00</i></div><div class="bd"><h3>ندوة العلوم الأساسية والاقتصادية</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div><div class="subs"><div class="sub"><div class="nm">كلية العلوم</div></div><div class="sub"><div class="nm">كلية الاقتصاد</div></div></div><p class="note">لكل كلية محاضرة مختصرة ضمن الندوة</p></div></div><div class="it"><div class="tm"><b>13:00</b><i>14:00</i></div><div class="bd"><h3>ندوة مركزية: إجراءات المفاضلة · الأخطاء الشائعة · لمحة عن الجامعة الافتراضية</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div></div></div><div class="it"><div class="tm"><b>14:00</b><i>15:00</i></div><div class="bd"><h3>ندوة الهندسة المعلوماتية والكلية التطبيقية</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div><div class="subs"><div class="sub"><div class="nm">كلية الهندسة المعلوماتية</div></div><div class="sub"><div class="nm">الكلية التطبيقية</div></div></div><p class="note">لكل كلية محاضرة مستقلة</p></div></div><div class="it"><div class="tm"><b>15:00</b><i>16:00</i></div><div class="bd"><h3>ندوة الهندسة المدنية والمعمارية والزراعية</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div><div class="subs"><div class="sub"><div class="nm">كلية الهندسة المدنية</div></div><div class="sub"><div class="nm">كلية الهندسة المعمارية</div></div><div class="sub"><div class="nm">كلية الهندسة الزراعية</div></div></div><p class="note">لكل كلية محاضرة مختصرة ضمن الندوة</p></div></div><div class="it"><div class="tm"><b>طوال اليوم</b></div><div class="bd"><h3>جولات الكليات: 11:00 · 12:00 · 14:00</h3><div class="meta"><span class="hall">قاعات الجولات 1–10</span></div><p class="note">الكورنرات مفتوحة · مكتب المفاضلة · الاستشارات الفردية · المنطقة الخدمية</p></div></div></section><section class="pane" data-i="2"><div class="dayhead"><h2>السبت 26 أيلول 2026</h2><p>الميكانيكي والكهربائي والكيميائي والمعاهد</p></div><div class="it"><div class="tm"><b>09:30</b></div><div class="bd"><h3>فتح الأبواب والتسجيل</h3><div class="meta"><span class="hall">البوابة الرئيسية</span></div></div></div><div class="it"><div class="tm"><b>10:00</b><i>11:00</i></div><div class="bd"><h3>ندوة مركزية: التخصصات المستجدّة</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div></div></div><div class="it"><div class="tm"><b>11:00</b><i>13:00</i></div><div class="bd"><h3>ندوة الهندسة الكهربائية والميكانيكية والهندسة الكيميائية والبترولية (الهمك والبتروكيميا)</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div><div class="subs"><div class="sub"><div class="nm">كلية الهندسة الميكانيكية والكهربائية (الهمك)</div></div><div class="sub"><div class="nm">كلية الهندسة الكيميائية والبترولية (البتروكيميا)</div></div></div></div></div><div class="it"><div class="tm"><b>13:00</b><i>14:00</i></div><div class="bd"><h3>ندوة صناعة الحياة الجامعية — قصص خريجين</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div></div></div><div class="it"><div class="tm"><b>14:00</b><i>16:00</i></div><div class="bd"><h3>ندوة المعاهد المتوسطة والعليا</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div><div class="subs"><div class="sub"><div class="nm">المعهد التقاني الهندسي</div></div><div class="sub"><div class="nm">المعهد التقاني للحاسوب</div></div><div class="sub"><div class="nm">المعهد التقاني للصناعات التطبيقية</div></div><div class="sub"><div class="nm">المعهد التقاني الزراعي</div></div><div class="sub"><div class="nm">المعهد التقاني لشؤون البادية</div></div><div class="sub"><div class="nm">المعهد التقاني الصحي</div></div><div class="sub"><div class="nm">المعهد التقاني لطب الأسنان</div></div></div><p class="note">لكل معهد محاضرة مختصرة ضمن الندوة</p></div></div><div class="it"><div class="tm"><b>16:00</b><i>17:00</i></div><div class="bd"><h3>حفل الختام والتكريم وتوزيع جوائز النقاط</h3><div class="meta"><span class="hall">المدرج الرئيسي الكبير</span></div></div></div><div class="it"><div class="tm"><b>طوال اليوم</b></div><div class="bd"><h3>جولات الكليات: 11:00 · 12:00 · 14:00</h3><div class="meta"><span class="hall">قاعات الجولات 1–10</span></div><p class="note">الكورنرات مفتوحة · مكتب المفاضلة · الاستشارات الفردية · المنطقة الخدمية</p></div></div></section>
+<p class="foot">فتح الأبواب 09:30 · الكورنرات ومكتب المفاضلة والاستشارات الفردية مفتوحة طوال اليوم</p>
+</div>
+<script>
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.dataset.i===b.dataset.i));
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+</script>
+</body>
+</html>
