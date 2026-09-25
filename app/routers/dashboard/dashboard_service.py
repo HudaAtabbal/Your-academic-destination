@@ -17,7 +17,7 @@
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import Date, Time, cast, func, or_
+from sqlalchemy import Date, Time, and_, case, cast, func, or_
 from sqlalchemy.orm import Session
 
 from app import cache, time_utils
@@ -36,6 +36,7 @@ from app.models import (
     Checkin,
     Faculty,
     Lecture,
+    PageVisit,
     PostSurvey,
     RegistrationType,
     Student,
@@ -43,6 +44,7 @@ from app.models import (
     UnionSection,
     VerificationStatus,
 )
+from app.models.page_visit import MIN_COUNTED_DURATION_SECONDS
 from app.routers.checkins import checkin_service
 from app.routers.internal import internal_service
 from app.routers.points import point_service
@@ -1009,3 +1011,72 @@ def list_top_students(
         "items": result["items"][start : start + limit],
         "total": result["total"],
     }
+
+
+# ---------------------------------------------------------------------------
+# تتبّع الدليل الأكاديمي (قسم 3.5) — guide-insights
+# ---------------------------------------------------------------------------
+
+# الصفحة المتتبَّعة حالياً — الدليل الأكاديمي المدمجة بالـ iframe.
+GUIDE_PAGE = "academic-guide"
+
+# حد أدنى للزيارة المحسوبة — تحتو زي ارتداد سريع (فتح وطلع).
+_MIN_MEASURED_SECONDS = MIN_COUNTED_DURATION_SECONDS
+
+
+def guide_insights(db: Session, day: str) -> dict:
+    """
+    إحصاءات الدليل الأكاديمي: كم شخص فتحه، كم مرة، وكم بقي.
+
+    'all' بتجمع كل الزيارات المسجّلة (التراكمية). ويوم محدّد بيقصّ على نطاق
+    اليوم حسب EventDay من app/event_days.py.
+
+    مدّة البقاء بتنحسب بالمتوسط والوسيط على الزيارات اللي مدّتها محسوبة
+    وفوق الحد الأدنى بس — إحصاءات متوسطات متحمّسة للتلاعب، مش مجاميع.
+    """
+    day_bounds = _resolve_day_range(day)
+
+    def _compute() -> dict:
+        filters = [PageVisit.page == GUIDE_PAGE]
+        if day_bounds is not None:
+            filters.append(PageVisit.entered_at >= day_bounds[0])
+            filters.append(PageVisit.entered_at < day_bounds[1])
+
+        measured = [PageVisit.duration_seconds.isnot(None)]
+        measured.append(PageVisit.duration_seconds >= _MIN_MEASURED_SECONDS)
+
+        row = (
+            db.query(
+                func.count(PageVisit.id).label("visits"),
+                func.count(func.distinct(PageVisit.visitor_id)).label("visitors"),
+                func.count(case((and_(*measured), PageVisit.id))).label("measured"),
+                func.avg(case((and_(*measured), PageVisit.duration_seconds))).label(
+                    "avg_seconds"
+                ),
+                func.percentile_cont(0.5)
+                .within_group(
+                    case((and_(*measured), PageVisit.duration_seconds)).asc()
+                )
+                .label("median_seconds"),
+            )
+            .filter(*filters)
+            .one()
+        )
+
+        return {
+            "page": GUIDE_PAGE,
+            "visitors_count": int(row.visitors or 0),
+            "visits_count": int(row.visits or 0),
+            "measured_visits": int(row.measured or 0),
+            "avg_duration_seconds": _round_seconds(row.avg_seconds),
+            "median_duration_seconds": _round_seconds(row.median_seconds),
+        }
+
+    return cache.cached_call(
+        f"dashboard:guide-insights:{day}", _CACHE_TTL_SECONDS, _compute
+    )
+
+
+def _round_seconds(value: float | None) -> float | None:
+    """يقرّب المدّة لثانية وحدة (و null إذا ما في بيانات محسوبة)."""
+    return None if value is None else round(float(value), 1)

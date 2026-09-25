@@ -247,3 +247,18 @@ class TopStudentsResponse(BaseModel):
     total: int
     total_pages: int
     generated_at: datetime
+
+
+class GuideInsightsResponse(BaseModel):
+    """تتبّع الدليل الأكاديمي — أشخاص مختلفون، عدد زيارات، ومدّة البقاء."""
+
+    day: EventDay
+    page: str
+    visitors_count: int
+    visits_count: int
+    # متوسط/وسيط مدّة البقاء بالثواني — null إذا ما في زيارات محسوبة بعد.
+    avg_duration_seconds: float | None
+    median_duration_seconds: float | None
+    # عدد الزيارات اللي دخلت بالمتوسط (المدّة محسوبة و فوق الحد الأدنى).
+    measured_visits: int
+    generated_at: datetime

@@ -22,6 +22,7 @@ from app.routers.bookings import booking_router
 from app.routers.checkins import checkin_router
 from app.routers.dashboard import dashboard_router
 from app.routers.internal import internal_router
+from app.routers.page_visits import page_visits_router
 from app.routers.points import point_router
 from app.routers.registration import registration_router
 from app.routers.students import student_router
@@ -213,6 +214,7 @@ app.include_router(booking_router.router)
 app.include_router(survey_router.router)
 app.include_router(account_router.router)
 app.include_router(student_router.router)
+app.include_router(page_visits_router.router)
 app.include_router(dashboard_router.router)
 app.include_router(registration_router.router)
 app.include_router(point_router.router)

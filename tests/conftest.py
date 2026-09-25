@@ -25,7 +25,7 @@ from sqlalchemy import text
 import main as main_module
 from app import cache as cache_module
 from app.database import Base, SessionLocal, engine
-from app.dependencies import _otp_student_log, _request_log
+from app.dependencies import _otp_student_log, _request_log, _visit_log
 from app.models import Account, AccountRole, College, Faculty, RegistrationType, Student, StudentStatus, VerificationStatus
 from app.security import hash_password
 
@@ -85,12 +85,13 @@ def _init_test_db():
 def _clean_tables(_init_test_db):
     _request_log.clear()
     _otp_student_log.clear()
+    _visit_log.clear()
     cache_module.clear_cache()
     with engine.begin() as conn:
         conn.execute(
             text(
                 "TRUNCATE TABLE students, checkins, bookings, post_survey, otps, accounts, "
-                "sms_jobs, sms_heartbeats RESTART IDENTITY CASCADE"
+                "sms_jobs, sms_heartbeats, page_visits RESTART IDENTITY CASCADE"
             )
         )
     yield

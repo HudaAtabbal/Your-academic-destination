@@ -23,6 +23,7 @@ from app.routers.dashboard.dashboard_schema import (
     DayCountResponse,
     DayUnionSectionsResponse,
     EventDay,
+    GuideInsightsResponse,
     HallClearResponse,
     HallStudentItem,
     HallStudentsResponse,
@@ -276,3 +277,11 @@ def top_students(
         total_pages=math.ceil(data["total"] / limit),
         generated_at=time_utils.now_naive(),
     )
+
+
+@router.get("/guide-insights", response_model=GuideInsightsResponse)
+def guide_insights(
+    day: EventDay = "all", db: Session = Depends(get_db)
+) -> GuideInsightsResponse:
+    data = dashboard_service.guide_insights(db, day)
+    return GuideInsightsResponse(day=day, generated_at=time_utils.now_naive(), **data)
