@@ -254,3 +254,52 @@ def test_guide_insights_uses_cache(client, super_headers, db):
 
 def test_measured_minimum_matches_model_constant():
     assert MIN_COUNTED_DURATION_SECONDS == 3
+
+
+# ---------- purge (مؤقت — 2026-09-26) ----------
+
+_PURGE_PHRASE = "reset-guide-stats-2026-09-26"
+
+
+def test_purge_requires_auth(client, db):
+    _visit_at(db, visitor_id="v1", entered_at=time_utils.now_naive(), duration=100)
+    assert client.delete(f"/students/page-visits?confirm={_PURGE_PHRASE}").status_code == 401
+
+
+def test_purge_forbidden_for_non_super(client, students_admin_headers, db):
+    _visit_at(db, visitor_id="v1", entered_at=time_utils.now_naive(), duration=100)
+    resp = client.delete(
+        f"/students/page-visits?confirm={_PURGE_PHRASE}", headers=students_admin_headers
+    )
+    assert resp.status_code == 403
+
+
+def test_purge_rejects_wrong_phrase(client, super_headers, db):
+    _visit_at(db, visitor_id="v1", entered_at=time_utils.now_naive(), duration=100)
+    resp = client.delete("/students/page-visits?confirm=nope", headers=super_headers)
+    assert resp.status_code == 400
+    assert resp.json()["error_code"] == "confirm_mismatch"
+    assert db.query(PageVisit).count() == 1
+
+
+def test_purge_deletes_rows_and_clears_cache(client, super_headers, db):
+    from app import cache as cache_module
+
+    _visit_at(db, visitor_id="v1", entered_at=time_utils.now_naive(), duration=100)
+    _visit_at(db, visitor_id="v2", entered_at=time_utils.now_naive(), duration=None)
+    db.commit()
+    # يملأ الكاش قبل المسح عشان نتأكد إنه اتفرّغ معه
+    before = client.get("/admin/dashboard/guide-insights", headers=super_headers).json()
+    assert before["visits_count"] == 2
+
+    resp = client.delete(
+        f"/students/page-visits?confirm={_PURGE_PHRASE}", headers=super_headers
+    )
+    assert resp.status_code == 200
+    assert resp.json()["deleted"] == 2
+    assert db.query(PageVisit).count() == 0
+
+    after = client.get("/admin/dashboard/guide-insights", headers=super_headers).json()
+    assert after["visits_count"] == 0
+    assert after["visitors_count"] == 0
+    assert after["avg_duration_seconds"] is None
