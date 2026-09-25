@@ -52,6 +52,26 @@ def _checkin_for_day(
     return checkin
 
 
+def _tour_booking(
+    db,
+    student,
+    day_key: str,
+    college: Faculty,
+    *,
+    hour: int = 9,
+    minute: int = 0,
+):
+    """ينشئ Booking جولة بتاريخ ضمن يوم فعالية محدد (بتوقيت سوريا)."""
+    booking = Booking(
+        student_id=student.id,
+        booking_type=BookingType.tour,
+        college=college,
+        booked_at=_day_start(day_key) + timedelta(hours=hour, minutes=minute),
+    )
+    db.add(booking)
+    return booking
+
+
 def _make_student(db, code: str, full_name: str = "طالب تجريبي"):
     student = Student(
         unique_code=code,
@@ -69,6 +89,34 @@ def _make_student(db, code: str, full_name: str = "طالب تجريبي"):
 # ---------------------------------------------------------------------------
 # عدادات مفلترة باليوم (قسم 3.1)
 # ---------------------------------------------------------------------------
+
+
+def test_stats_consultations_count_from_bookings(db, client, super_headers):
+    s1 = _make_student(db, "R-0001")
+    s2 = _make_student(db, "R-0002")
+    s3 = _make_student(db, "R-0003")
+    # s1: حجز استشارة + شيك استشارة (الاثنين موجودان — يُحسب مرة من الحجز)
+    # s2: شيك استشارة بلا حجز → لا يُحسب
+    # s3: لا شيء
+    db.add_all(
+        [
+            Booking(
+                student_id=s1.id,
+                booking_type=BookingType.consultation,
+                college=Faculty.medicine,
+                booked_at=_day_start("wed") + timedelta(hours=10),
+            ),
+            _checkin_for_day(db, s1, ActivityType.consultation, "thu", hour=11),
+            _checkin_for_day(db, s2, ActivityType.consultation, "thu", hour=12),
+        ]
+    )
+    db.commit()
+
+    resp = client.get("/admin/dashboard/stats", headers=super_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    # حجز استشارة واحد فقط — شيك بلا حجز لا يُعدّ
+    assert body["total_consultations"] == 1
 
 
 def test_students_inside_count_all_days(db, client, super_headers):
@@ -133,21 +181,22 @@ def test_game_scans_day_filtered(db, client, super_headers):
 def test_college_visits_day_filtered(db, client, super_headers):
     s1 = _make_student(db, "R-0001")
     s2 = _make_student(db, "R-0002")
-    # s1: حجز جولة civil_engineering يوم أربعاء + شيك جولة civil_engineering يوم خميس (نفس الكلية → مرة)
-    # s2: شيك جولة civil_engineering يوم خميس فقط
+    s3 = _make_student(db, "R-0003")
+    # s1: حجز جولة civil_engineering يوم أربعاء + شيك جولة civil_engineering يوم خميس (بلا حجز → لا يُحتسب)
+    # s2: حجز جولة civil_engineering يوم خميس (مفترق حساب)
+    # s3: حجز استشارة civil_engineering يوم خميس (نوع خاطئ → لا يُحتسب)
     db.add_all(
         [
-            Booking(
-                student_id=s1.id,
-                booking_type=BookingType.tour,
-                college=Faculty.civil_engineering,
-                booked_at=_day_start("wed") + timedelta(hours=9),
-            ),
+            _tour_booking(db, s1, "wed", Faculty.civil_engineering, hour=9),
             _checkin_for_day(
                 db, s1, ActivityType.tour, "thu", college=Faculty.civil_engineering
             ),
-            _checkin_for_day(
-                db, s2, ActivityType.tour, "thu", college=Faculty.civil_engineering
+            _tour_booking(db, s2, "thu", Faculty.civil_engineering, hour=11),
+            Booking(
+                student_id=s3.id,
+                booking_type=BookingType.consultation,
+                college=Faculty.civil_engineering,
+                booked_at=_day_start("thu") + timedelta(hours=12),
             ),
         ]
     )
@@ -160,7 +209,8 @@ def test_college_visits_day_filtered(db, client, super_headers):
 
     thu = client.get("/admin/dashboard/college-visits?day=thu", headers=super_headers).json()
     eng_thu = next(i for i in thu["items"] if i["college"] == "civil_engineering")
-    assert eng_thu["count"] == 2
+    # فقط حجز s2 — شيك s1 بلا حجز واستشارة s3 لا يُحتسبان
+    assert eng_thu["count"] == 1
 
     all_resp = client.get("/admin/dashboard/college-visits?day=all", headers=super_headers).json()
     eng_all = next(i for i in all_resp["items"] if i["college"] == "civil_engineering")
@@ -298,10 +348,10 @@ def test_peak_hours_counts_and_peak(db, client, super_headers):
     resp = client.get("/admin/dashboard/peak-hours", headers=super_headers)
     assert resp.status_code == 200
     body = resp.json()
-    # الساعات 8..17 — النطاق افتراضياً من EVENT_HOURS
-    assert body["hours"] == list(range(8, 18))
+    # الساعات 8..15 — نافذة الفعالية، خارجها لا يُحتسب
+    assert body["hours"] == list(range(8, 16))
     days = {d["day"]: d["counts"] for d in body["days"]}
-    assert len(days["wed"]) == 10
+    assert len(days["wed"]) == 8
     # index للساعة = hour - 8
     assert days["wed"][10 - 8] == 2
     assert days["thu"][11 - 8] == 3
@@ -323,8 +373,8 @@ def _seed_top_students(db):
     s1 = _make_student(db, "R-0001", full_name="أحمد الأول")
     s2 = _make_student(db, "R-0002", full_name="سمير الثاني")
     s3 = _make_student(db, "R-0003", full_name="ريم الثالثة")
-    # s1: محاضرتان · جولتان (كليتان مختلفتان — فهرس unique_tour_checkin يسمح
-    #     بمسحة جولة واحدة لكل (طالب، كلية)).
+    # s1: محاضرتان · جولتان (كليتان مختلفتان — فهرس unique_tour_booking يسمح
+    #     بحجز جولة واحد لكل (طالب، كلية)).
     # s2: محاضرة واحدة · جولة واحدة
     # s3: ثلاث محاضرات · صفر جولات (الأعلى محاضرات، الأدنى جولات)
     tour_colleges = [Faculty.civil_engineering, Faculty.architecture]
@@ -332,14 +382,7 @@ def _seed_top_students(db):
         for i in range(lectures):
             _checkin_for_day(db, student, ActivityType.lecture, "wed", hour=10)
         for i in range(tours):
-            _checkin_for_day(
-                db,
-                student,
-                ActivityType.tour,
-                "thu",
-                hour=11,
-                college=tour_colleges[i],
-            )
+            _tour_booking(db, student, "thu", tour_colleges[i], hour=11)
     return s1, s2, s3
 
 
@@ -372,12 +415,15 @@ def test_top_students_tours(db, client, super_headers):
 def test_top_students_presence(db, client, super_headers):
     s1 = _make_student(db, "R-0001", full_name="أحمد")
     s2 = _make_student(db, "R-0002", full_name="سمير")
-    # s1: يوم أربعاء مدته 180 دقيقة (09:00 و 12:00)
-    # s2: يوم أربعاء مدته 60 دقيقة (10:00 و 11:00)
+    # s1: يوم أربعاء مدته 180 دقيقة (09:00 و 12:00) + يوم خميس مدته 60 دقيقة (10:00 و 11:00)
+    #     → الإجمالي 240 دقيقة على يومين
+    # s2: يوم أربعاء مدته 60 دقيقة (10:00 و 11:00) → 60 دقيقة على يوم واحد
     db.add_all(
         [
             _checkin_for_day(db, s1, ActivityType.campus_entry, "wed", hour=9),
             _checkin_for_day(db, s1, ActivityType.lecture, "wed", hour=12),
+            _checkin_for_day(db, s1, ActivityType.campus_entry, "thu", hour=10),
+            _checkin_for_day(db, s1, ActivityType.lecture, "thu", hour=11),
             _checkin_for_day(db, s2, ActivityType.campus_entry, "wed", hour=10),
             _checkin_for_day(db, s2, ActivityType.lecture, "wed", hour=11),
         ]
@@ -385,9 +431,88 @@ def test_top_students_presence(db, client, super_headers):
     db.commit()
     resp = client.get("/admin/dashboard/top-students?metric=presence&limit=3", headers=super_headers).json()
     assert resp["items"][0]["unique_code"] == "R-0001"
-    assert resp["items"][0]["value"] == 180
+    assert resp["items"][0]["value"] == 240
+    assert resp["items"][0]["days"] == 2
     assert resp["items"][1]["unique_code"] == "R-0002"
     assert resp["items"][1]["value"] == 60
+    assert resp["items"][1]["days"] == 1
+
+
+def test_presence_window_ignores_outside_checkins(db, client, super_headers):
+    s1 = _make_student(db, "R-0001")
+    # s1: أربعاء — مسحتان داخل النافذة؟ لا، الأولى 22:00 خارج النافذة (بعد 16:00)
+    #     والثانية 07:30 خارج النافذة (قبل 08:00) → كلاهما خارج [08:00, 16:00)
+    #     فلا يتشكل زوج → لا يُحتسب بالمرة
+    db.add_all(
+        [
+            _checkin_for_day(db, s1, ActivityType.campus_entry, "wed", hour=22),
+            _checkin_for_day(db, s1, ActivityType.lecture, "wed", hour=7, minute=30),
+        ]
+    )
+    db.commit()
+
+    resp = client.get("/admin/dashboard/presence", headers=super_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    per_day = {d["day"]: d for d in body["per_day"]}
+    assert per_day["wed"]["students_counted"] == 0
+    assert per_day["wed"]["avg_minutes"] == 0
+    assert body["avg_minutes_all"] == 0
+
+
+def test_presence_window_0830_counts(db, client, super_headers):
+    s1 = _make_student(db, "R-0001")
+    # مسحة 08:30 داخل النافذة + مسحة 15:30 داخل النافذة → زوج صالح
+    # مدة (student, day) = 7 ساعات (لا تتجاوز 8)
+    db.add_all(
+        [
+            _checkin_for_day(db, s1, ActivityType.campus_entry, "wed", hour=8, minute=30),
+            _checkin_for_day(db, s1, ActivityType.lecture, "wed", hour=15, minute=30),
+        ]
+    )
+    db.commit()
+
+    resp = client.get("/admin/dashboard/presence", headers=super_headers).json()
+    per_day = {d["day"]: d for d in resp["per_day"]}
+    assert per_day["wed"]["students_counted"] == 1
+    assert per_day["wed"]["avg_minutes"] == 420  # 7 ساعات
+    assert resp["avg_minutes_all"] == 420
+    assert per_day["wed"]["avg_minutes"] <= 8 * 60
+
+
+def test_peak_hours_window_ignores_outside_checkins(db, client, super_headers):
+    s1 = _make_student(db, "R-0001")
+    # مسحات خارج [08:00, 16:00) (22:00 و 07:30) → لا تظهر في ساعات الذروة
+    db.add_all(
+        [
+            _checkin_for_day(db, s1, ActivityType.campus_entry, "wed", hour=22),
+            _checkin_for_day(db, s1, ActivityType.lecture, "thu", hour=7, minute=30),
+        ]
+    )
+    db.commit()
+
+    resp = client.get("/admin/dashboard/peak-hours", headers=super_headers).json()
+    assert resp["peak"] is None
+    days = {d["day"]: d["counts"] for d in resp["days"]}
+    assert sum(days["wed"]) == 0
+    assert sum(days["thu"]) == 0
+
+
+def test_presence_day_duration_max_eight_hours(db, client, super_headers):
+    s1 = _make_student(db, "R-0001")
+    # أقصى مدة ممكنة لزوج داخل النافذة [08:00, 16:00) = 8 ساعات بالضبط
+    db.add_all(
+        [
+            _checkin_for_day(db, s1, ActivityType.campus_entry, "wed", hour=8),
+            _checkin_for_day(db, s1, ActivityType.lecture, "wed", hour=15, minute=59),
+        ]
+    )
+    db.commit()
+
+    resp = client.get("/admin/dashboard/presence", headers=super_headers).json()
+    per_day = {d["day"]: d for d in resp["per_day"]}
+    assert per_day["wed"]["avg_minutes"] == 7 * 60 + 59  # 479 < 480
+    assert per_day["wed"]["avg_minutes"] <= 8 * 60
 
 
 def test_top_students_union_all(db, client, super_headers):

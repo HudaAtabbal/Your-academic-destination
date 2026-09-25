@@ -17,15 +17,21 @@
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import Date, cast, func, or_
+from sqlalchemy import Date, Time, cast, func, or_
 from sqlalchemy.orm import Session
 
 from app import cache, time_utils
 from app.errors import checkin_not_found, validation_error
-from app.event_days import EVENT_DAYS, EVENT_HOURS, day_range
+from app.event_days import (
+    EVENT_DAYS,
+    EVENT_WINDOW_END,
+    EVENT_WINDOW_START,
+    day_range,
+)
 from app.models import (
     ActivityType,
     Booking,
+    BookingType,
     CertificateType,
     Checkin,
     Faculty,
@@ -106,12 +112,12 @@ def get_dashboard_stats(db: Session) -> dict:
         .count()
     )
 
-    # إجمالي الاستشارات الفردية المنفذة — عدّ سجلات checkin بنوع consultation
-    # (تراكمي لكل الأيام). كل طالب بيسجّل استشارة مرة وحدة بالكامل عن طريق
-    # فهرس unique_consultation_checkin، فالعدد يساوي عدد الطلاب المنجزين للاستشارة.
+    # إجمالي الاستشارات الفردية — عدّ سجلات bookings بنوع استشارة
+    # (تراكمي لكل الأيام). استشارة إلزامية مرة وحدة لكل طالب، فيساوي تقريباً
+    # عدد الطلاب اللي نفّذوا استشارتهم، لكن المصدر الرسمي هو الحجوزات مش المسحات.
     total_consultations = (
-        db.query(Checkin)
-        .filter(Checkin.activity_type == ActivityType.consultation)
+        db.query(Booking)
+        .filter(Booking.booking_type == BookingType.consultation)
         .count()
     )
 
@@ -456,36 +462,25 @@ def _college_visit_counts(
     db: Session, start: datetime | None = None, end: datetime | None = None
 ) -> dict[Faculty, int]:
     """
-    عدد الطلاب المميزين (distinct) اللي زاروا كل كلية — عبر أي مسح سجّل كلية
-    (حجز/شيك جولة أو استشارة عند باب الكلية). كل طالب يُحسب مرة وحدة لكل كلية
-    حتى لو عمل الحجز والشيك معاً (union + distinct).
+    عدد الطلاب المميزين (distinct) اللي زاروا كل كلية — عبر حجوزات الجولة
+    (Booking بكتغوري tour) فقط، والكلية مطلوبة (college is not null).
+    المسحات (check-ins) وحجوزات الاستشارة ما بتدخل هون إطلاقاً.
 
     start/end اختياريان — لو انبعتا، الفلترة الزمنية تنسحب على booked_at
-    للحجوزات و checked_in_at للمسحات. يارجع خريطة كاملة (بما فيها الكليات
-    المستثناة من العرض) لأنها تستخدم بموضعين: قائمة زيارات الكلية ودمج الموسيقا
-    ضمن دليل الاتحاد.
+    بس. يارجع خريطة كاملة (بما فيها الكليات المستثناة من العرض) لأنها تستخدم
+    بموضعين: قائمة زيارات الكلية ودمج الموسيقا ضمن دليل الاتحاد.
     """
-    booking_q = (
-        db.query(Booking.college.label("college"), Booking.student_id.label("student_id"))
-        .filter(Booking.college.is_not(None))
-    )
-    checkin_q = (
-        db.query(Checkin.college.label("college"), Checkin.student_id.label("student_id"))
-        .filter(Checkin.college.is_not(None))
+    q = (
+        db.query(Booking.college, func.count(func.distinct(Booking.student_id)))
+        .filter(
+            Booking.booking_type == BookingType.tour,
+            Booking.college.is_not(None),
+        )
     )
     if start is not None:
-        booking_q = booking_q.filter(Booking.booked_at >= start, Booking.booked_at < end)
-        checkin_q = checkin_q.filter(Checkin.checked_in_at >= start, Checkin.checked_in_at < end)
+        q = q.filter(Booking.booked_at >= start, Booking.booked_at < end)
 
-    college_visit_sources = booking_q.union(checkin_q).subquery()
-    rows = (
-        db.query(
-            college_visit_sources.c.college,
-            func.count(func.distinct(college_visit_sources.c.student_id)),
-        )
-        .group_by(college_visit_sources.c.college)
-        .all()
-    )
+    rows = q.group_by(Booking.college).all()
     return {college: count for college, count in rows}
 
 
@@ -712,10 +707,16 @@ _CACHE_TTL_SECONDS = 300
 def _presence_rows(db: Session):
     """
     مدة التواجد لكل (student_id, يوم سوري): من أول لآخر نشاط لذلك اليوم.
-    تُستبعد الأزواج التي فيها مسحة وحيدة (مدتها صفر) قبل حساب أي متوسط.
+
+    تُحسب فقط المسحات اللي وقتها (time-of-day) ضمن نافذة الفعالية
+    [EVENT_WINDOW_START, EVENT_WINDOW_END) — المسحات برا النافذة (مثلاً
+    إدخالات 18:00–23:59 التي تسجّل وقت الإدخال مش وقت الزيارة) متجاهلة
+    كلياً. تُستبعد الأزواج التي فيها مسحة وحيدة (مدتها صفر) قبل أي متوسط.
+    بما أن النافذة طولها 8 ساعات، أي مدة (student, day) مستحيل تتجاوز 8 ساعات.
     """
     event_dates = list(EVENT_DAYS.values())
     day_col = cast(Checkin.checked_in_at, Date)
+    time_col = cast(Checkin.checked_in_at, Time)
     rows = (
         db.query(
             Checkin.student_id,
@@ -724,7 +725,11 @@ def _presence_rows(db: Session):
             func.max(Checkin.checked_in_at).label("last_at"),
             func.count(Checkin.id).label("n_checkins"),
         )
-        .filter(day_col.in_(event_dates))
+        .filter(
+            day_col.in_(event_dates),
+            time_col >= EVENT_WINDOW_START,
+            time_col < EVENT_WINDOW_END,
+        )
         .group_by(Checkin.student_id, day_col)
         .all()
     )
@@ -820,9 +825,10 @@ def get_presence_stats(db: Session) -> dict:
 
 def get_peak_hours(db: Session) -> dict:
     """
-    عدد المسحات (كل الأنواع) لكل ساعة من EVENT_HOURS ولكل يوم فعالية.
-    الساعات خارج النطاق تُثبَّت على أقرب حافة (قبل أول ساعة → أول ساعة،
-    بعد آخر ساعة → آخر ساعة). peak = أعلى خلية (None لو كلها صفر).
+    عدد المسحات (كل الأنواع) لكل ساعة من نافذة الفعالية ولكل يوم فعالية.
+    الساعات المعروضة 8..15 (من EVENT_WINDOW_START حتى قبل EVENT_WINDOW_END)؛
+    أي مسحة وقتها خارج النافذة (مثلاً إدخالات 18:00–23:59) بتتجاهل تماماً بدل
+    ما تثبت على أقرب حافة. peak = أعلى خلية (None لو كلها صفر).
     """
     def _compute() -> dict:
         event_dates = list(EVENT_DAYS.values())
@@ -834,14 +840,17 @@ def get_peak_hours(db: Session) -> dict:
                 hour_col.label("hour"),
                 func.count(Checkin.id).label("count"),
             )
-            .filter(day_col.in_(event_dates))
+            .filter(
+                day_col.in_(event_dates),
+                hour_col >= EVENT_WINDOW_START.hour,
+                hour_col < EVENT_WINDOW_END.hour,
+            )
             .group_by(day_col, hour_col)
             .all()
         )
 
-        hours = list(EVENT_HOURS)
+        hours = list(range(EVENT_WINDOW_START.hour, EVENT_WINDOW_END.hour))
         first = min(hours)
-        last = max(hours)
         counts_by_day: dict[str, list[int]] = {
             key: [0] * len(hours) for key in EVENT_DAYS
         }
@@ -849,9 +858,10 @@ def get_peak_hours(db: Session) -> dict:
             day_key = next((k for k, v in EVENT_DAYS.items() if v == day), None)
             if day_key is None:
                 continue
-            # الساعات خارج النطاق تُثبَّت على أقرب حافة.
-            clamped = min(max(int(hour), first), last)
-            counts_by_day[day_key][clamped - first] += int(count)
+            # الساعات داخل النافذة فقط — خارجها ما بنهتّم فيها هون أصلاً.
+            idx = int(hour) - first
+            if 0 <= idx < len(hours):
+                counts_by_day[day_key][idx] += int(count)
 
         peak_day = None
         peak_hour = None
@@ -900,10 +910,13 @@ def _top_students_rows(db: Session, metric: str) -> list[dict]:
             for sid, count in rows
         ]
     if metric == "tours":
+        # عدد حجوزات الجولة لكل طالب (Booking بكتغوري tour) — المسحات ما
+        # بتدخل هون. حجز الجولة إلزامية مرة وحدة لكل كلية، فالعدد يساوي عدد
+        # الكليات اللي جالها الطالب.
         rows = (
-            db.query(Checkin.student_id, func.count(Checkin.id))
-            .filter(Checkin.activity_type == ActivityType.tour)
-            .group_by(Checkin.student_id)
+            db.query(Booking.student_id, func.count(Booking.id))
+            .filter(Booking.booking_type == BookingType.tour)
+            .group_by(Booking.student_id)
             .all()
         )
         return [
@@ -912,12 +925,15 @@ def _top_students_rows(db: Session, metric: str) -> list[dict]:
         ]
     if metric == "presence":
         # مجموع دقائق التواجد لكل طالب عبر كل الأيام (نفس قاعدة استبعاد اليوم
-        # ذي المسحة الواحدة من _presence_rows).
+        # ذي المسحة الواحدة من _presence_rows) + عدد الأيام المعدودة لكل طالب.
         totals: dict[int, int] = {}
+        day_counts: dict[int, int] = {}
         for pair in _presence_rows(db):
-            totals[pair["student_id"]] = totals.get(pair["student_id"], 0) + pair["minutes"]
+            sid = pair["student_id"]
+            totals[sid] = totals.get(sid, 0) + pair["minutes"]
+            day_counts[sid] = day_counts.get(sid, 0) + 1
         return [
-            {"student_id": sid, "value": value}
+            {"student_id": sid, "value": value, "days": day_counts.get(sid, 0)}
             for sid, value in totals.items()
         ]
     if metric == "union_all":
@@ -974,14 +990,15 @@ def list_top_students(
         items = []
         for i, row in enumerate(ranked, start=1):
             student = students.get(row["student_id"])
-            items.append(
-                {
-                    "rank": i,
-                    "unique_code": student.unique_code if student else "—",
-                    "full_name": student.full_name if student else None,
-                    "value": row["value"],
-                }
-            )
+            item = {
+                "rank": i,
+                "unique_code": student.unique_code if student else "—",
+                "full_name": student.full_name if student else None,
+                "value": row["value"],
+            }
+            if row.get("days") is not None:
+                item["days"] = row["days"]
+            items.append(item)
         return {"items": items, "total": len(items)}
 
     key = f"dashboard:top-students:{metric}"

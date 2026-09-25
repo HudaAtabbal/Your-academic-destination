@@ -236,6 +236,7 @@ class TopStudentItem(BaseModel):
     unique_code: str
     full_name: str | None = None
     value: int
+    days: int | None = None
 
 
 class TopStudentsResponse(BaseModel):
