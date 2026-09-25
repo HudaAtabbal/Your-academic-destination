@@ -9,12 +9,9 @@ Router: students/page-visit — تتبّع فتح الدليل الأكاديم�
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app import cache
 from app.database import get_db
-from app.dependencies import rate_limit_page_visit, require_role
+from app.dependencies import rate_limit_page_visit
 from app.errors import AppError
-from app.models import AccountRole
-from app.models.page_visit import PageVisit
 from app.routers.page_visits import page_visits_service
 from app.routers.page_visits.page_visits_schema import (
     PageVisitEndRequest,
@@ -24,10 +21,6 @@ from app.routers.page_visits.page_visits_schema import (
 )
 
 router = APIRouter(prefix="/students", tags=["students - page visit"])
-
-# TEMPORARY maintenance endpoint (2026-09-26). Wipes page_visits so the guide
-# stats start from real student traffic only. DELETE THIS ROUTE AFTER USE.
-_PURGE_CONFIRM_PHRASE = "reset-guide-stats-2026-09-26"
 
 
 @router.post("/page-visit/start", response_model=PageVisitStartResponse)
@@ -60,26 +53,3 @@ def end_page_visit(
             message="الزيارة غير موجودة",
         )
     return PageVisitEndResponse(visit_id=visit.id, duration_seconds=duration)
-
-
-# ---------------------------------------------------------------------------
-# TEMPORARY — صيانة لمرة واحدة (2026-09-26). احذف هذا المسار بعد الاستخدام.
-# ---------------------------------------------------------------------------
-
-
-@router.delete(
-    "/page-visits",
-    dependencies=[Depends(require_role(AccountRole.super_admin))],
-)
-def purge_page_visits(confirm: str, db: Session = Depends(get_db)) -> dict:
-    """يحذف كل سجلات تتبّع الزيارات ويفرّغ كاش اللوحة — super_admin فقط."""
-    if confirm != _PURGE_CONFIRM_PHRASE:
-        raise AppError(
-            status_code=400,
-            error_code="confirm_mismatch",
-            message="عبارة التأكيد غير مطابقة — ما انعمل شي",
-        )
-    deleted = db.query(PageVisit).delete()
-    db.commit()
-    cache.clear_cache()
-    return {"deleted": int(deleted)}
