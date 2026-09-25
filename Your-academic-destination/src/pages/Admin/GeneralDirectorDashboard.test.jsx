@@ -110,6 +110,8 @@ function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections } = {
       return Promise.resolve({ day: 'all', count: 3 });
     if (path.startsWith('/admin/dashboard/game-scans'))
       return Promise.resolve({ day: 'all', count: 12 });
+    if (path.startsWith('/admin/dashboard/guide-insights'))
+      return Promise.resolve(GUIDE);
     if (path.startsWith('/admin/dashboard/college-visits'))
       return Promise.resolve(college);
     if (path.startsWith('/admin/dashboard/union-sections'))
@@ -138,6 +140,17 @@ function renderDashboard() {
     </MemoryRouter>
   );
 }
+
+const GUIDE = {
+  day: 'all',
+  page: 'academic-guide',
+  visitors_count: 98,
+  visits_count: 400,
+  avg_duration_seconds: 200.4,
+  median_duration_seconds: 180,
+  measured_visits: 380,
+  generated_at: '2026-09-26T10:00:00',
+};
 
 function cardByHeading(text) {
   return screen.getByText(text).closest('.gd-dash-card');
@@ -188,6 +201,24 @@ describe('GeneralDirectorDashboard - live data', () => {
 
     const game = cardByHeading('مسحات ركن الترفيه');
     expect(game).toHaveTextContent('12');
+  });
+
+  it('renders the academic guide card with dwell time, people and visits', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('الدليل الأكاديمي')).toBeInTheDocument());
+
+    const guide = cardByHeading('الدليل الأكاديمي');
+    // متوسط البقاء 200.4 ثانية → 3:20
+    expect(within(guide).getByText('3:20')).toBeInTheDocument();
+    expect(within(guide).getByText('98')).toBeInTheDocument();
+    expect(within(guide).getByText('400')).toBeInTheDocument();
+    expect(within(guide).getByText('شخص')).toBeInTheDocument();
+    expect(within(guide).getByText('مرة')).toBeInTheDocument();
+    // 400 زيارة ÷ 98 شخص ≈ 4 مرات
+    expect(guide).toHaveTextContent('≈ 4 مرات لكل شخص');
+    // نفس فلتر الأيام تبع الكروت التانية
+    expect(within(guide).getByRole('group', { name: 'فلترة حسب اليوم' })).toBeInTheDocument();
   });
 
   it('shows the presence average and per-day durations', async () => {
@@ -333,6 +364,33 @@ describe('GeneralDirectorDashboard - independent day filters', () => {
     expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/students-inside-count?day=thu'))).toBe(
       false
     );
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/college-visits?day=thu'))).toBe(
+      false
+    );
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/union-sections?day=thu'))).toBe(
+      false
+    );
+  });
+
+  it('guide card filter refetches only guide-insights', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
+
+    apiGet.mockClear();
+    const guideCard = cardByHeading('الدليل الأكاديمي');
+    fireEvent.click(within(guideCard).getByRole('button', { name: 'خميس' }));
+
+    await waitFor(() => {
+      expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/guide-insights?day=thu'))).toBe(
+        true
+      );
+    }, { timeout: 2000 });
+
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/students-inside-count?day=thu'))).toBe(
+      false
+    );
+    expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/game-scans?day=thu'))).toBe(false);
     expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/college-visits?day=thu'))).toBe(
       false
     );

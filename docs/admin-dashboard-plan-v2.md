@@ -85,8 +85,43 @@ All new admin endpoints go in the existing `app/routers/dashboard/` feature fold
 | `GET /admin/dashboard/college-visits?day=` | `{ day, total, items: [{college, count}], generated_at }` | Same logic as `college_visits` inside `get_dashboard_analytics`: the union of `Booking(college, student_id)` and `Checkin(college, student_id)`, distinct students per college, the same `_VISITS_EXCLUDED` set, sorted descending. The day filter applies `booked_at` to bookings and `checked_in_at` to checkins. `total` = sum of counts. **Refactor:** extract the existing logic into a helper that takes an optional `(start, end)` range, and have both `/analytics` and this endpoint call it. |
 | `GET /admin/dashboard/union-sections?day=` | `{ day, total, items: [{section, count}], generated_at }` | Same logic as `union_sections` in `/analytics`, plus the optional day filter. All three sections are always present (zero if empty). Extract a shared helper the same way. |
 
-### 3.2 Presence metrics
+### 3.1a Academic guide tracking (added after v2 shipped)
 
+The Academic Guide (`/academic-guide`) is an embedded iframe, so there is no
+checkin to count. A dedicated table measures it instead. This is the only
+page-usage tracking in the product, and it is limited to that one page.
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /students/page-visit/start` | Public. Body: `{ page, visitor_id, student_code? }`. Creates the row with `entered_at = time_utils.now_naive()` and returns `{ visit_id, entered_at }`. Rate-limited per `visitor_id` (30/hour), **never per IP** — all students share one campus network. |
+| `POST /students/page-visit/end` | Public. Body: `{ visit_id }` — no duration field exists anywhere in the schema. The server computes `duration_seconds = now_naive() - entered_at`, capped at 12 hours. |
+| `GET /admin/dashboard/guide-insights?day=` | `super_admin` only (inherited from the router). Returns `{ day, page, visitors_count, visits_count, avg_duration_seconds, median_duration_seconds, measured_visits, generated_at }`. Cached 300s server-side like `/presence`. |
+
+Table `page_visits`: `id` (PK, also the start↔end correlation handle), `page`,
+`visitor_id`, `student_code?`, `entered_at`, `duration_seconds?`, indexed on
+`(page, entered_at)` and `(page, visitor_id)`. Created by `create_all` on
+restart — no migration.
+
+Rules that keep the numbers honest:
+- **Dwell time is server-measured.** No endpoint accepts a client-reported
+  duration, so the average cannot be inflated from the browser.
+- **Averages and medians, not sums.** Every aggregate except the visit count
+  is an average or median, so repeating a visit cannot move the headline much.
+- **3-second minimum.** The client only fires `start` after 3 seconds of
+  *visible* time, and the server excludes `duration < 3` from the averages.
+  Bounces still count as visits, they just don't pollute the dwell figures.
+- **No backfill.** Tracking starts at deploy. On non-event days `all` shows
+  cumulative data while a specific event day may legitimately be `—`.
+
+Frontend: `usePageVisit(active, page)` in `src/hooks/usePageVisit.js`, called
+once from `AcademicGuide.jsx` (`active` arrives from `StudentTabsLayout`).
+It uses a `useRef` guard against StrictMode double-effects, freezes its dwell
+counter while the tab is hidden, and ends the visit on `pagehide`. Rendering:
+a 5th card in the existing `SummaryCards` row, titled **الدليل الأكاديمي**,
+carrying the same `<DayFilter>` as the neighbouring cards plus متوسط البقاء,
+عدد الأشخاص، وعدد الزيارات.
+
+### 3.2 Presence metrics
 `GET /admin/dashboard/presence` returns:
 
 ```json
@@ -421,7 +456,6 @@ Split the dashboard into small presentational components under `src/pages/Admin/
 ## 10. Out of scope — do not do
 
 - Do not change any scanner, gate, registration or student-facing UI.
-- Do not add any page-usage / student tracking (no new tables, no tracking endpoints, no tracking hooks). It is intentionally excluded from this task.
 - Do not change points/scoring logic.
 - Do not add charting libraries. Everything stays pure CSS/SVG as today.
 - Do not add new roles or permissions.

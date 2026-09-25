@@ -45,6 +45,12 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
     gameDayRef.current = gameDay;
   }, [gameDay]);
 
+  const [guideDay, setGuideDay] = useState('all');
+  const guideDayRef = useRef(guideDay);
+  useEffect(() => {
+    guideDayRef.current = guideDay;
+  }, [guideDay]);
+
   const [collegeDay, setCollegeDay] = useState('all');
   const collegeDayRef = useRef(collegeDay);
   useEffect(() => {
@@ -64,6 +70,7 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
   const [analytics, setAnalytics] = useState(null);
   const [studentsInsideCount, setStudentsInsideCount] = useState(null);
   const [gameScans, setGameScans] = useState(null);
+  const [guide, setGuide] = useState(null);
   const [collegeVisits, setCollegeVisits] = useState(null);
   const [unionSections, setUnionSections] = useState(null);
   const [presence, setPresence] = useState(null);
@@ -116,6 +123,21 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
     },
     MEDIUM_MS,
     [gameDay]
+  );
+
+  // الدليل الأكاديمي: إحصاءات مخزّنة مؤقتاً بالسيرفر (300 ثانية) — فبـ SLOW_MS
+  // نفسه، مع نفس حارس guideDayRef عشان ردّ متأخر ما يكسر الفلتر الحالي.
+  usePolling(
+    () => {
+      const requestedDay = guideDay;
+      apiGet(`/admin/dashboard/guide-insights?day=${requestedDay}`)
+        .then((r) => {
+          if (requestedDay === guideDayRef.current) setGuide(r);
+        })
+        .catch(() => {});
+    },
+    SLOW_MS,
+    [guideDay]
   );
 
   usePolling(
@@ -249,7 +271,15 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
           onDayChange={setInsideDay}
         />
 
-        <SummaryCards stats={stats} gameScans={gameScans} day={gameDay} onDayChange={setGameDay} />
+        <SummaryCards
+          stats={stats}
+          gameScans={gameScans}
+          day={gameDay}
+          onDayChange={setGameDay}
+          guide={guide}
+          guideDay={guideDay}
+          onGuideDayChange={setGuideDay}
+        />
 
         <PresenceRow presence={presence} />
 

@@ -144,10 +144,11 @@ a.gd-dash-trio__go {
 }
 
 /* ————————————————— Summary cards ————————————————— */
-
 .gd-dash-groups {
   display: grid;
-  grid-template-columns: 1.25fr 1.25fr 1fr 1.25fr;
+  /* 5 كروت: auto-fit بيخلّي المتصفح يقرّر شو يندفع لصف تاني بدل ما نحسب
+     أعمدة يدوياً، وبيضمن إن كل كرت يضل ≥230px بدون ما يتلخبط النص. */
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
   gap: 20px;
 }
 
@@ -246,6 +247,47 @@ a.gd-dash-trio__go {
 
 .gd-dash-solo .gd-dash-cap {
   margin-top: 12px;
+}
+
+/* كرت الدليل الأكاديمي — كل الأنماط تحت scope .gd-dash-guide حتى ما نلمس
+   أي كرت موجود. الأرقام أصغر من .gd-dash-split__n (2.1rem) لأن بالكرت
+   ثلاث مجموعات أرقام بالمряд الواحد. */
+
+.gd-dash-guide__lbl {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gd-muted);
+  margin-top: 2px;
+}
+
+.gd-dash-guide__rule {
+  height: 1px;
+  background: var(--gd-line);
+  margin: 14px 0 12px;
+}
+
+.gd-dash-guide__split {
+  display: flex;
+  gap: 26px;
+}
+
+.gd-dash-guide__split > div {
+  min-width: 0;
+}
+
+.gd-dash-guide__n {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--gd-teal);
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.gd-dash-guide__l {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gd-muted);
+  margin-top: 2px;
 }
 
 /* ————————————————— Section heading + grid rows ————————————————— */
