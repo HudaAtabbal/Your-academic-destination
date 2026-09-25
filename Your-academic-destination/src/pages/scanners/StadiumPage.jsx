@@ -8,34 +8,28 @@ import { ROLE_LABELS } from '../../api/roles';
 import '../../style/StaffScan.css';
 
 // مطابقة لـ enum Lecture بالباك (id = اسم القيمة بالـ enum، name = النص الفعلي).
-// hall = القاعة و time = ساعة البداية — بيتبعتوا تحت اسم الندوة بالـ dropdown
-// وبالـ header. القيم الفارغة معناها: ما في وقت/قاعة محددة بعد.
+// هون بيعرض الاسم بس — الوقت والقاعة بيعرفوا من برنامج الملتقى (يومي)،
+// ما منвалиب هنالك.
 // ⚠️ ندوات الهندسة الثلاث (ميكانيكي · كهربائي · كيميائي وبترولي) بلّشت بندوة
-// وحدة بالبرنامج "الهمك والبتروكيميا" الساعة 11:00، فمسحها بينكتب على
-// lecture_11 والبـ backend بيجمع أرقام الثلاثة بالإحصائيات.
-const MAIN_HALL = 'المدرج الرئيسي الكبير';
-const ENGINEERING_TIME = '11:00';
-
+// وحدة بالبرنامج "الهمك والبتروكيميا"، فمسحها بينكتب على lecture_11
+// والبـ backend بيجمع أرقام الثلاثة بالإحصائيات.
 const LECTURES = [
-  { id: 'opening', name: 'حفل الافتتاح', hall: '', time: '' },
-  { id: 'lecture_1', name: 'ندوة كليات العلوم الإنسانية', hall: '', time: '' },
-  { id: 'lecture_2', name: 'ندوة مركزية: كيف تختار تخصصك الجامعي', hall: '', time: '' },
-  { id: 'lecture_3', name: 'ندوة الكليات الطبية', hall: '', time: '' },
-  { id: 'lecture_4', name: 'ندوة مركزية: اتجاهات سوق العمل والمهن الصاعدة', hall: '', time: '' },
-  { id: 'lecture_5', name: 'ندوة أولياء الأمور', hall: '', time: '' },
-  { id: 'lecture_6', name: 'ندوة كليات العلوم الأساسية والاقتصادية', hall: '', time: '' },
-  { id: 'lecture_7', name: 'ندوة شريعة', hall: '', time: '' },
-  { id: 'lecture_8', name: 'ندوة كلية الهندسة المعلوماتية مع نبذة عن الكلية التطبيقية', hall: '', time: '' },
-  { id: 'lecture_9', name: 'ندوة الكليات: الهندسية المدنية · الهندسة المدنية · المعمارية · الزراعة', hall: '', time: '' },
-  { id: 'lecture_10', name: 'ندوة مركزية: التخصصات المستجدة', hall: '', time: '' },
-  { id: 'lecture_11', name: 'ندوة الهندسة الكهربائية والميكانيكية والهندسة الكيميائية والبترولية (الهمك والبتروكيميا)', hall: MAIN_HALL, time: ENGINEERING_TIME },
-  { id: 'lecture_14', name: 'ندوة صناعة الحياة الجامعية', hall: '', time: '' },
-  { id: 'lecture_15', name: 'ندوة المعاهد المتوسطة والعليا', hall: '', time: '' },
-  { id: 'lecture_16', name: 'حفل الختام والتكريم وتوزيع جوائز النقاط', hall: '', time: '' },
+  { id: 'opening', name: 'حفل الافتتاح' },
+  { id: 'lecture_1', name: 'ندوة كليات العلوم الإنسانية' },
+  { id: 'lecture_2', name: 'ندوة مركزية: كيف تختار تخصصك الجامعي' },
+  { id: 'lecture_3', name: 'ندوة الكليات الطبية' },
+  { id: 'lecture_4', name: 'ندوة مركزية: اتجاهات سوق العمل والمهن الصاعدة' },
+  { id: 'lecture_5', name: 'ندوة أولياء الأمور' },
+  { id: 'lecture_6', name: 'ندوة كليات العلوم الأساسية والاقتصادية' },
+  { id: 'lecture_7', name: 'ندوة شريعة' },
+  { id: 'lecture_8', name: 'ندوة كلية الهندسة المعلوماتية مع نبذة عن الكلية التطبيقية' },
+  { id: 'lecture_9', name: 'ندوة الكليات: الهندسية المدنية · الهندسة المدنية · المعمارية · الزراعة' },
+  { id: 'lecture_10', name: 'ندوة مركزية: التخصصات المستجدة' },
+  { id: 'lecture_11', name: 'ندوة الهندسة الكهربائية والميكانيكية والهندسة الكيميائية والبترولية (الهمك والبتروكيميا)' },
+  { id: 'lecture_14', name: 'ندوة صناعة الحياة الجامعية' },
+  { id: 'lecture_15', name: 'ندوة المعاهد المتوسطة والعليا' },
+  { id: 'lecture_16', name: 'حفل الختام والتكريم وتوزيع جوائز النقاط' },
 ];
-
-// السطر اللي بينزل تحت اسم الندوة: "الساعة · القاعة" — والأجزاء الفارغة بتتجاهل.
-const lectureSubtitle = (lecture) => [lecture.time, lecture.hall].filter(Boolean).join(' · ');
 
 const StadiumPage = () => {
   const [manualCode, setManualCode] = useState('');
@@ -108,7 +102,7 @@ const StadiumPage = () => {
           title="مسح عند المدرج"
           username={username}
           role={roleLabel}
-          location={lectureSubtitle(selectedLecture)}
+          location=""
         />
 
         <main className="card-body">
@@ -128,7 +122,7 @@ const StadiumPage = () => {
               >
                 {LECTURES.map((lecture) => (
                   <option key={lecture.id} value={lecture.id}>
-                    {lectureSubtitle(lecture) ? `${lecture.name} · ${lectureSubtitle(lecture)}` : lecture.name}
+                    {lecture.name}
                   </option>
                 ))}
               </select>
