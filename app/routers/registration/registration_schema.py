@@ -14,11 +14,7 @@ from app.models.enums import CertificateType, College, VerificationStatus
 class RegisterRequest(BaseModel):
     full_name: str = Field(min_length=1, max_length=255, description="الاسم الثلاثي")
     birth_date: date
-    certificate_year: int = Field(
-        ge=1900,
-        le=2026,
-        description="bacc_year — سنة الشهادة (على الأكثر سنة الفعالية الحالية 2026)",
-    )
+    certificate_year: int = Field(ge=1900, le=2100, description="bacc_year — سنة الشهادة")
     certificate_type: CertificateType
     average_score: float = Field(ge=0, le=100, description="bacc_average — نسبة مئوية 0-100")
     initial_preferred_major:list[College] = Field(min_length=1)

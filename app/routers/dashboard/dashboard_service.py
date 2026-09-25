@@ -584,22 +584,15 @@ def get_dashboard_analytics(db: Session) -> dict:
         for start in sorted(score_counts)
     ]
 
-    # توزيع سنة الشهادة (bacc_year) — مرتبة تصاعدياً. أي سنة بعد 2026 (سنة
-    # الفعالية الحالية) تُحسب ضمن 2026 — التسجيل نفسه يرفض سنوات مستقبلية،
-    # وبيانات قديمة بسنوات أعلى تُدمج تلقائياً بنفس الفئة.
-    _MAX_CERT_YEAR = 2026
-    year_counts: dict[int, int] = {}
-    for year, count in (
+    # توزيع سنة الشهادة (bacc_year) — مرتبة تصاعدياً.
+    year_rows = (
         db.query(Student.bacc_year, func.count(Student.id))
         .filter(Student.bacc_year.isnot(None))
         .group_by(Student.bacc_year)
+        .order_by(Student.bacc_year.asc())
         .all()
-    ):
-        bucket = min(year, _MAX_CERT_YEAR)
-        year_counts[bucket] = year_counts.get(bucket, 0) + count
-    year_distribution = [
-        {"year": year, "count": year_counts[year]} for year in sorted(year_counts)
-    ]
+    )
+    year_distribution = [{"year": year, "count": count} for year, count in year_rows]
 
     # الفرع الثانوي — علمي/أدبي (الفئتان مدرجتان دائماً حتى لو بصفر).
     cert_rows = (

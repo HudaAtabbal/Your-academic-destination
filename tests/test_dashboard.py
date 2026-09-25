@@ -403,18 +403,24 @@ def test_dashboard_analytics_score_buckets(db, client, super_headers):
 
 
 def test_dashboard_analytics_year_distribution(db, client, super_headers):
-    """توزيع سنة الشهادة: متراكبة تصاعدياً، الفارغة متجاهلة، وأي سنة بعد 2026 تُحسب ضمن 2026."""
+    """توزيع سنة الشهادة: مجموعة تصاعدياً، الفارغة متجاهلة، وكل سنة بتفصل لحالها (مافي دمج)."""
     _make_student_with_bacc(db, "R-9001", bacc_year=2023)
     _make_student_with_bacc(db, "R-9002", bacc_year=2024)
     _make_student_with_bacc(db, "R-9003", bacc_year=2024)
     _make_student_with_bacc(db, "R-9004", bacc_year=None)
     _make_student_with_bacc(db, "R-9005", bacc_year=2025)
     _make_student_with_bacc(db, "R-9006", bacc_year=2026)
-    _make_student_with_bacc(db, "R-9007", bacc_year=2030)  # سنة مستقبلية
+    _make_student_with_bacc(db, "R-9007", bacc_year=2030)  # سنة مستقبلية — فئة مستقلة
     resp = client.get("/admin/dashboard/analytics", headers=super_headers)
     assert resp.status_code == 200
     dist = resp.json()["year_distribution"]
-    assert [list(d.values()) for d in dist] == [[2023, 1], [2024, 2], [2025, 1], [2026, 2]]
+    assert [list(d.values()) for d in dist] == [
+        [2023, 1],
+        [2024, 2],
+        [2025, 1],
+        [2026, 1],
+        [2030, 1],
+    ]
 
 
 def test_dashboard_analytics_certificate_distribution(db, client, super_headers):
