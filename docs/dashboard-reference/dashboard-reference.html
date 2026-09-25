@@ -1,0 +1,280 @@
+<!doctype html><html lang="ar" dir="rtl"><head>
+<!-- VISUAL REFERENCE ONLY. All numbers, names and lecture titles are fake. Real data comes from the API as described in admin-dashboard-plan-v2.md. --><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة التحكم — Visual reference (fake data)</title>
+<style>
+@font-face{font-family:Ghroob;src:url(itfGhroobArabic-Regular.otf);font-weight:400}
+@font-face{font-family:Ghroob;src:url(itfGhroobArabic-Medium.otf);font-weight:500}
+@font-face{font-family:Ghroob;src:url(itfGhroobArabic-Bold.otf);font-weight:700}
+@font-face{font-family:Ghroob;src:url(itfGhroobArabic-ExtraBold.otf);font-weight:800}
+:root{--teal:#134f47;--teal-d:#0d3a34;--orange:#E85B0D;--ivory:#FFF4E0;--plum:#3D0F28;--ink:#1d2b28;--muted:#7a6b5a;--line:#efe3cc;--paper:#fffdf8}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ivory);color:var(--ink);font-family:Ghroob,Tahoma,sans-serif}
+.hdr{background:var(--teal);height:72px;padding:0 40px;display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand{display:flex;align-items:center;gap:12px;color:#fff}.brand img{height:38px}
+.brand b{display:block;font-size:1.15rem}.brand small{color:#a9c8c1;font-weight:700}
+nav{display:flex;gap:6px}nav a{color:#a9c8c1;font-weight:700;padding:9px 18px;border-radius:40px;text-decoration:none;font-size:.95rem}
+nav a.on{background:#fff;color:var(--teal)}
+.user{display:flex;gap:10px;align-items:center}
+.sms{display:flex;align-items:center;gap:8px;color:#fff;font-weight:700;font-size:.85rem;background:rgba(255,255,255,.1);padding:7px 14px;border-radius:40px}
+.dot{width:9px;height:9px;border-radius:50%;background:#5fd38a;box-shadow:0 0 0 4px rgba(95,211,138,.2)}
+.sms span{color:#a9c8c1;font-weight:500}
+.pill{background:rgba(255,255,255,.15);color:#fff;padding:7px 16px;border-radius:40px;font-weight:700;font-size:.85rem}
+main{max-width:1240px;margin:0 auto;padding:32px 32px 60px;display:flex;flex-direction:column;gap:28px}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.1fr 2fr;background:var(--teal);border-radius:28px;color:#fff;overflow:hidden}
+.now{padding:30px 34px;background:var(--teal-d);position:relative}
+.now .lbl{font-weight:700;color:#a9c8c1;display:flex;align-items:center;gap:8px}
+.now .big{font-size:6.2rem;font-weight:800;line-height:1;margin:14px 0 8px;color:#fff}
+.now .sub{color:#a9c8c1;font-weight:500}.now .sub b{color:var(--orange)}
+.live{width:8px;height:8px;border-radius:50%;background:var(--orange);box-shadow:0 0 0 5px rgba(232,91,13,.25)}
+.trio{display:grid;grid-template-columns:repeat(3,1fr)}
+.trio a{padding:30px 28px;color:#fff;text-decoration:none;border-inline-start:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;justify-content:space-between}
+.trio a:hover{background:rgba(255,255,255,.05)}
+.trio .l{color:#a9c8c1;font-weight:700;font-size:.95rem}
+.trio .n{font-size:3rem;font-weight:800;margin:10px 0}
+.trio .go{font-size:.85rem;font-weight:700;color:var(--orange)}
+
+/* groups */
+.groups{display:grid;grid-template-columns:1.3fr 1.3fr 1fr;gap:20px}
+.card{background:var(--paper);border-radius:22px;padding:24px 26px;border:1px solid var(--line)}
+.card h3{margin:0 0 16px;font-size:1.05rem;color:var(--plum);display:flex;justify-content:space-between;align-items:center}
+.card h3 a{font-size:.82rem;color:var(--orange);text-decoration:none}
+.split{display:flex;gap:28px;margin-bottom:16px}
+.split div{display:flex;flex-direction:column}
+.split .n{font-size:2.1rem;font-weight:800;color:var(--teal);line-height:1.1}
+.split .n.warn{color:var(--orange)}
+.split .l{color:var(--muted);font-weight:700;font-size:.88rem}
+.bar{height:10px;border-radius:10px;background:#f3e6cf;overflow:hidden;display:flex}
+.bar i{display:block;height:100%;background:var(--teal)}.bar i.o{background:var(--orange)}
+.cap{margin-top:8px;font-size:.82rem;color:var(--muted);font-weight:500}
+.solo .n{font-size:3.2rem;font-weight:800;color:var(--teal);line-height:1}
+.solo .cap{margin-top:12px}
+
+/* analytics */
+.sechd{display:flex;align-items:baseline;gap:12px;margin:6px 0 -8px}
+.sechd h2{margin:0;font-size:1.35rem;color:var(--plum)}.sechd span{color:var(--muted);font-weight:500;font-size:.9rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.hb{display:flex;flex-direction:column;gap:9px}
+.hb .r{display:grid;grid-template-columns:190px 1fr 44px;align-items:center;gap:12px;font-size:.9rem;font-weight:700}
+.hb .r .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb .track{height:14px;background:#f6ecda;border-radius:8px;overflow:hidden}
+.hb .track i{display:block;height:100%;background:var(--teal);border-radius:8px}
+.hb.or .track i{background:var(--orange)}
+.hb .v{text-align:left;color:var(--plum);font-weight:800}
+.more{margin-top:12px;font-size:.85rem;color:var(--orange);font-weight:700}
+.tot{font-size:.9rem;color:var(--orange)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.donut{display:flex;align-items:center;gap:22px}
+.donut svg{width:120px;height:120px;transform:rotate(-90deg);flex-shrink:0}
+.donut .c{position:relative;width:120px;height:120px}
+.donut .c b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:800;color:var(--teal)}
+.lg{display:flex;flex-direction:column;gap:8px;font-size:.88rem;font-weight:700}
+.lg span{display:flex;align-items:center;gap:8px}.lg i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.lg em{font-style:normal;color:var(--muted);font-weight:500}
+.cols{display:flex;align-items:flex-end;gap:10px;height:170px;padding-top:10px}
+.cols div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%}
+.cols i{display:block;width:100%;max-width:38px;background:var(--teal);border-radius:8px 8px 3px 3px}
+.cols .hi i{background:var(--orange)}
+.cols b{font-size:.8rem}.cols small{font-size:.75rem;color:var(--muted);font-weight:700}
+.team{display:flex;align-items:center;justify-content:space-between}
+.team p{margin:4px 0 0;color:var(--muted);font-weight:500}
+.btn{background:var(--teal);color:#fff;border-radius:40px;padding:11px 24px;font-weight:800;text-decoration:none;font-size:.92rem}
+.btn.ghost{background:transparent;color:var(--teal);border:1.5px solid var(--teal)}
+.note{background:var(--plum);color:#fff;text-align:center;font-size:.8rem;padding:6px;font-weight:700}
+
+.chips{display:inline-flex;background:#f3e6cf;border-radius:40px;padding:3px;gap:2px;font-size:.78rem;font-weight:700}
+.chips b{padding:4px 11px;border-radius:40px;color:var(--muted);font-weight:700;cursor:pointer;white-space:nowrap}
+.chips b.on{background:var(--teal);color:#fff}
+.hero .chips{background:rgba(255,255,255,.1);margin-top:2px}.hero .chips b{color:#a9c8c1}.hero .chips b.on{background:#fff;color:var(--teal)}
+.card h3 .rt{display:flex;align-items:center;gap:10px}
+.groups{grid-template-columns:1.25fr 1.25fr 1fr 1.25fr !important}
+.new{position:relative}
+
+.dur{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center}
+.dur .big{font-size:3rem;font-weight:800;color:var(--teal);line-height:1}.dur .big small{font-size:1.1rem;color:var(--muted)}
+.dur .days{display:flex;flex-direction:column;gap:10px}
+.dur .d{display:grid;grid-template-columns:60px 1fr 70px;gap:10px;align-items:center;font-weight:700;font-size:.88rem}
+.dur .d .track{height:10px;background:#f6ecda;border-radius:8px;overflow:hidden}.dur .d .track i{display:block;height:100%;background:var(--teal);border-radius:8px}
+.dur .d em{font-style:normal;color:var(--plum);font-weight:800;text-align:left}
+.freq{display:flex;gap:14px}
+.freq div{flex:1;border-radius:16px;padding:16px;background:#f8efdd;display:flex;flex-direction:column;gap:4px}
+.freq div.top{background:var(--teal);color:#fff}.freq div.top .l{color:#a9c8c1}
+.freq .n{font-size:2rem;font-weight:800}.freq .l{font-weight:700;font-size:.85rem;color:var(--muted)}
+.freq .p{font-size:.8rem;font-weight:700;color:var(--orange)}
+.heat{display:grid;grid-template-columns:70px repeat(8,1fr);gap:6px;font-size:.8rem;font-weight:700}
+.heat .h{text-align:center;color:var(--muted)}.heat .dl{display:flex;align-items:center;color:var(--ink)}
+.heat .c{height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800}
+.peak{outline:3px solid var(--orange);outline-offset:1px}
+.heatlg{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:.8rem;color:var(--muted);font-weight:700}
+.heatlg i{width:26px;height:10px;border-radius:4px;display:inline-block}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tabs b{padding:8px 16px;border-radius:40px;background:#f3e6cf;color:var(--muted);font-size:.85rem;font-weight:700}
+.tabs b.on{background:var(--plum);color:#fff}
+.lead{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.lead div{border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:4px;background:#fff}
+.lead div:first-child{background:var(--plum);color:#fff;border-color:var(--plum)}
+.lead div:first-child .cd{color:#d9b9c8}
+.lead .rk{font-size:.8rem;font-weight:800;color:var(--orange)}
+.lead .nm{font-weight:800;font-size:1rem}.lead .cd{font-size:.78rem;color:var(--muted);font-weight:500}
+.lead .val{font-size:1.6rem;font-weight:800;margin-top:6px}.lead .val small{font-size:.8rem;font-weight:700}
+.solo .n.sm{font-size:2.6rem}
+
+.usage{display:flex;flex-direction:column}
+.uh,.ur{display:grid;grid-template-columns:150px 110px 110px 120px 1fr 110px;gap:16px;align-items:center}
+.uh{font-size:.8rem;color:var(--muted);font-weight:700;padding:0 4px 10px;border-bottom:1px solid var(--line)}
+.ur{padding:14px 4px;border-bottom:1px solid var(--line)}.ur:last-child{border-bottom:none}
+.ur .pg{font-weight:800;font-size:1rem;color:var(--plum)}
+.ur .pg small{display:block;font-size:.75rem;color:var(--muted);font-weight:500}
+.ur .num{font-weight:800;font-size:1.25rem;color:var(--teal)}
+.ur .num small{font-size:.75rem;color:var(--muted);font-weight:700}
+.spark{display:flex;align-items:flex-end;gap:3px;height:38px}
+.spark i{flex:1;background:#cfe0da;border-radius:3px 3px 1px 1px}
+.spark i.pk{background:var(--orange)}
+.pkt{font-weight:800;color:var(--orange);font-size:.95rem}
+.upd{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:var(--muted);background:#f3e6cf;border-radius:30px;padding:4px 12px}
+.upd i{width:7px;height:7px;border-radius:50%;background:#5fb07f}
+.sparkax{display:flex;justify-content:space-between;font-size:.7rem;color:var(--muted);font-weight:700;margin-top:3px}
+</style></head><body>
+<header class="hdr">
+  <div class="brand"><img src="logo.png" alt=""><div><b>وجهتك الأكاديمية 2</b><small>لوحة التحكم</small></div></div>
+  <nav><a class="on">الرئيسية</a><a>حسابات الفريق</a><a>رموز Walk-in</a></nav>
+  <div class="user"><div class="sms"><i class="dot"></i>المُرسِل متصل <span>· 3 بالانتظار · 12 فاشلة</span></div><span class="pill">المدير العام</span><span class="pill">تسجيل خروج</span></div>
+</header>
+<main>
+  <section class="hero">
+    <div class="now">
+      <div class="lbl"><i class="live"></i>داخل الحرم اليوم</div>
+      <div class="big">387</div>
+      <div class="sub">عدد الطلاب اللي دخلوا من البوابة <b>اليوم</b> فقط</div>
+    </div>
+    <div class="trio">
+      <a><span class="l">مسجّلون إلكترونياً</span><span class="n">1243</span><span class="go">عرض القائمة</span></a>
+      <a class="new"><span class="l">إجمالي الطلاب داخل الجامعة</span><span class="chips"><b class="on">الكل</b><b>أربعاء</b><b>خميس</b><b>سبت</b></span><span class="n">1904</span><span class="go">عرض القائمة</span></a>
+      <a><span class="l">أكملوا الاستبيان</span><span class="n">512</span><span class="go">عرض القائمة</span></a>
+    </div>
+  </section>
+
+  <section class="groups">
+    <div class="card">
+      <h3>التسجيل الإلكتروني <a>مسجّلون بلا حضور</a></h3>
+      <div class="split"><div><span class="n">1042</span><span class="l">حضروا</span></div><div><span class="n warn">201</span><span class="l">بلا حضور</span></div></div>
+      <div class="bar"><i style="width:84%"></i><i class="o" style="width:16%"></i></div>
+      <div class="cap">84٪ من المسجّلين حضروا فعلاً</div>
+    </div>
+    <div class="card">
+      <h3>سجلات Walk-in <a>تنتظر الإكمال</a></h3>
+      <div class="split"><div><span class="n">456</span><span class="l">تم إكمالها</span></div><div><span class="n warn">34</span><span class="l">تنتظر الإكمال</span></div></div>
+      <div class="bar"><i style="width:93%"></i><i class="o" style="width:7%"></i></div>
+      <div class="cap">93٪ من السجلات مكتملة</div>
+    </div>
+    <div class="card solo">
+      <h3>إجمالي الاستشارات</h3>
+      <div class="n">218</div>
+      <div class="cap">استشارة وحدة لكل طالب</div>
+    </div>
+    <div class="card solo new">
+      <h3>مسحات ركن الترفيه</h3>
+      <div style="margin:-6px 0 12px"><span class="chips"><b class="on">الكل</b><b>أربعاء</b><b>خميس</b><b>سبت</b></span></div>
+      <div class="n sm">640</div>
+      <div class="cap">مسح واحد لكل طالب طوال الفعالية</div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="card new">
+      <h3>متوسط مدة التواجد <span class="tot" style="color:var(--muted);font-weight:500;font-size:.8rem">تقدير: من أول لآخر نشاط للطالب باليوم</span></h3>
+      <div class="dur">
+        <div><div class="big">2:42 <small>ساعة</small></div><div class="cap">متوسط كل الأيام</div></div>
+        <div class="days">
+          <div class="d"><span>أربعاء</span><span class="track"><i style="width:82%"></i></span><em>2س 40د</em></div>
+          <div class="d"><span>خميس</span><span class="track"><i style="width:100%"></i></span><em>3س 05د</em></div>
+          <div class="d"><span>سبت</span><span class="track"><i style="width:73%"></i></span><em>2س 15د</em></div>
+        </div>
+      </div>
+    </div>
+    <div class="card new">
+      <h3>تكرار الحضور <span class="tot">1904 طالب</span></h3>
+      <div class="freq">
+        <div><span class="l">يوم واحد</span><span class="n">1320</span><span class="p">69٪</span></div>
+        <div><span class="l">يومين</span><span class="n">430</span><span class="p">23٪</span></div>
+        <div class="top"><span class="l">كل الأيام الثلاثة</span><span class="n">154</span><span class="p">8٪</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="sechd"><h2>التحليلات</h2><span>بتتحدث كل 15 ثانية</span></div>
+
+  <section class="card new">
+    <h3>ساعات الذروة <span class="tot">الذروة: الخميس 11:00 – 12:00</span></h3>
+    <div class="heat"><span></span><span class="h">9:00</span><span class="h">10:00</span><span class="h">11:00</span><span class="h">12:00</span><span class="h">1:00</span><span class="h">2:00</span><span class="h">3:00</span><span class="h">4:00</span><span class="dl">أربعاء</span><span class="c" style="background:#cfe0da;color:#0d3a34">40</span><span class="c" style="background:#8fb5ad;color:#0d3a34">120</span><span class="c" style="background:#3d7a70;color:#fff">210</span><span class="c" style="background:#3d7a70;color:#fff">190</span><span class="c" style="background:#8fb5ad;color:#0d3a34">150</span><span class="c" style="background:#cfe0da;color:#0d3a34">90</span><span class="c" style="background:#cfe0da;color:#0d3a34">40</span><span class="c" style="background:#f3ece0;color:#7a6b5a">10</span><span class="dl">خميس</span><span class="c" style="background:#cfe0da;color:#0d3a34">60</span><span class="c" style="background:#3d7a70;color:#fff">180</span><span class="c peak" style="background:#134f47;color:#fff">320</span><span class="c" style="background:#134f47;color:#fff">280</span><span class="c" style="background:#3d7a70;color:#fff">200</span><span class="c" style="background:#8fb5ad;color:#0d3a34">120</span><span class="c" style="background:#cfe0da;color:#0d3a34">60</span><span class="c" style="background:#f3ece0;color:#7a6b5a">20</span><span class="dl">سبت</span><span class="c" style="background:#f3ece0;color:#7a6b5a">30</span><span class="c" style="background:#8fb5ad;color:#0d3a34">100</span><span class="c" style="background:#8fb5ad;color:#0d3a34">170</span><span class="c" style="background:#8fb5ad;color:#0d3a34">160</span><span class="c" style="background:#8fb5ad;color:#0d3a34">110</span><span class="c" style="background:#cfe0da;color:#0d3a34">70</span><span class="c" style="background:#f3ece0;color:#7a6b5a">30</span><span class="c" style="background:#f3ece0;color:#7a6b5a">5</span></div>
+    <div class="heatlg">أقل <i style="background:#f3ece0"></i><i style="background:#cfe0da"></i><i style="background:#8fb5ad"></i><i style="background:#3d7a70"></i><i style="background:#134f47"></i> أكثر · عدد المسحات بكل ساعة</div>
+  </section>
+
+
+  <section class="grid2">
+    <div class="card new">
+      <h3>زيارة الكلية (ركن التوجيه) <span class="rt"><span class="tot">1793</span><span class="chips"><b class="on">الكل</b><b>أربعاء</b><b>خميس</b><b>سبت</b></span></span></h3>
+      <div class="hb">
+        <div class="r"><span class="t">كلية الهندسة المعلوماتية</span><span class="track"><i style="width:100%"></i></span><span class="v">320</span></div>
+        <div class="r"><span class="t">المجمع الطبي</span><span class="track"><i style="width:91%"></i></span><span class="v">290</span></div>
+        <div class="r"><span class="t">كلية الهندسة المعمارية</span><span class="track"><i style="width:66%"></i></span><span class="v">210</span></div>
+        <div class="r"><span class="t">كلية الحقوق</span><span class="track"><i style="width:56%"></i></span><span class="v">180</span></div>
+        <div class="r"><span class="t">كلية الهندسة المدنية</span><span class="track"><i style="width:47%"></i></span><span class="v">150</span></div>
+        <div class="r"><span class="t">كلية الهندسة الزراعية</span><span class="track"><i style="width:38%"></i></span><span class="v">120</span></div>
+        <div class="r"><span class="t">كلية الاقتصاد</span><span class="track"><i style="width:34%"></i></span><span class="v">110</span></div>
+        <div class="r"><span class="t">كلية الهندسة الكهربائية والميكانيكية</span><span class="track"><i style="width:30%"></i></span><span class="v">95</span></div>
+      </div>
+      <div class="more">عرض كل الكليات (25)</div>
+    </div>
+    <div class="card">
+      <h3>حضور كل محاضرة <span class="tot">الإجمالي: 720</span></h3>
+      <div class="hb or">
+        <div class="r"><span class="t">كيف تختار تخصصك الجامعي</span><span class="track"><i style="width:100%"></i></span><span class="v">140</span></div>
+        <div class="r"><span class="t">الهندسة المعلوماتية وسوق العمل</span><span class="track"><i style="width:86%"></i></span><span class="v">120</span></div>
+        <div class="r"><span class="t">الحياة الجامعية بالسنة الأولى</span><span class="track"><i style="width:79%"></i></span><span class="v">110</span></div>
+        <div class="r"><span class="t">الدراسة الطبية: الواقع والتوقعات</span><span class="track"><i style="width:68%"></i></span><span class="v">95</span></div>
+        <div class="r"><span class="t">المفاضلة وآلية القبول</span><span class="track"><i style="width:57%"></i></span><span class="v">80</span></div>
+        <div class="r"><span class="t">العمارة بين الفن والهندسة</span><span class="track"><i style="width:50%"></i></span><span class="v">70</span></div>
+        <div class="r"><span class="t">الحقوق ومساراتها المهنية</span><span class="track"><i style="width:43%"></i></span><span class="v">60</span></div>
+        <div class="r"><span class="t">المعاهد التقانية كخيار</span><span class="track"><i style="width:32%"></i></span><span class="v">45</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="card new"><h3>مسحات ركن الاتحاد <span class="rt"><span class="tot">900</span><span class="chips"><b class="on">الكل</b><b>أربعاء</b><b>خميس</b><b>سبت</b></span></span></h3>
+      <div class="donut"><div class="c"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="#f3e6cf" stroke-width="6"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="#134f47" stroke-width="6" stroke-dasharray="50 50"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="#E85B0D" stroke-width="6" stroke-dasharray="33 67" stroke-dashoffset="-50"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="#3D0F28" stroke-width="6" stroke-dasharray="17 83" stroke-dashoffset="-83"/></svg></div>
+      <div class="lg"><span><i style="background:#134f47"></i>الركن المركزي <em>50٪ (450)</em></span><span><i style="background:#E85B0D"></i>دليل التخصص <em>33٪ (300)</em></span><span><i style="background:#3D0F28"></i>نادي التركي <em>17٪ (150)</em></span></div></div>
+    </div>
+    <div class="card"><h3>علمي / أدبي <span class="tot">1130</span></h3>
+      <div class="donut"><div class="c"><svg viewBox="0 0 42 42"><circle cx="21" cy="21" r="15.9" fill="none" stroke="#f3e6cf" stroke-width="6"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="#134f47" stroke-width="6" stroke-dasharray="73 27"/><circle cx="21" cy="21" r="15.9" fill="none" stroke="#E85B0D" stroke-width="6" stroke-dasharray="27 73" stroke-dashoffset="-73"/></svg></div>
+      <div class="lg"><span><i style="background:#134f47"></i>علمي <em>73٪ (820)</em></span><span><i style="background:#E85B0D"></i>أدبي <em>27٪ (310)</em></span></div></div>
+    </div>
+  </section>
+
+  <section class="grid2">
+    <div class="card"><h3>توزيع المعدل</h3>
+      <div class="cols">
+        <div><b>0</b><i style="height:0"></i><small>0-10</small></div><div><b>1</b><i style="height:1%"></i><small>10-20</small></div><div><b>3</b><i style="height:2%"></i><small>20-30</small></div><div><b>8</b><i style="height:4%"></i><small>30-40</small></div><div><b>20</b><i style="height:9%"></i><small>40-50</small></div><div><b>60</b><i style="height:24%"></i><small>50-60</small></div><div><b>140</b><i style="height:52%"></i><small>60-70</small></div><div><b>260</b><i style="height:78%"></i><small>70-80</small></div><div class="hi"><b>300</b><i style="height:88%"></i><small>80-90</small></div><div><b>180</b><i style="height:58%"></i><small>90-100</small></div>
+      </div>
+    </div>
+    <div class="card"><h3>توزيع سنة الشهادة</h3>
+      <div class="cols">
+        <div><b>40</b><i style="height:6%"></i><small>2022</small></div><div><b>90</b><i style="height:12%"></i><small>2023</small></div><div><b>210</b><i style="height:28%"></i><small>2024</small></div><div><b>480</b><i style="height:60%"></i><small>2025</small></div><div class="hi"><b>700</b><i style="height:88%"></i><small>2026</small></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card new">
+    <h3>الطلاب المتميزون <a>عرض القائمة الكاملة</a></h3>
+    <div class="tabs"><b class="on">أكثر حضور محاضرات</b><b>أكثر جولات كليات</b><b>أطول تواجد بالجامعة</b><b>زاروا كل أركان الاتحاد (86)</b></div>
+    <div class="lead"><div><span class="rk">#1</span><span class="nm">سارة الأحمد</span><span class="cd">#4821</span><span class="val">14 <small>محاضرة</small></span></div><div><span class="rk">#2</span><span class="nm">محمد الخطيب</span><span class="cd">#1093</span><span class="val">12 <small>محاضرة</small></span></div><div><span class="rk">#3</span><span class="nm">لين العلي</span><span class="cd">#7310</span><span class="val">11 <small>محاضرة</small></span></div><div><span class="rk">#4</span><span class="nm">عمر الحسن</span><span class="cd">#2256</span><span class="val">10 <small>محاضرة</small></span></div><div><span class="rk">#5</span><span class="nm">رهف الشامي</span><span class="cd">#9034</span><span class="val">9 <small>محاضرة</small></span></div></div>
+  </section>
+
+  <section class="card team">
+    <div><h3 style="margin:0">حسابات فريق العمل</h3><p>37 حساب — الجدول الكامل مع البحث والتعديل صار بصفحة "حسابات الفريق"</p></div>
+    <div style="display:flex;gap:10px"><a class="btn ghost">إدارة الحسابات</a><a class="btn">+ إنشاء حساب جديد</a></div>
+  </section>
+</main></body></html>
