@@ -3,6 +3,7 @@ Pydantic schemas لروتر admin/dashboard — مطابقة لقسم 9 بملف
 """
 
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -15,6 +16,8 @@ from app.models.enums import (
     RegistrationType,
     UnionSection,
 )
+
+EventDay = Literal["all", "wed", "thu", "sat"]
 
 
 class DashboardStatsResponse(BaseModel):
@@ -168,3 +171,78 @@ class AnalyticsResponse(BaseModel):
     year_distribution: list[YearCountItem]
     certificate_distribution: list[CertificateCountItem]
     union_sections: list[UnionSectionCountItem]
+
+
+class DayCountResponse(BaseModel):
+    day: EventDay
+    count: int
+    generated_at: datetime
+
+
+class DayCollegeVisitsResponse(BaseModel):
+    day: EventDay
+    total: int
+    items: list[CollegeVisitItem]
+    generated_at: datetime
+
+
+class DayUnionSectionsResponse(BaseModel):
+    day: EventDay
+    total: int
+    items: list[UnionSectionCountItem]
+    generated_at: datetime
+
+
+class PresenceDayItem(BaseModel):
+    day: EventDay
+    avg_minutes: int
+    students_counted: int
+
+
+class PresenceFrequency(BaseModel):
+    one_day: int
+    two_days: int
+    all_days: int
+    total: int
+
+
+class PresenceResponse(BaseModel):
+    avg_minutes_all: int
+    per_day: list[PresenceDayItem]
+    frequency: PresenceFrequency
+    generated_at: datetime
+
+
+class PeakHourDayItem(BaseModel):
+    day: EventDay
+    counts: list[int]
+
+
+class PeakItem(BaseModel):
+    day: EventDay
+    hour: int
+    count: int
+
+
+class PeakHoursResponse(BaseModel):
+    hours: list[int]
+    days: list[PeakHourDayItem]
+    peak: PeakItem | None
+    generated_at: datetime
+
+
+class TopStudentItem(BaseModel):
+    rank: int
+    unique_code: str
+    full_name: str | None = None
+    value: int
+
+
+class TopStudentsResponse(BaseModel):
+    metric: str
+    items: list[TopStudentItem]
+    page: int
+    limit: int
+    total: int
+    total_pages: int
+    generated_at: datetime

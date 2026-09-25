@@ -8,6 +8,7 @@ import math
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app import time_utils
 from app.database import get_db
 from app.dependencies import require_role
 from app.models import AccountRole
@@ -18,10 +19,20 @@ from app.routers.dashboard.dashboard_schema import (
     CheckinDeleteResponse,
     CollegeVisitItem,
     DashboardStatsResponse,
+    DayCollegeVisitsResponse,
+    DayCountResponse,
+    DayUnionSectionsResponse,
+    EventDay,
     HallClearResponse,
     HallStudentItem,
     HallStudentsResponse,
     LectureAttendanceItem,
+    PeakHoursResponse,
+    PeakItem,
+    PeakHourDayItem,
+    PresenceDayItem,
+    PresenceFrequency,
+    PresenceResponse,
     RegisteredNoShowItem,
     RegisteredNoShowListResponse,
     RoomOccupancyItem,
@@ -33,6 +44,8 @@ from app.routers.dashboard.dashboard_schema import (
     StudentsInsideListResponse,
     SurveyCompletionItem,
     SurveyCompletionsResponse,
+    TopStudentItem,
+    TopStudentsResponse,
     UnionSectionCountItem,
     YearCountItem,
 )
@@ -173,4 +186,93 @@ def dashboard_analytics(db: Session = Depends(get_db)) -> AnalyticsResponse:
         union_sections=[
             UnionSectionCountItem(**i) for i in analytics["union_sections"]
         ],
+    )
+
+
+# ---------------------------------------------------------------------------
+# نقاط نهاية v2 — إحصائيات إضافية للوحة المدير (قسم 3 بالعقد v2)
+# ---------------------------------------------------------------------------
+
+
+@router.get("/students-inside-count", response_model=DayCountResponse)
+def students_inside_count(
+    day: EventDay = "all", db: Session = Depends(get_db)
+) -> DayCountResponse:
+    count = dashboard_service.count_students_inside_for_day(db, day)
+    return DayCountResponse(day=day, count=count, generated_at=time_utils.now_naive())
+
+
+@router.get("/game-scans", response_model=DayCountResponse)
+def game_scans(
+    day: EventDay = "all", db: Session = Depends(get_db)
+) -> DayCountResponse:
+    count = dashboard_service.count_game_scans_for_day(db, day)
+    return DayCountResponse(day=day, count=count, generated_at=time_utils.now_naive())
+
+
+@router.get("/college-visits", response_model=DayCollegeVisitsResponse)
+def college_visits(
+    day: EventDay = "all", db: Session = Depends(get_db)
+) -> DayCollegeVisitsResponse:
+    data = dashboard_service.college_visits_for_day(db, day)
+    return DayCollegeVisitsResponse(
+        day=day,
+        total=data["total"],
+        items=[CollegeVisitItem(**i) for i in data["items"]],
+        generated_at=time_utils.now_naive(),
+    )
+
+
+@router.get("/union-sections", response_model=DayUnionSectionsResponse)
+def union_sections(
+    day: EventDay = "all", db: Session = Depends(get_db)
+) -> DayUnionSectionsResponse:
+    data = dashboard_service.union_sections_for_day(db, day)
+    return DayUnionSectionsResponse(
+        day=day,
+        total=data["total"],
+        items=[UnionSectionCountItem(**i) for i in data["items"]],
+        generated_at=time_utils.now_naive(),
+    )
+
+
+@router.get("/presence", response_model=PresenceResponse)
+def presence(db: Session = Depends(get_db)) -> PresenceResponse:
+    data = dashboard_service.get_presence_stats(db)
+    return PresenceResponse(
+        avg_minutes_all=data["avg_minutes_all"],
+        per_day=[PresenceDayItem(**d) for d in data["per_day"]],
+        frequency=PresenceFrequency(**data["frequency"]),
+        generated_at=time_utils.now_naive(),
+    )
+
+
+@router.get("/peak-hours", response_model=PeakHoursResponse)
+def peak_hours(db: Session = Depends(get_db)) -> PeakHoursResponse:
+    data = dashboard_service.get_peak_hours(db)
+    peak = data["peak"]
+    return PeakHoursResponse(
+        hours=data["hours"],
+        days=[PeakHourDayItem(**d) for d in data["days"]],
+        peak=PeakItem(**peak) if peak else None,
+        generated_at=time_utils.now_naive(),
+    )
+
+
+@router.get("/top-students", response_model=TopStudentsResponse)
+def top_students(
+    metric: str = Query(..., pattern="^(lectures|tours|presence|union_all)$"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(5, ge=1, le=100),
+    db: Session = Depends(get_db),
+) -> TopStudentsResponse:
+    data = dashboard_service.list_top_students(db, metric, page, limit)
+    return TopStudentsResponse(
+        metric=data["metric"],
+        items=[TopStudentItem(**i) for i in data["items"]],
+        page=page,
+        limit=limit,
+        total=data["total"],
+        total_pages=math.ceil(data["total"] / limit),
+        generated_at=time_utils.now_naive(),
     )

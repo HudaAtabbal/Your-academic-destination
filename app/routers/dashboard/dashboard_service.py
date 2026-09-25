@@ -17,11 +17,12 @@
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import func, or_
+from sqlalchemy import Date, cast, func, or_
 from sqlalchemy.orm import Session
 
-from app import time_utils
-from app.errors import checkin_not_found
+from app import cache, time_utils
+from app.errors import checkin_not_found, validation_error
+from app.event_days import EVENT_DAYS, EVENT_HOURS, day_range
 from app.models import (
     ActivityType,
     Booking,
@@ -445,6 +446,77 @@ def list_survey_completions(
     return items, total
 
 
+# الكليات المدمجة/المستثناة من قائمة زيارات الكلية — تُحسب ولا تُعرض كصفوف
+# مستقلة: الموسيقا دُمجت ضمن الركن المركزي بالاتحاد، والطب البشري والصيدلة
+# دُمجتا بالمجمع الطبي (طب الأسنان).
+_VISITS_EXCLUDED = {Faculty.music, Faculty.medicine, Faculty.pharmacy}
+
+
+def _college_visit_counts(
+    db: Session, start: datetime | None = None, end: datetime | None = None
+) -> dict[Faculty, int]:
+    """
+    عدد الطلاب المميزين (distinct) اللي زاروا كل كلية — عبر أي مسح سجّل كلية
+    (حجز/شيك جولة أو استشارة عند باب الكلية). كل طالب يُحسب مرة وحدة لكل كلية
+    حتى لو عمل الحجز والشيك معاً (union + distinct).
+
+    start/end اختياريان — لو انبعتا، الفلترة الزمنية تنسحب على booked_at
+    للحجوزات و checked_in_at للمسحات. يارجع خريطة كاملة (بما فيها الكليات
+    المستثناة من العرض) لأنها تستخدم بموضعين: قائمة زيارات الكلية ودمج الموسيقا
+    ضمن دليل الاتحاد.
+    """
+    booking_q = (
+        db.query(Booking.college.label("college"), Booking.student_id.label("student_id"))
+        .filter(Booking.college.is_not(None))
+    )
+    checkin_q = (
+        db.query(Checkin.college.label("college"), Checkin.student_id.label("student_id"))
+        .filter(Checkin.college.is_not(None))
+    )
+    if start is not None:
+        booking_q = booking_q.filter(Booking.booked_at >= start, Booking.booked_at < end)
+        checkin_q = checkin_q.filter(Checkin.checked_in_at >= start, Checkin.checked_in_at < end)
+
+    college_visit_sources = booking_q.union(checkin_q).subquery()
+    rows = (
+        db.query(
+            college_visit_sources.c.college,
+            func.count(func.distinct(college_visit_sources.c.student_id)),
+        )
+        .group_by(college_visit_sources.c.college)
+        .all()
+    )
+    return {college: count for college, count in rows}
+
+
+def _union_section_counts(
+    db: Session,
+    college_counts: dict[Faculty, int],
+    start: datetime | None = None,
+    end: datetime | None = None,
+) -> dict[UnionSection, int]:
+    """
+    مسحات ركن الاتحاد لكل قسم (الركن المركزي / دليل التخصص / نادي التركي).
+
+    "كلية الموسيقا" ما عادت ركن مستقل بالفعالية، فأي زيارة/إضافة مسجّلة عليها
+    تُحسب على «الركن المركزي» وتختفي الموسيقا من قائمة زيارات الكليات — نفس
+    قرار dimfes في /analytics.
+    """
+    union_q = (
+        db.query(Checkin.union_section, func.count(Checkin.id))
+        .filter(Checkin.activity_type == ActivityType.union)
+    )
+    if start is not None:
+        union_q = union_q.filter(Checkin.checked_in_at >= start, Checkin.checked_in_at < end)
+    rows = union_q.group_by(Checkin.union_section).all()
+    union_count_map = {section: count for section, count in rows}
+    union_count_map[UnionSection.central] = (
+        union_count_map.get(UnionSection.central, 0)
+        + college_counts.get(Faculty.music, 0)
+    )
+    return union_count_map
+
+
 def get_dashboard_analytics(db: Session) -> dict:
     """
     إحصائيات تفصيلية للوحة المدير العام — كلها إجمالية لكل الأيام (تراكمية).
@@ -470,33 +542,7 @@ def get_dashboard_analytics(db: Session) -> dict:
     # الكلية، عبر أي مسح سجّل كلية: حجز/شيك جولة، أو حجز/شيك استشارة عند باب
     # الكلية. كل طالب يُحسب مرة واحدة لكل كلية حتى لو عمل الحجز والشيك معاً
     # (union + distinct) — فارح لأي مصدر تاني بس يثبت مرور الطالب.
-    college_visit_sources = (
-        db.query(
-            Booking.college.label("college"),
-            Booking.student_id.label("student_id"),
-        )
-        .filter(Booking.college.is_not(None))
-        .union(
-            db.query(
-                Checkin.college.label("college"),
-                Checkin.student_id.label("student_id"),
-            ).filter(Checkin.college.is_not(None))
-        )
-        .subquery()
-    )
-    college_visits_rows = (
-        db.query(
-            college_visit_sources.c.college,
-            func.count(func.distinct(college_visit_sources.c.student_id)),
-        )
-        .group_by(college_visit_sources.c.college)
-        .all()
-    )
-    # الكليات المدمجة/المحذوفة لا تُعرض كصفوف مستقلة بجدول الزيارات:
-    # - الموسيقا دُمجت ضمن الركن المركزي بالاتحاد
-    # - الطب البشري والصيدلة دُمجت بمجموعة واحدة باسم «المجمع الطبي» (طب الأسنان)
-    _VISITS_EXCLUDED = {Faculty.music, Faculty.medicine, Faculty.pharmacy}
-    college_count_map = {college: count for college, count in college_visits_rows}
+    college_count_map = _college_visit_counts(db)
     college_visits = [
         {"college": college, "count": college_count_map.get(college, 0)}
         for college in Faculty
@@ -564,21 +610,7 @@ def get_dashboard_analytics(db: Session) -> dict:
 
     # مسحات ركن الاتحاد لكل قسم — الأقسام الثلاثة مدرجة دائماً (صفر للفاضي)،
     # بنفس نمط حضور المحاضرات، مع الاسم العربي الرسمي لكل قسم.
-    union_rows = (
-        db.query(Checkin.union_section, func.count(Checkin.id))
-        .filter(Checkin.activity_type == ActivityType.union)
-        .group_by(Checkin.union_section)
-        .all()
-    )
-    union_count_map = {section: count for section, count in union_rows}
-
-    # دمج "كلية الموسيقا" ضمن "الركن المركزي" للاتحاد — كلية الموسيقا ما عادت ركن
-    # مستقل بالفعالية، فأي زيارة/إضافة مسجّلة عليها (حجز/شيك جولة أو استشارة)
-    # تُحسب على «الركن المركزي» وتختفي الموسيقا من قائمة زيارات الكليات.
-    music_visits = college_count_map.get(Faculty.music, 0)
-    union_count_map[UnionSection.central] = (
-        union_count_map.get(UnionSection.central, 0) + music_visits
-    )
+    union_count_map = _union_section_counts(db, college_count_map)
 
     union_sections = [
         {
@@ -596,4 +628,368 @@ def get_dashboard_analytics(db: Session) -> dict:
         "year_distribution": year_distribution,
         "certificate_distribution": certificate_distribution,
         "union_sections": union_sections,
+    }
+
+
+def _resolve_day_range(day: str) -> tuple[datetime, datetime] | None:
+    """الفاصل الزمني ليوم فعالية — 'all' تصفّر الفلترة (None). يوم غير معروف → 422."""
+    return day_range(day)
+
+
+# ---------------------------------------------------------------------------
+# نقاط نهاية v2 — عدادات مفلترة باليوم (قسم 3.1)
+# ---------------------------------------------------------------------------
+
+
+def count_students_inside_for_day(db: Session, day: str) -> int:
+    """
+    طلاب مميزون (distinct) دخلوا الحرم (campus_entry). مع day != all تكون
+    الفلترة على تاريخ سوري (المسح السجّل داخل ذلك اليوم). مع day = all تعيد
+    نفس قيمة students_inside_all_days (تراكمي، بدون فلترة).
+    """
+    rng = _resolve_day_range(day)
+    q = (
+        db.query(Checkin.student_id)
+        .filter(Checkin.activity_type == ActivityType.campus_entry)
+    )
+    if rng is not None:
+        start, end = rng
+        q = q.filter(Checkin.checked_in_at >= start, Checkin.checked_in_at < end)
+    return q.distinct().count()
+
+
+def count_game_scans_for_day(db: Session, day: str) -> int:
+    """عدد مسحات ركن الترفيه (activity_type = game) — اليوم المحدد أو كل الأيام."""
+    rng = _resolve_day_range(day)
+    q = db.query(Checkin).filter(Checkin.activity_type == ActivityType.game)
+    if rng is not None:
+        start, end = rng
+        q = q.filter(Checkin.checked_in_at >= start, Checkin.checked_in_at < end)
+    return q.count()
+
+
+def college_visits_for_day(db: Session, day: str) -> dict:
+    """
+    زيارة الكلية (ركن التوجيه) مفلترة باليوم — نفس منطق /analytics بالضبط
+    (union الحجوزات والمسحات، استثناء الموسيقا/الطب/الصيدلة، ترتيب تنازلي).
+    الفلترة الزمنية على booked_at للحجوزات و checked_in_at للمسحات.
+    """
+    rng = _resolve_day_range(day)
+    start, end = rng if rng is not None else (None, None)
+    college_count_map = _college_visit_counts(db, start, end)
+    items = [
+        {"college": college, "count": college_count_map.get(college, 0)}
+        for college in Faculty
+        if college not in _VISITS_EXCLUDED
+    ]
+    items.sort(key=lambda item: item["count"], reverse=True)
+    return {"items": items, "total": sum(item["count"] for item in items)}
+
+
+def union_sections_for_day(db: Session, day: str) -> dict:
+    """مسحات ركن الاتحاد لكل قسم مفلترة باليوم — الأقسام الثلاثة مدرجة دائماً."""
+    rng = _resolve_day_range(day)
+    start, end = rng if rng is not None else (None, None)
+    college_count_map = _college_visit_counts(db, start, end)
+    union_count_map = _union_section_counts(db, college_count_map, start, end)
+    items = [
+        {
+            "section": section,
+            "label": checkin_service.union_section_label(section),
+            "count": union_count_map.get(section, 0),
+        }
+        for section in UnionSection
+    ]
+    return {"items": items, "total": sum(item["count"] for item in items)}
+
+
+# ---------------------------------------------------------------------------
+# حضور (قسم 3.2) — presence
+# ---------------------------------------------------------------------------
+
+_CACHE_TTL_SECONDS = 300
+
+
+def _presence_rows(db: Session):
+    """
+    مدة التواجد لكل (student_id, يوم سوري): من أول لآخر نشاط لذلك اليوم.
+    تُستبعد الأزواج التي فيها مسحة وحيدة (مدتها صفر) قبل حساب أي متوسط.
+    """
+    event_dates = list(EVENT_DAYS.values())
+    day_col = cast(Checkin.checked_in_at, Date)
+    rows = (
+        db.query(
+            Checkin.student_id,
+            day_col.label("day"),
+            func.min(Checkin.checked_in_at).label("first_at"),
+            func.max(Checkin.checked_in_at).label("last_at"),
+            func.count(Checkin.id).label("n_checkins"),
+        )
+        .filter(day_col.in_(event_dates))
+        .group_by(Checkin.student_id, day_col)
+        .all()
+    )
+    # الأزواج ذات المسحة الواحدة مدتها صفر — تُستبعد من الحساب أصلاً.
+    return [
+        {
+            "student_id": student_id,
+            "day": day,
+            "minutes": int((last_at - first_at).total_seconds() // 60),
+        }
+        for student_id, day, first_at, last_at, n_checkins in rows
+        if n_checkins >= 2
+    ]
+
+
+def _presence_frequency(db: Session) -> dict:
+    """
+    تكرار الحضور: لكل طالب، عدد الأيام المميزة (ضمن أيام الفعالية الثلاثة) التي
+    دخل منها الحرم (campus_entry). يُجمّع إلى: يوم واحد / يومين / كل الأيام الثلاثة.
+    total لازم يساوي students_inside_all_days (داخلون من البوابة خلال أيام الفعالية).
+    """
+    event_dates = list(EVENT_DAYS.values())
+    rows = (
+        db.query(
+            Checkin.student_id,
+            func.count(func.distinct(cast(Checkin.checked_in_at, Date))),
+        )
+        .filter(
+            Checkin.activity_type == ActivityType.campus_entry,
+            cast(Checkin.checked_in_at, Date).in_(event_dates),
+        )
+        .group_by(Checkin.student_id)
+        .all()
+    )
+    one_day = two_days = all_days = 0
+    for _student_id, n_days in rows:
+        if n_days == 1:
+            one_day += 1
+        elif n_days == 2:
+            two_days += 1
+        else:
+            all_days += 1
+    return {
+        "one_day": one_day,
+        "two_days": two_days,
+        "all_days": all_days,
+        "total": one_day + two_days + all_days,
+    }
+
+
+def get_presence_stats(db: Session) -> dict:
+    """إحصاءات الحضور الكاملة (متوسط المدة + التكرار) — تُخزَّن بالذاكرة المؤقتة."""
+    def _compute() -> dict:
+        pairs = _presence_rows(db)
+        per_day: dict[str, list[int]] = {key: [] for key in EVENT_DAYS}
+        for pair in pairs:
+            day_key = next(
+                (k for k, v in EVENT_DAYS.items() if v == pair["day"]), None
+            )
+            if day_key is None:
+                continue
+            per_day[day_key].append(pair["minutes"])
+
+        def _avg(values: list[int]) -> int:
+            return round(sum(values) / len(values)) if values else 0
+
+        avg_minutes_all = (
+            round(sum(pair["minutes"] for pair in pairs) / len(pairs)) if pairs else 0
+        )
+
+        return {
+            "avg_minutes_all": avg_minutes_all,
+            "per_day": [
+                {
+                    "day": key,
+                    "avg_minutes": _avg(per_day[key]),
+                    "students_counted": len(per_day[key]),
+                }
+                for key in EVENT_DAYS
+            ],
+            "frequency": _presence_frequency(db),
+        }
+
+    return cache.cached_call(
+        "dashboard:presence", _CACHE_TTL_SECONDS, _compute
+    )
+
+
+# ---------------------------------------------------------------------------
+# ساعات الذروة (قسم 3.3) — peak-hours
+# ---------------------------------------------------------------------------
+
+
+def get_peak_hours(db: Session) -> dict:
+    """
+    عدد المسحات (كل الأنواع) لكل ساعة من EVENT_HOURS ولكل يوم فعالية.
+    الساعات خارج النطاق تُثبَّت على أقرب حافة (قبل أول ساعة → أول ساعة،
+    بعد آخر ساعة → آخر ساعة). peak = أعلى خلية (None لو كلها صفر).
+    """
+    def _compute() -> dict:
+        event_dates = list(EVENT_DAYS.values())
+        day_col = cast(Checkin.checked_in_at, Date)
+        hour_col = func.extract("hour", Checkin.checked_in_at)
+        rows = (
+            db.query(
+                day_col.label("day"),
+                hour_col.label("hour"),
+                func.count(Checkin.id).label("count"),
+            )
+            .filter(day_col.in_(event_dates))
+            .group_by(day_col, hour_col)
+            .all()
+        )
+
+        hours = list(EVENT_HOURS)
+        first = min(hours)
+        last = max(hours)
+        counts_by_day: dict[str, list[int]] = {
+            key: [0] * len(hours) for key in EVENT_DAYS
+        }
+        for day, hour, count in rows:
+            day_key = next((k for k, v in EVENT_DAYS.items() if v == day), None)
+            if day_key is None:
+                continue
+            # الساعات خارج النطاق تُثبَّت على أقرب حافة.
+            clamped = min(max(int(hour), first), last)
+            counts_by_day[day_key][clamped - first] += int(count)
+
+        peak_day = None
+        peak_hour = None
+        peak_count = 0
+        for day_key in EVENT_DAYS:
+            for i, count in enumerate(counts_by_day[day_key]):
+                if count > peak_count:
+                    peak_count = count
+                    peak_day = day_key
+                    peak_hour = first + i
+
+        return {
+            "hours": hours,
+            "days": [
+                {"day": day_key, "counts": counts_by_day[day_key]}
+                for day_key in EVENT_DAYS
+            ],
+            "peak": (
+                {"day": peak_day, "hour": peak_hour, "count": peak_count}
+                if peak_day is not None and peak_count > 0
+                else None
+            ),
+        }
+
+    return cache.cached_call("dashboard:peak-hours", _CACHE_TTL_SECONDS, _compute)
+
+
+# ---------------------------------------------------------------------------
+# الطلاب المتميزون (قسم 3.4) — top-students
+# ---------------------------------------------------------------------------
+
+_TOPS_AVAILABLE_METRICS = ("lectures", "tours", "presence", "union_all")
+
+
+def _top_students_rows(db: Session, metric: str) -> list[dict]:
+    """القائمة الكاملة (قبل الترقيم) للمقياس المطلوب — [student_id, value, order_key]."""
+    if metric == "lectures":
+        rows = (
+            db.query(Checkin.student_id, func.count(Checkin.id))
+            .filter(Checkin.activity_type == ActivityType.lecture)
+            .group_by(Checkin.student_id)
+            .all()
+        )
+        return [
+            {"student_id": sid, "value": count}
+            for sid, count in rows
+        ]
+    if metric == "tours":
+        rows = (
+            db.query(Checkin.student_id, func.count(Checkin.id))
+            .filter(Checkin.activity_type == ActivityType.tour)
+            .group_by(Checkin.student_id)
+            .all()
+        )
+        return [
+            {"student_id": sid, "value": count}
+            for sid, count in rows
+        ]
+    if metric == "presence":
+        # مجموع دقائق التواجد لكل طالب عبر كل الأيام (نفس قاعدة استبعاد اليوم
+        # ذي المسحة الواحدة من _presence_rows).
+        totals: dict[int, int] = {}
+        for pair in _presence_rows(db):
+            totals[pair["student_id"]] = totals.get(pair["student_id"], 0) + pair["minutes"]
+        return [
+            {"student_id": sid, "value": value}
+            for sid, value in totals.items()
+        ]
+    if metric == "union_all":
+        # الطلاب اللي ماسحين كل الأركان الثلاثة — value ثابت 3، الترتيب بآخر
+        # مسحة اتحاد تصاعدياً (مين خلّص الأركان أولاً).
+        event_dates = list(EVENT_DAYS.values())
+        day_col = cast(Checkin.checked_in_at, Date)
+        rows = (
+            db.query(
+                Checkin.student_id,
+                func.count(func.distinct(Checkin.union_section)).label("sections"),
+                func.max(Checkin.checked_in_at).label("last_at"),
+            )
+            .filter(
+                Checkin.activity_type == ActivityType.union,
+                Checkin.union_section.isnot(None),
+                day_col.in_(event_dates),
+            )
+            .group_by(Checkin.student_id)
+            .having(func.count(func.distinct(Checkin.union_section)) == 3)
+            .all()
+        )
+        return [
+            {"student_id": sid, "value": 3, "order_key": last_at}
+            for sid, _sections, last_at in rows
+        ]
+    raise validation_error(f"مقياس غير معروف: {metric}")
+
+
+def list_top_students(
+    db: Session, metric: str, page: int, limit: int
+) -> dict:
+    """
+    قائمة الطلاب المتميزين للمقياس المعطى، مرتبة تنازلياً حسب القيمة ثم الرمز
+    تصاعدياً (استثناء union_all: آخر مسحة تصاعدياً). rank هو الرتبة المطلقة
+    (ضمن القائمة الكاملة، قبل الترقيم). تُخزَّن بالذاكرة المؤقتة.
+    """
+    def _compute() -> dict:
+        rows = _top_students_rows(db, metric)
+        # الـ students المرتبطين — نجلب الأسماء/الرموز مرة واحدة.
+        ids = {row["student_id"] for row in rows}
+        students = {
+            s.id: s
+            for s in db.query(Student).filter(Student.id.in_(ids))
+        }
+
+        sort_key = (
+            (lambda r: (r.get("order_key") or datetime.min, r["student_id"]))
+            if metric == "union_all"
+            else (lambda r: (-r["value"], r["student_id"]))
+        )
+        ranked = sorted(rows, key=sort_key)
+
+        items = []
+        for i, row in enumerate(ranked, start=1):
+            student = students.get(row["student_id"])
+            items.append(
+                {
+                    "rank": i,
+                    "unique_code": student.unique_code if student else "—",
+                    "full_name": student.full_name if student else None,
+                    "value": row["value"],
+                }
+            )
+        return {"items": items, "total": len(items)}
+
+    key = f"dashboard:top-students:{metric}"
+    result = cache.cached_call(key, _CACHE_TTL_SECONDS, _compute)
+    start = (page - 1) * limit
+    return {
+        "metric": metric,
+        "items": result["items"][start : start + limit],
+        "total": result["total"],
     }
