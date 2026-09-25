@@ -63,6 +63,13 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
     unionDayRef.current = unionDay;
   }, [unionDay]);
 
+  // حركة الطلاب بين الأركان — فلتر واحد للثلاثة أقسام (توزيع، أزواج، انتقالات)
+  const [journeyDay, setJourneyDay] = useState('all');
+  const journeyDayRef = useRef(journeyDay);
+  useEffect(() => {
+    journeyDayRef.current = journeyDay;
+  }, [journeyDay]);
+
   const [metric, setMetric] = useState('lectures');
 
   const [stats, setStats] = useState(null);
@@ -78,6 +85,7 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
   const [topData, setTopData] = useState(null);
   const [teamTotal, setTeamTotal] = useState(null);
   const [unionAllTotal, setUnionAllTotal] = useState(null);
+  const [cornerJourney, setCornerJourney] = useState(null);
 
   // كاش لكل معيار في الطلاب المتميزون — أول مرة بنجيب المعيار بنحفظه حتى
   // التنقل بين التابات ما يسبب إعادة جلب
@@ -164,6 +172,21 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
     },
     MEDIUM_MS,
     [unionDay]
+  );
+
+  // حركة الطلاب بين الأركان: تجميع SQL على فعالية كاملة — مخزّنة مؤقتاً
+  // بالسيرفر (300 ثانية)، فبنفس إيقاع الذروة والطلاب المتميزين (5 دقائق).
+  usePolling(
+    () => {
+      const requestedDay = journeyDay;
+      apiGet(`/admin/dashboard/corner-journey?day=${requestedDay}`)
+        .then((r) => {
+          if (requestedDay === journeyDayRef.current) setCornerJourney(r);
+        })
+        .catch(() => {});
+    },
+    SLOW_MS,
+    [journeyDay]
   );
 
   usePolling(
@@ -258,6 +281,23 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
 
   const topStudents = topCache[metric] || (topData?.metric === metric ? topData : null);
 
+  // حركة الطلاب بين الأركان — التسميات جاهزة من الباك
+  const journeyFilter = <DayFilter value={journeyDay} onChange={setJourneyDay} />;
+  const journeyItems = (cornerJourney?.distribution || []).map((it) => ({
+    label: it.label,
+    count: it.count,
+  }));
+  const journeyTotal = cornerJourney?.total_students ?? null;
+  const cornerCount = cornerJourney?.multi_corner_students ?? null;
+  const pairItems = (cornerJourney?.pairs || []).map((it) => ({
+    label: it.label,
+    count: it.count,
+  }));
+  const transitionItems = (cornerJourney?.transitions || []).map((it) => ({
+    label: it.label,
+    count: it.count,
+  }));
+
   return (
     <div className="gd-dash-viewport">
       <AdminHeader userRole={userRole} smsStatus={smsStatus} />
@@ -332,6 +372,50 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
         </div>
 
         <TopStudents metric={metric} onMetricChange={setMetric} data={topStudents} unionTotal={unionAllTotal} />
+
+        <div className="gd-dash-sechd">
+          <h2 className="gd-dash-sechd__title">حركة الطلاب بين الأركان</h2>
+          <span className="gd-dash-sechd__sub">
+            بتتحدث تلقائياً · الانتقالات محسوبة من المسحات ضمن نفس اليوم
+          </span>
+        </div>
+
+        <ColumnChart
+          title="عدد الطلاب حسب عدد الأركان التي زاروها"
+          items={journeyItems}
+          totalText={journeyTotal != null ? `إجمالي الطلاب: ${journeyTotal}` : null}
+          filter={journeyFilter}
+          empty="ما في بيانات عن حركة الطلاب بين الأركان للآن"
+        />
+
+        <div className="gd-dash-grid2">
+          <HorizontalBars
+            title="أكثر الأزواج المشتركة"
+            items={pairItems}
+            totalText={cornerCount != null ? `زاروا ركنين فأكثر: ${cornerCount}` : null}
+            filter={journeyFilter}
+            accent="teal"
+            empty="ما في بيانات عن الأزواج المشتركة للأركان للآن"
+            expandable
+            limit={5}
+            expandLabel={(n) => `عرض كل الأزواج (${n})`}
+          />
+          <HorizontalBars
+            title="أكثر الانتقالات المباشرة"
+            items={transitionItems}
+            totalText={
+              cornerJourney?.total_transitions != null
+                ? `إجمالي الانتقالات: ${cornerJourney.total_transitions}`
+                : null
+            }
+            filter={journeyFilter}
+            accent="orange"
+            empty="ما في بيانات عن الانتقالات المباشرة بين الأركان للآن"
+            expandable
+            limit={5}
+            expandLabel={(n) => `عرض كل الانتقالات (${n})`}
+          />
+        </div>
 
         <TeamSummaryBar total={teamTotal} />
       </main>

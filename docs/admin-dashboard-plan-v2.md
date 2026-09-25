@@ -118,8 +118,73 @@ once from `AcademicGuide.jsx` (`active` arrives from `StudentTabsLayout`).
 It uses a `useRef` guard against StrictMode double-effects, freezes its dwell
 counter while the tab is hidden, and ends the visit on `pagehide`. Rendering:
 a 5th card in the existing `SummaryCards` row, titled **الدليل الأكاديمي**,
-carrying the same `<DayFilter>` as the neighbouring cards plus متوسط البقاء,
+carrying the same `<DayFilter>` as the neighbouring cards plus متوسط البقاء،
 عدد الأشخاص، وعدد الزيارات.
+
+### 3.1b Corner journey (added after v2 shipped)
+
+Nothing counted the *order* in which students walked the campus. Three new
+numbers: how many corners each student touched, which corners they combined,
+and which corner they walked to next.
+
+| Endpoint | Purpose |
+|---|---|
+| `GET /admin/dashboard/corner-journey?day=` | `super_admin` only (inherited from the router). Returns `{ day, total_students, multi_corner_students, distribution, pairs, total_transitions, transitions, generated_at }`. Cached 300s server-side like `/presence`. |
+
+**What counts as a corner.** 25 of them: every `Faculty` value, the 3
+`UnionSection` values (الركن المركزي / ركن دليل التخصصات / الركن التركي), and
+قسم الترفيه. Campus entry and the lecture are **not** corners — a student who
+only attended lectures is counted as *ندوة فقط*. A corner is touched when the
+student has either a `Booking` of type `tour` for that college, or a `Checkin`
+with that `college` set (which covers both الجولة والاستشارة, since
+`create_consultation_checkin` stores the college too).
+
+Rules that keep the numbers honest:
+- **A booking is evidence of intent, not a visit time.** It counts towards the
+  distribution and the pairs, because a student who booked a tour is part of
+  that corner's traffic. It never counts as a *transition* — see below.
+- **Transitions come from check-ins only.** A direct transition needs a real
+  ordered moment, and a booking's `booked_at` is when the student pressed the
+  button, possibly days before the event. Ordering on it would invent
+  backwards journeys (arts booked on the 20th, union scanned on the 24th
+  would read as arts → union).
+- **Order is per day, and a day is never crossed.** A student's corners are
+  grouped by `checked_in_at.date()` first, then sorted by their *last* check-in
+  in that day, so returning to a corner that was already visited reads as
+  staying rather than as a second visit. The sequential neighbours in that
+  order are the direct transitions, so `all` is exactly the sum of the three
+  event days — a cross-day step can never be invented.
+- **Duplicate scans collapse.** The unique check-in indexes mean one tour per
+  college per student, so self-pairs like A+A cannot exist; a booked-but-not-
+  visited corner has no check-in time and is therefore absent from transitions.
+- **`all` is restricted to the event days** (`EVENT_DAYS`), unlike
+  `/guide-insights` where `all` is cumulative. That restriction is what makes
+  the per-day filters add up to the `all` figure.
+- **Check-ins are bounded by the event window.** `EVENT_WINDOW_START`/
+  `EVENT_WINDOW_END` (`[08:00, 16:00)`) applies, so manual entries made at
+  18:00 after the event cannot reorder anybody's journey.
+- **Merged corners.** `medicine` and `pharmacy` fold into `c:dentistry`
+  «المجمع الطبي» and `music` into `u:central` «الركن المركزي», the same
+  decision `_VISITS_EXCLUDED` already made for `زيارة الكلية`, so the two
+  cards never disagree about what a corner is. A tour booking in medicine is
+  folded too, which means booking a college and then scanning the medical
+  complex counts as one corner.
+- **The list is capped.** Pairs and transitions are sorted by
+  `(-count, key)` and truncated to 60 rows; `total_transitions` is the real
+  sum, not the sum of the visible rows. Long tail noise is a display concern,
+  never an accuracy one.
+
+Frontend: three cards under **الطلاب المتميزون** in
+`GeneralDirectorDashboard.jsx`, fed by one `usePolling` on `SLOW_MS` with
+`journeyDay` as its dependency — the `journeyDay` / `journeyDayRef` pair of
+§6.3, so switching one filter refetches only this section. The distribution is
+a full-width `ColumnChart` (it has six ordered categories, so columns read
+better than bars) and the two lists are a `gd-dash-grid2` row of
+`HorizontalBars`. `ColumnChart` grew the same optional `totalText` / `filter`
+header slot `HorizontalBars` already had, and `HorizontalBars` grew a `limit`
+prop so these lists show 5 rows instead of 8. **No new CSS** — the mobile
+rules for `.gd-dash-cols__col small` (0.62rem, wrapping) and `.gd-dash-hb__r`
+(label on its own row) already cover long Arabic corner names.
 
 ### 3.2 Presence metrics
 `GET /admin/dashboard/presence` returns:
@@ -327,6 +392,37 @@ These keep the vertical column charts from `/analytics`, with these changes:
 - a paginated table (20/page) with columns `#`, `الاسم`, `الرمز`, `القيمة`;
 - copy the layout/pagination pattern from `StudentsInsideAllDaysPage.jsx`.
 
+### 4.10a Corner journey — `حركة الطلاب بين الأركان`
+
+Sits between `الطلاب المتميزون` and the team summary bar, with its own
+`gd-dash-sechd` title whose subtitle states the rule that governs the third
+card: `بتتحدث تلقائياً · الانتقالات محسوبة من المسحات ضمن نفس اليوم`.
+
+- **Full-width `ColumnChart`** — `عدد الطلاب حسب عدد الأركان التي زاروها`.
+  Six ordered categories, always all six (a zero column is information):
+  `ركن واحد`, `ركنان`, `3 أركان`, `4 أركان`, `5 أركان فأكثر`, `ندوة فقط`.
+  Header total `إجمالي الطلاب: N`.
+- **`gd-dash-grid2` row of two `HorizontalBars`** — same component, same
+  header slot, same `gd-dash-more` toggle, only the accent differs:
+  - `أكثر الأزواج المشتركة`, accent `teal`, header total
+    `زاروا ركنين فأكثر: N`, expand label `عرض كل الأزواج (N)`.
+  - `أكثر الانتقالات المباشرة`, accent `orange`, header total
+    `إجمالي الانتقالات: N`, expand label `عرض كل الانتقالات (N)`.
+  - Both are `expandable` with `limit={5}`, so the card shows the top 5 and a
+    `عرض أقل / عرض كل …` button rather than an endless list.
+- Row labels come pre-formatted from the API (`A + B` for a pair,
+  `من A إلى B` for a transition) so the frontend never builds strings and
+  the two lists cannot drift apart.
+- **One filter, three cards.** Each card renders its own `<DayFilter>` (the
+  §6.3 component) but they all bind to the same `journeyDay` state, so the
+  whole section switches together. The fetch keeps a `journeyDayRef` and
+  discards a response whose day is no longer selected, the same way the
+  `insideDay` / `guideDay` sections do.
+- Poll on `SLOW_MS` (5 min) — nothing here changes faster than the 300s
+  server cache behind it, so polling faster would just burn queries.
+- Empty states: `ما في بيانات عن حركة الطلاب بين الأركان للآن`,
+  `… عن الأزواج المشتركة للأركان للآن`, `… عن الانتقالات المباشرة بين الأركان للآن`.
+
 ### 4.11 Team accounts
 
 - **Move** the current team table (search + pagination + edit/delete, all existing logic) **verbatim** into a new page `src/pages/Admin/TeamAccountsPage.jsx`, route `/team-accounts`.
@@ -361,6 +457,7 @@ Intervals:
 | `/stats`, `/sms-status` | 15 s (unchanged) |
 | `/students-inside-count`, `/game-scans`, `/college-visits`, `/union-sections`, `/analytics` | 60 s |
 | `/presence`, `/peak-hours`, `/top-students` | 5 min (server caches for 5 min too, so polling faster is pointless) |
+| `/corner-journey` | 5 min (same 300 s server cache, added with §3.1b) |
 
 ---
 
@@ -424,7 +521,9 @@ Define these tokens as CSS custom properties on `.gd-dash-viewport` and **replac
 
 Split the dashboard into small presentational components under `src/pages/Admin/dashboard/`:
 
-`HeroStats.jsx`, `SummaryCards.jsx`, `PresenceRow.jsx`, `PeakHoursHeatmap.jsx`, `HorizontalBars.jsx` (reused by colleges + lectures), `Donut.jsx` (reused by union + certificate), `ColumnChart.jsx` (reused by score + year), `TopStudents.jsx`, `TeamSummaryBar.jsx`, `DayFilter.jsx`.
+`HeroStats.jsx`, `SummaryCards.jsx`, `PresenceRow.jsx`, `PeakHoursHeatmap.jsx`, `HorizontalBars.jsx` (reused by colleges + lectures + the corner-journey pairs/transitions), `Donut.jsx` (reused by union + certificate), `ColumnChart.jsx` (reused by score + year + the corner-journey distribution), `TopStudents.jsx`, `TeamSummaryBar.jsx`, `DayFilter.jsx`.
+
+The corner journey (§3.1b / §4.10a) needed no component of its own: it reuses `ColumnChart` and `HorizontalBars` rather than adding a new file, which is why `ColumnChart` picked up the optional `totalText` / `filter` header props and `HorizontalBars` a `limit` prop.
 
 `GeneralDirectorDashboard.jsx` keeps data fetching and passes data down. Keep all CSS classes prefixed `gd-dash-` in `src/style/GeneralDirectorDashboard.css`, which is rewritten.
 
@@ -434,6 +533,7 @@ Split the dashboard into small presentational components under `src/pages/Admin/
 
 - Update `GeneralDirectorDashboard.test.jsx` for the new structure: mock all endpoints; assert the hero number renders; assert that the DayFilter change triggers a refetch with `?day=thu`.
 - Add a test for `TopStudentsPage`: switching tabs updates `?metric=` and refetches.
+- Corner journey (§3.1b): mock `/corner-journey`, assert all three cards render, that every card carries its own `DayFilter`, that clicking one refetches **only** `corner-journey?day=thu`, and that the empty state is shown when the response has no rows. On the backend the invariants in §3.1b get one test each — a transition may not cross days, a booking may not create one, `all` must equal the sum of the three event days, and the merged corners must collapse.
 
 ---
 

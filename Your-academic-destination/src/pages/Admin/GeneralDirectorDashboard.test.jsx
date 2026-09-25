@@ -92,7 +92,37 @@ const TOP_PRESENCE = {
 
 const ACCOUNTS = { items: [], total: 37, page: 1, limit: 1 };
 
-function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections } = {}) {
+const CORNER_JOURNEY = {
+  day: 'all',
+  total_students: 576,
+  multi_corner_students: 329,
+  distribution: [
+    { bucket: 1, label: 'ركن واحد', count: 212 },
+    { bucket: 2, label: 'ركنان', count: 105 },
+    { bucket: 3, label: '3 أركان', count: 100 },
+    { bucket: 4, label: '4 أركان', count: 52 },
+    { bucket: 5, label: '5 أركان فأكثر', count: 72 },
+    { bucket: 0, label: 'ندوة فقط', count: 35 },
+  ],
+  pairs: [
+    { source: 'c:arts', target: 'u:central', label: 'كلية الآداب والعلوم الإنسانية + الركن المركزي', count: 99 },
+    { source: 'c:informatics', target: 'c:arts', label: 'كلية الهندسة المعلوماتية + كلية الآداب والعلوم الإنسانية', count: 88 },
+    { source: 'c:dentistry', target: 'c:sciences', label: 'المجمع الطبي + كلية العلوم', count: 64 },
+    { source: 'u:central', target: 'g:game', label: 'الركن المركزي + قسم الترفيه', count: 47 },
+    { source: 'c:economics', target: 'u:major_guide', label: 'كلية الاقتصاد + دليل التخصص', count: 33 },
+    { source: 'c:law', target: 'c:dentistry', label: 'كلية الحقوق + المجمع الطبي', count: 21 },
+    { source: 'c:education', target: 'c:music', label: 'كلية التربية + كلية الموسيقى', count: 12 },
+  ],
+  total_transitions: 46,
+  transitions: [
+    { source: 'c:arts', target: 'u:central', label: 'من كلية الآداب والعلوم الإنسانية إلى الركن المركزي', count: 46 },
+    { source: 'c:informatics', target: 'c:arts', label: 'من كلية الهندسة المعلوماتية إلى كلية الآداب والعلوم الإنسانية', count: 31 },
+    { source: 'u:central', target: 'g:game', label: 'من الركن المركزي إلى قسم الترفيه', count: 18 },
+  ],
+  generated_at: '2026-09-26T10:00:00',
+};
+
+function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections, cornerJourney } = {}) {
   const college = collegeVisits ?? {
     day: 'all',
     total: 2,
@@ -116,6 +146,8 @@ function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections } = {
       return Promise.resolve(college);
     if (path.startsWith('/admin/dashboard/union-sections'))
       return Promise.resolve(union);
+    if (path.startsWith('/admin/dashboard/corner-journey'))
+      return Promise.resolve(cornerJourney || CORNER_JOURNEY);
     if (path.startsWith('/admin/dashboard/top-students')) {
       if (path.includes('metric=union_all')) return Promise.resolve(TOP_UNION_ALL);
       if (path.includes('metric=presence')) return Promise.resolve(TOP_PRESENCE);
@@ -253,6 +285,62 @@ describe('GeneralDirectorDashboard - live data', () => {
     await waitFor(() => {
       const items = screen.getAllByText('67٪ (2)');
       expect(items.length).toBeGreaterThan(0);
+    });
+  });
+
+  it('renders the corner journey section under the top students', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('حركة الطلاب بين الأركان')).toBeInTheDocument());
+
+    // عنوان القسم يوضّح قاعدة الانتقالات
+    expect(
+      screen.getByText('بتتحدث تلقائياً · الانتقالات محسوبة من المسحات ضمن نفس اليوم')
+    ).toBeInTheDocument();
+
+    // 1) توزيع الطلاب حسب عدد الأركان — 6 أعمدة بإجمالي الطلاب
+    const dist = cardByHeading('عدد الطلاب حسب عدد الأركان التي زاروها');
+    expect(dist).toHaveTextContent('إجمالي الطلاب: 576');
+    const distItems = dist.querySelectorAll('.gd-dash-cols__col');
+    expect(distItems.length).toBe(6);
+    ['ركن واحد', 'ركنان', '3 أركان', '4 أركان', '5 أركان فأكثر', 'ندوة فقط'].forEach((label) => {
+      expect(within(dist).getByText(label)).toBeInTheDocument();
+    });
+    expect(within(dist).getByText('212')).toBeInTheDocument();
+
+    // 2) الأزواج المشتركة — أول 5 صفوف + زر توسيع
+    const pairs = cardByHeading('أكثر الأزواج المشتركة');
+    expect(pairs).toHaveTextContent('زاروا ركنين فأكثر: 329');
+    expect(pairs.querySelectorAll('.gd-dash-hb__r').length).toBe(5);
+    expect(within(pairs).getByText('كلية الآداب والعلوم الإنسانية + الركن المركزي')).toBeInTheDocument();
+    expect(within(pairs).getByText('عرض كل الأزواج (7)')).toBeInTheDocument();
+
+    fireEvent.click(within(pairs).getByText('عرض كل الأزواج (7)'));
+    await waitFor(() => expect(pairs.querySelectorAll('.gd-dash-hb__r').length).toBe(7));
+    expect(within(pairs).getByText('عرض أقل')).toBeInTheDocument();
+
+    // 3) الانتقالات المباشرة — بنفس ستايل الأشرطة مع لون برتقالي
+    const transitions = cardByHeading('أكثر الانتقالات المباشرة');
+    expect(transitions).toHaveTextContent('إجمالي الانتقالات: 46');
+    expect(transitions.querySelector('.gd-dash-hb').className).toContain('gd-dash-hb--orange');
+    expect(
+      within(transitions).getByText('من كلية الآداب والعلوم الإنسانية إلى الركن المركزي')
+    ).toBeInTheDocument();
+  });
+
+  it('gives every corner journey card its own day filter', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('حركة الطلاب بين الأركان')).toBeInTheDocument());
+
+    [
+      'عدد الطلاب حسب عدد الأركان التي زاروها',
+      'أكثر الأزواج المشتركة',
+      'أكثر الانتقالات المباشرة',
+    ].forEach((heading) => {
+      expect(
+        within(cardByHeading(heading)).getByRole('group', { name: 'فلترة حسب اليوم' })
+      ).toBeInTheDocument();
     });
   });
 
@@ -423,6 +511,31 @@ describe('GeneralDirectorDashboard - independent day filters', () => {
     );
   });
 
+  it('corner journey filter refetches only corner-journey', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('حركة الطلاب بين الأركان')).toBeInTheDocument());
+
+    apiGet.mockClear();
+    const pairsCard = cardByHeading('أكثر الأزواج المشتركة');
+    fireEvent.click(within(pairsCard).getByRole('button', { name: 'خميس' }));
+
+    await waitFor(() => {
+      expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/corner-journey?day=thu'))).toBe(
+        true
+      );
+    }, { timeout: 2000 });
+
+    // باقي الأقسام ما بتتأثر
+    ['students-inside-count', 'game-scans', 'college-visits', 'union-sections', 'guide-insights'].forEach(
+      (endpoint) => {
+        expect(calledPaths().some((p) => p.startsWith(`/admin/dashboard/${endpoint}?day=thu`))).toBe(
+          false
+        );
+      }
+    );
+  });
+
   it('union card filter refetches only union-sections', async () => {
     renderDashboard();
 
@@ -454,6 +567,15 @@ describe('GeneralDirectorDashboard - empty states', () => {
     mockEndpoints({
       smsStatus: { counts: {}, worker_online: true },
       collegeVisits: { day: 'all', total: 0, items: [] },
+      cornerJourney: {
+        day: 'all',
+        total_students: 0,
+        multi_corner_students: 0,
+        distribution: [],
+        pairs: [],
+        total_transitions: 0,
+        transitions: [],
+      },
     });
   });
 
@@ -469,5 +591,10 @@ describe('GeneralDirectorDashboard - empty states', () => {
     expect(screen.getByText('ما في بيانات عن زيارات الكليات للآن')).toBeInTheDocument();
     expect(screen.getByText('ما في بيانات عن توزيع المعدل للآن')).toBeInTheDocument();
     expect(screen.getByText('ما في بيانات عن توزيع سنوات الشهادة للآن')).toBeInTheDocument();
+    expect(screen.getByText('ما في بيانات عن حركة الطلاب بين الأركان للآن')).toBeInTheDocument();
+    expect(screen.getByText('ما في بيانات عن الأزواج المشتركة للأركان للآن')).toBeInTheDocument();
+    expect(
+      screen.getByText('ما في بيانات عن الانتقالات المباشرة بين الأركان للآن')
+    ).toBeInTheDocument();
   });
 });

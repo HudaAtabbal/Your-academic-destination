@@ -1,10 +1,16 @@
-export default function ColumnChart({ title, items, empty }) {
+export default function ColumnChart({ title, items, empty, totalText, filter }) {
   const max = Math.max(0, ...items.map((i) => i.count));
 
   return (
     <div className="gd-dash-card">
       <div className="gd-dash-card-hd">
         <h3>{title}</h3>
+        {(totalText != null || filter) && (
+          <div className="gd-dash-card-hd__side">
+            {totalText != null && <span className="gd-dash-tot gd-dash-tot--strong">{totalText}</span>}
+            {filter}
+          </div>
+        )}
       </div>
 
       {!items.length ? (

@@ -9,11 +9,12 @@ export default function HorizontalBars({
   empty,
   expandable = false,
   expandLabel = null,
+  limit = 8,
 }) {
   const [showAll, setShowAll] = useState(false);
   const max = Math.max(0, ...items.map((i) => i.count));
 
-  const visible = showAll || !expandable ? items : items.slice(0, 8);
+  const visible = showAll || !expandable ? items : items.slice(0, limit);
 
   return (
     <div className="gd-dash-card">
@@ -44,7 +45,7 @@ export default function HorizontalBars({
               </div>
             ))}
           </div>
-          {expandable && items.length > 8 && (
+          {expandable && items.length > limit && (
             <button
               type="button"
               className="gd-dash-more"
