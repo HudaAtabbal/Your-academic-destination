@@ -542,17 +542,24 @@ a.gd-dash-trio__go {
 
 .gd-dash-hb__r {
   display: grid;
-  grid-template-columns: 190px 1fr 44px;
+  grid-template-columns: 240px 1fr 44px;
   gap: 12px;
   align-items: center;
   font-size: 0.9rem;
   font-weight: 700;
 }
 
+/* أسماء الأركان بالعربي طويلة («ندوة الهندسة الكهربائية والميكانيكية
+   والهندسة الكيميائية والبترولية» ١٠٧ حرف)، فبدل ما ينقصّوا بثلاث نقاط
+   بيلفّوا على سطر وبيكملوا. min-width:0 ضرورية لأنه بدونها الـ grid ما
+   بيصغّر العمود لمحتوى أعرض من الفراغ. */
 .gd-dash-hb__t {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.3;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .gd-dash-hb__track {
@@ -934,7 +941,7 @@ a.gd-dash-more {
   }
 
   .gd-dash-hb__r {
-    grid-template-columns: 140px 1fr 44px;
+    grid-template-columns: 190px 1fr 44px;
   }
 }
 
@@ -1014,9 +1021,6 @@ a.gd-dash-more {
 
   .gd-dash-hb__t {
     grid-column: 1 / -1;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: clip;
   }
 
   .gd-dash-donut {

@@ -514,6 +514,7 @@ Define these tokens as CSS custom properties on `.gd-dash-viewport` and **replac
 ### 6.5 General responsive requirements
 
 - **No horizontal scroll on `body`** at any width. Only explicit wrappers (heatmap, leaderboard, and the team table on its own page) may scroll horizontally.
+- **No truncated label anywhere.** Arabic session and corner names run long — `ندوة الهندسة الكهربائية والميكانيكية والهندسة الكيميائية والبترولية (الهمك والبتروكيميا)` is 107 characters, and the corner pairs glue two of them together. A `HorizontalBars` label therefore wraps to a second line instead of ending in `…`; only the name column is allowed to grow tall, never the bar. This is why the column is 240px (190px under 1199px) and why `.gd-dash-hb__t` carries `min-width: 0` — a grid item defaults to `min-width: auto` and would refuse to shrink below its own content width. The `title` attribute stays as a hover fallback.
 - Tap targets ≥ 36px high on touch (`@media (pointer: coarse)` bumps DayFilter/tab padding).
 - Test at 360, 390, 768, 1024, 1280 and 1440 wide.
 
