@@ -352,22 +352,32 @@ def test_dashboard_analytics_lecture_attendance_all_16(
     gate_scanner_headers,
     super_headers,
 ):
-    """حضور كل محاضرة: الـ16 محاضرة + محاضرة الافتتاح كلها مدرجة بترتيب enum
-    مع تسميات عربية، والمحاضرات بلا حضور بصفر."""
+    """حضور كل محاضرة: كل محاضرات الـ16 + الافتتاح مدرجة بترتيب enum مع تسميات
+    عربية، والمحاضرات بلا حضور بصفر. بإستثناء ندوات الهندسة الثلاث فهيدي
+    بيندمجن بصف واحد (الهمك والبتروكيميا) وبأرقامهن مجمّعة."""
     student_factory(STUDENT)
     assert _campus_entry(client, students_admin_headers, STUDENT).status_code == 201
     assert _lecture(client, gate_scanner_headers, STUDENT, "lecture_1").status_code == 201
     assert _lecture(client, gate_scanner_headers, STUDENT, "lecture_2").status_code == 201
+    # ندوة الهندسة الموحّدة: مسح تحت أي من الثلاثة بينحسب بنفس الصف
+    assert _lecture(client, gate_scanner_headers, STUDENT, "lecture_12").status_code == 201
     resp = client.get("/admin/dashboard/analytics", headers=super_headers)
     assert resp.status_code == 200
     rows = resp.json()["lecture_attendance"]
-    assert len(rows) == 17
+    # 17 - 2 (عضوان من مجموعة الدمج) = 15 صف
+    assert len(rows) == 15
     # الترتيب مطابق لترتيب enum: opening ثم lecture_1 ثم lecture_2 ثم …
     assert rows[0]["lecture_name"] == "opening"
     assert rows[0]["count"] == 0
     assert [r["lecture_name"] for r in rows[1:3]] == ["lecture_1", "lecture_2"]
     assert rows[1]["count"] == 1
     assert rows[2]["count"] == 1
+    # ندوة الهندسة الموحّدة موجودة باسمها المدمج وبمجموع أرقام الثلاث
+    engineering = next(r for r in rows if r["lecture_name"] == "lecture_11")
+    assert engineering["count"] == 1
+    assert "الهمك والبتروكيميا" in engineering["label"]
+    assert "lecture_12" not in [r["lecture_name"] for r in rows]
+    assert "lecture_13" not in [r["lecture_name"] for r in rows]
     # المحاضرة الأخيرة (حفل الختام) بلا حضور — صفر وموجودة
     assert rows[-1]["lecture_name"] == "lecture_16"
     assert rows[-1]["count"] == 0

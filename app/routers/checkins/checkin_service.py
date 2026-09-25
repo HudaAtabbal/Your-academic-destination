@@ -55,7 +55,7 @@ _LECTURE_DISPLAY_NAMES = {
     Lecture.lecture_8: "ندوة كلية الهندسة المعلوماتية مع نبذة عن الكلية التطبيقية",
     Lecture.lecture_9: "ندوة الكليات: الهندسية المدنية · الهندسة المدنية · المعمارية · الزراعة",
     Lecture.lecture_10: "ندوة مركزية: التخصصات المستجدة",
-    Lecture.lecture_11: "ندوة كلية الهندسة الميكانيكية",
+    Lecture.lecture_11: "ندوة الهندسة الكهربائية والميكانيكية والهندسة الكيميائية والبترولية (الهمك والبتروكيميا)",
     Lecture.lecture_12: "ندوة كلية الهندسة الكيميائية والبترولية",
     Lecture.lecture_13: "ندوة كلية الهندسة الكهربائية",
     Lecture.lecture_14: "ندوة صناعة الحياة الجامعية",
@@ -66,6 +66,28 @@ _LECTURE_DISPLAY_NAMES = {
 
 def _lecture_label(lecture: Lecture) -> str:
     return _LECTURE_DISPLAY_NAMES.get(lecture, lecture.value)
+
+
+# ندوات الهندسة الثلاث (ميكانيكي · كهربائي · كيميائي وبترولي) بلّشت بندوة وحدة
+# بالبرنامج: "الهمك والبتروكيميا" الساعة 11:00 بالمدرج الرئيسي الكبير. مسحها
+# بينكتب على lecture_11، وبالإحصائيات بنجمع أرقام الثلاثة سوا حتى تضل الأرقام
+# متطابقة مع البرنامج — بلا ما نمسّ الـ enum ولا الـ DB.
+_LECTURE_MERGE_GROUPS: tuple[tuple[Lecture, ...], ...] = (
+    (Lecture.lecture_11, Lecture.lecture_12, Lecture.lecture_13),
+)
+
+
+def lecture_merge_group(lecture: Lecture) -> tuple[Lecture, ...]:
+    """الندوات اللي بتعرض مع بعض — ندوة نفسها لحالها إذا مش ضمن دمج."""
+    for group in _LECTURE_MERGE_GROUPS:
+        if lecture in group:
+            return group
+    return (lecture,)
+
+
+def lecture_canonical(lecture: Lecture) -> Lecture:
+    """ندوة العرض لمجموعة دمج — العنصر الأول فيها (أو هي نفسها)."""
+    return lecture_merge_group(lecture)[0]
 
 
 def lecture_display_name(lecture: Lecture) -> str:
