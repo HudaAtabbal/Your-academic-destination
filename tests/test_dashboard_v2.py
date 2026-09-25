@@ -10,6 +10,7 @@ from app.models import (
     BookingType,
     Checkin,
     Faculty,
+    Lecture,
     RegistrationType,
     Student,
     StudentStatus,
@@ -562,6 +563,292 @@ def test_top_students_invalid_metric_422(client, super_headers):
 
 
 # ---------------------------------------------------------------------------
+# حركة الطلاب بين الأركان (قسم 3.1b) — corner-journey
+# ---------------------------------------------------------------------------
+
+# الركن = كلية (حجز جولة أو مسحة) + قسم اتحاد + قسم ترفيه.
+# الانتقالات بتتبني على المسحات فقط وبنفس اليوم.
+_JOURNEY_PATH = "/admin/dashboard/corner-journey"
+
+
+def _journey(client, headers, day="all"):
+    resp = client.get(f"{_JOURNEY_PATH}?day={day}", headers=headers)
+    assert resp.status_code == 200
+    return resp.json()
+
+
+def _buckets(body):
+    return {item["bucket"]: item["count"] for item in body["distribution"]}
+
+
+def _bucket_labels(body):
+    return [item["label"] for item in body["distribution"]]
+
+
+def _pair_labels(body, key):
+    return [(item["label"], item["count"]) for item in body[key]]
+
+
+def _seed_corner_journey(db):
+    """
+    سيناريو مشترك للاختبارات:
+      s1 — زار الآداب (حجز + مسحة 10:00) ثم الركن المركزي (11:00) يوم الأربعاء
+      s2 — زار الهندسة المعلوماتية (10:00) ثم قسم الترفيه (12:00) يوم الخميس
+      s3 — ندوة فقط يوم الأربعاء
+      s4 — ما سجّل شي (ما بينحسب)
+      s5 — حجز آداب + مسحة مركزي (حجز بلا مسحة: زاوية بدون انتقال)
+      s6 — مسحة آداب الأربعاء 10:00 + مسحة مركزي الخميس 10:00 (ركنان، بلا انتقال)
+      s7 — مسحة موسيقا + مسحة مركزي (توحيد: زاوية وحدة)
+      s8 — مسحة طب + مسحة صيدلة (توحيد: زاوية وحدة)
+    """
+    students = {code: _make_student(db, code) for code in
+                ("R-0101", "R-0102", "R-0103", "R-0104", "R-0105", "R-0106", "R-0107", "R-0108")}
+    s1, s2, s3, s4, s5, s6, s7, s8 = (students[code] for code in
+                                       ("R-0101", "R-0102", "R-0103", "R-0104",
+                                        "R-0105", "R-0106", "R-0107", "R-0108"))
+
+    db.add_all([
+        # s1: زاويتان مرتبتان بالزمن (انتقال مباشر آداب ← مركزي)
+        _tour_booking(db, s1, "wed", Faculty.arts, hour=9),
+        _checkin_for_day(db, s1, ActivityType.tour, "wed", hour=10, college=Faculty.arts),
+        _checkin_for_day(db, s1, ActivityType.union, "wed", hour=11,
+                         union_section=UnionSection.central),
+        # s2: زاويتان يوم الخميس (انتقال معلوماتية ← ترفيه)
+        _checkin_for_day(db, s2, ActivityType.tour, "thu", hour=10,
+                         college=Faculty.informatics),
+        _checkin_for_day(db, s2, ActivityType.game, "thu", hour=12),
+        # s3: ندوة فقط — عمود "ندوة فقط"
+        _checkin_for_day(db, s3, ActivityType.lecture, "wed", hour=9,
+                         lecture_name=Lecture.lecture_1),
+        # s5: حجز بلا مسحة — زاوية بدون انتقال (والحجز وحده ما بيعمل انتقال)
+        _tour_booking(db, s5, "wed", Faculty.arts, hour=8),
+        _checkin_for_day(db, s5, ActivityType.union, "wed", hour=13,
+                         union_section=UnionSection.central),
+        # s6: ركنان بيومين مختلفين — ما في انتقال بينهم
+        _checkin_for_day(db, s6, ActivityType.tour, "wed", hour=10, college=Faculty.arts),
+        _checkin_for_day(db, s6, ActivityType.union, "thu", hour=10,
+                         union_section=UnionSection.central),
+        # s7: الموسيقا دُمجت بالركن المركزي — زاوية وحدة لا زاويتين
+        _checkin_for_day(db, s7, ActivityType.tour, "sat", hour=10, college=Faculty.music),
+        _checkin_for_day(db, s7, ActivityType.union, "sat", hour=11,
+                         union_section=UnionSection.central),
+        # s8: الطب والصيدلة دُمجوا بالمجمع الطبي — زاوية وحدة
+        _checkin_for_day(db, s8, ActivityType.tour, "sat", hour=10, college=Faculty.medicine),
+        _checkin_for_day(db, s8, ActivityType.tour, "sat", hour=11, college=Faculty.pharmacy),
+    ])
+    db.commit()
+    return {"s1": s1, "s2": s2, "s3": s3, "s4": s4, "s5": s5, "s6": s6, "s7": s7, "s8": s8}
+
+
+def test_corner_journey_distribution_buckets(db, client, super_headers):
+    _seed_corner_journey(db)
+    body = _journey(client, super_headers)
+
+    # ترتيب الأعمدة: ركن واحد، ركنان، 3، 4، 5 فأكثر، ندوة فقط
+    assert _bucket_labels(body) == [
+        "ركن واحد", "ركنان", "3 أركان", "4 أركان", "5 أركان فأكثر", "ندوة فقط",
+    ]
+    buckets = _buckets(body)
+    # s7 و s8 كل واحد زاوية وحدة بعد التوحيد؛ s4 ما سجّل شي
+    assert buckets[1] == 2
+    # s1, s2, s5, s6 — كلهم ركنان
+    assert buckets[2] == 4
+    assert buckets[3] == buckets[4] == buckets[5] == 0
+    # s3: ندوة بلا ركن
+    assert buckets[0] == 1
+    # s4 ما بينحسب — مجموع الأعمدة 7 بدونه
+    assert body["total_students"] == 7
+    assert body["multi_corner_students"] == 4
+
+
+def test_corner_journey_lecture_only_excludes_corner_visitors(db, client, super_headers):
+    """من عنده ندوة وركن ما بينحسب بعمود «ندوة فقط»."""
+    both = _make_student(db, "R-0109")
+    db.add_all([
+        _checkin_for_day(db, both, ActivityType.lecture, "wed", hour=9,
+                         lecture_name=Lecture.lecture_1),
+        _checkin_for_day(db, both, ActivityType.tour, "wed", hour=10,
+                         college=Faculty.arts),
+    ])
+    db.commit()
+
+    body = _journey(client, super_headers)
+    assert _buckets(body)[0] == 0
+    assert _buckets(body)[1] == 1
+
+
+def test_corner_journey_merges_music_and_medical_colleges(db, client, super_headers):
+    _seed_corner_journey(db)
+    body = _journey(client, super_headers, day="sat")
+
+    assert _buckets(body)[1] == 2  # s7 (موسيقا+مركزي) و s8 (طب+صيدلة) زاوية وحدة كل واحد
+    # ما في زوج "الموسيقا + central" ولا "الطب + الصيدلة" — التوحی قبل التجميع
+    labels = [label for label, _count in _pair_labels(body, "pairs")]
+    assert all("الموسيقى" not in label for label in labels)
+    assert all("الصيدلة" not in label for label in labels)
+
+
+def test_corner_journey_pairs_use_distinct_corners(db, client, super_headers):
+    _seed_corner_journey(db)
+    body = _journey(client, super_headers)
+
+    # s1 و s5 زاروا الآداب + المركزي (s1 بمسحة، s5 بحجز بلا مسحة) ⇒ زوج بعدّ 3
+    # مع s6 (ركن من يوم وزاوية من يوم ثاني — تراكمي بـ all)
+    assert _pair_labels(body, "pairs")[0] == (
+        "كلية الآداب والعلوم الإنسانية + الركن المركزي",
+        3,
+    )
+    # s2: هندسة المعلوماتية + قسم الترفيه
+    assert ("كلية الهندسة المعلوماتية + قسم الترفيه", 1) in _pair_labels(body, "pairs")
+    # s5 عنده زاوية واحدة بالمسحة (المركزي) والحجز ما بيعمل انتقال
+    assert body["pairs"][0]["source"] == "c:arts"
+    assert body["pairs"][0]["target"] == "u:central"
+
+
+def test_corner_journey_transitions_are_direct_and_same_day(db, client, super_headers):
+    _seed_corner_journey(db)
+    body = _journey(client, super_headers)
+
+    assert _pair_labels(body, "transitions") == [
+        ("من كلية الآداب والعلوم الإنسانية إلى الركن المركزي", 1),  # s1
+        ("من كلية الهندسة المعلوماتية إلى قسم الترفيه", 1),  # s2
+    ]
+    assert body["total_transitions"] == 2
+
+
+def test_corner_journey_no_transition_across_days(db, client, super_headers):
+    """سنة: زار الآداب الأربعاء والمركزي الخميس — انتقال عبر يومين مستحيل."""
+    student = _make_student(db, "R-0112")
+    db.add_all([
+        _checkin_for_day(db, student, ActivityType.tour, "wed", hour=10, college=Faculty.arts),
+        _checkin_for_day(db, student, ActivityType.union, "thu", hour=10,
+                         union_section=UnionSection.central),
+    ])
+    db.commit()
+
+    body = _journey(client, super_headers)
+    # الركنين موجودين (تراكمي) والزوج موجود…
+    assert _buckets(body)[2] == 1
+    assert _pair_labels(body, "pairs") == [
+        ("كلية الآداب والعلوم الإنسانية + الركن المركزي", 1)
+    ]
+    # …بس ما في انتقال، لأن مسحتين بيومين مختلفين
+    assert body["transitions"] == []
+    assert body["total_transitions"] == 0
+
+
+def test_corner_journey_booking_alone_creates_no_transition(db, client, super_headers):
+    """حجز الجولة ما عندو وقت زيارة — ما بيولّد انتقال."""
+    student = _make_student(db, "R-0110")
+    db.add_all([
+        _tour_booking(db, student, "wed", Faculty.arts, hour=9),
+        _checkin_for_day(db, student, ActivityType.union, "wed", hour=10,
+                         union_section=UnionSection.major_guide),
+    ])
+    db.commit()
+
+    body = _journey(client, super_headers)
+    assert body["total_transitions"] == 0
+    # بس بالزاويتين counted
+    assert _buckets(body)[2] == 1
+    assert _pair_labels(body, "pairs") == [
+        ("كلية الآداب والعلوم الإنسانية + دليل التخصص", 1)
+    ]
+
+
+def test_corner_journey_day_filter(db, client, super_headers):
+    _seed_corner_journey(db)
+
+    wed = _journey(client, super_headers, day="wed")
+    thu = _journey(client, super_headers, day="thu")
+    sat = _journey(client, super_headers, day="sat")
+
+    # s6 عنده ركن بالأربعاء (الآداب) وركن بالخميس (المركزي)
+    assert _buckets(wed)[2] == 2  # s1, s5
+    assert _buckets(wed)[1] == 1  # s6
+    assert _buckets(wed)[0] == 1  # s3 ندوة فقط
+    assert _buckets(thu)[2] == 1  # s2
+    assert _buckets(thu)[1] == 1  # s6 الركن الثاني
+    assert _buckets(sat)[1] == 2  # s7, s8 بعد التوحيد
+
+    # الانتقالات تخص اليوم: s1 (أربعاء) و s2 (خميس)
+    assert wed["total_transitions"] == 1
+    assert thu["total_transitions"] == 1
+    assert sat["total_transitions"] == 0
+    assert _pair_labels(wed, "transitions")[0][0].startswith("من كلية الآداب")
+    assert _pair_labels(thu, "transitions")[0][0].startswith("من كلية الهندسة المعلوماتية")
+
+
+def test_corner_journey_all_equals_sum_of_days(db, client, super_headers):
+    """'all' محصور بأيام الفعالية — الانتقالات بتتجميع بنفسها لكل يوم."""
+    _seed_corner_journey(db)
+
+    everything = _journey(client, super_headers, day="all")
+    per_day = [_journey(client, super_headers, day=key) for key in ("wed", "thu", "sat")]
+
+    assert everything["total_transitions"] == sum(d["total_transitions"] for d in per_day)
+    assert _pair_labels(everything, "transitions") == [
+        ("من كلية الآداب والعلوم الإنسانية إلى الركن المركزي", 1),
+        ("من كلية الهندسة المعلوماتية إلى قسم الترفيه", 1),
+    ]
+
+
+def test_corner_journey_all_merges_corners_across_days(db, client, super_headers):
+    """
+    'all' تراكمي على الزوايا: s6 زار الآداب الأربعاء والمركزي الخميس، فبيصير
+    عنده ركنين محسوبين بوحدة (على عكس جمع عدّاد الأيام، لأن s6 بينحسب مرتين
+    هناك — مرة لكل يوم). فالتوزيع بيُبنى على البُعد الشخصي مش اليوم.
+    """
+    _seed_corner_journey(db)
+
+    everything = _journey(client, super_headers, day="all")
+    wed = _journey(client, super_headers, day="wed")
+    thu = _journey(client, super_headers, day="thu")
+
+    assert everything["total_students"] == 7
+    assert _buckets(everything)[2] == 4
+    # s6 ضمن ركنين بـ all، بس بركن واحد بكل يوم
+    assert _buckets(wed)[1] + _buckets(thu)[1] >= 2
+
+
+def test_corner_journey_ignores_scans_outside_event_window(db, client, super_headers):
+    """مسحة إدخال يدوي الساعة 18:00 برا نافذة الفعالية [08:00, 16:00) بتتجاهل."""
+    student = _make_student(db, "R-0111")
+    db.add_all([
+        _checkin_for_day(db, student, ActivityType.tour, "wed", hour=18,
+                         college=Faculty.arts),
+        _checkin_for_day(db, student, ActivityType.union, "wed", hour=19,
+                         union_section=UnionSection.central),
+    ])
+    db.commit()
+
+    body = _journey(client, super_headers)
+    assert body["total_students"] == 0
+    assert body["total_transitions"] == 0
+    assert all(item["count"] == 0 for item in body["distribution"])
+    assert body["pairs"] == []
+    assert body["transitions"] == []
+
+
+def test_corner_journey_empty_when_no_data(db, client, super_headers):
+    body = _journey(client, super_headers)
+
+    assert body["day"] == "all"
+    assert body["total_students"] == 0
+    assert body["multi_corner_students"] == 0
+    assert body["total_transitions"] == 0
+    assert [item["count"] for item in body["distribution"]] == [0] * 6
+    assert body["pairs"] == []
+    assert body["transitions"] == []
+    assert body["generated_at"]
+
+
+def test_corner_journey_invalid_day_422(client, super_headers):
+    resp = client.get(f"{_JOURNEY_PATH}?day=bogus", headers=super_headers)
+    assert resp.status_code == 422
+
+
+# ---------------------------------------------------------------------------
 # صلاحيات — 403 لكل الأدوار غير super_admin
 # ---------------------------------------------------------------------------
 
@@ -573,6 +860,7 @@ _ADMIN_V2_ENDPOINTS = [
     "/admin/dashboard/presence",
     "/admin/dashboard/peak-hours",
     "/admin/dashboard/top-students?metric=lectures",
+    "/admin/dashboard/corner-journey?day=wed",
 ]
 
 

@@ -15,7 +15,8 @@
   الاستجابة بالكامل بدل ما يترك فاضي بدون تفسير.
 """
 
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
+from itertools import combinations
 
 from sqlalchemy import Date, Time, and_, case, cast, func, or_
 from sqlalchemy.orm import Session
@@ -1080,3 +1081,294 @@ def guide_insights(db: Session, day: str) -> dict:
 def _round_seconds(value: float | None) -> float | None:
     """يقرّب المدّة لثانية وحدة (و null إذا ما في بيانات محسوبة)."""
     return None if value is None else round(float(value), 1)
+
+
+# ---------------------------------------------------------------------------
+# حركة الطلاب بين الأركان (قسم 3.1b) — corner-journey
+# ---------------------------------------------------------------------------
+#
+# الركن = كلية (حجز جولة أو مسحة جولة/استشارة) أو قسم اتحاد أو قسم ترفيه.
+# البوابة (campus_entry) والندوة (lecture) ما بتعتبر أركان.
+#
+# التوزيع والأزواج يبنيان على الزوايا كاملة (حجز أو مسحة). الانتقالات بتتبني
+# على المسحات بس، لأن الحجز ما عندو وقت زيارة حقيقي: الطالب بيحجز عدة أركان
+# بنفس اللحظة فبيطلع ترتيب وهمي. وآخر مسحة لكل ركن هي وقت الرتّب اللي بياخدها،
+# والجوار بالترتيب = انتقال مباشر (انتقال عبر يومين مستحيل لأن التجميع بيعمل
+# لنفس اليوم بس).
+
+# التسميات العربية للكليات — نفس نصوص src/api/faculties.js بالفرونت
+# (FACULTY_OPTIONS). لازم تنحاذى معه؛ اللوحة نفسها بتعرّف نسخة موازية
+# (COLLEGE_VISIT_LABELS) بنفس النصوص.
+_FACULTY_LABELS: dict[Faculty, str] = {
+    Faculty.medicine: "كلية الطب البشري",
+    Faculty.dentistry: "المجمع الطبي",
+    Faculty.pharmacy: "كلية الصيدلة",
+    Faculty.health_sciences: "كلية العلوم الصحية",
+    Faculty.informatics: "كلية الهندسة المعلوماتية",
+    Faculty.civil_engineering: "كلية الهندسة المدنية",
+    Faculty.architecture: "كلية الهندسة المعمارية",
+    Faculty.agriculture: "كلية الهندسة الزراعية",
+    Faculty.electrical_mechanical: "كلية الهندسة الكهربائية والميكانيكية",
+    Faculty.chemical_food: "كلية الهندسة الكيميائية والغذائية",
+    Faculty.economics: "كلية الاقتصاد",
+    Faculty.tourism: "كلية السياحة",
+    Faculty.music: "كلية الموسيقى",
+    Faculty.arts: "كلية الآداب والعلوم الإنسانية",
+    Faculty.education: "كلية التربية",
+    Faculty.sciences: "كلية العلوم",
+    Faculty.applied: "الكلية التطبيقية",
+    Faculty.law: "كلية الحقوق",
+    Faculty.institute_agriculture: "معهد تقاني زراعي",
+    Faculty.institute_desert_affairs: "معهد تقاني لشؤون البادية والتصحر",
+    Faculty.institute_engineering: "معهد تقاني هندسي",
+    Faculty.institute_health: "معهد تقاني صحي",
+    Faculty.institute_dentistry: "معهد تقاني طب اسنان",
+    Faculty.institute_applied_industries: "معهد تقاني صناعات تطبيقية",
+    Faculty.institute_computer: "معهد تقاني حاسوب",
+}
+
+_GAME_CORNER_KEY = "g:game"
+_GAME_CORNER_LABEL = "قسم الترفيه"
+
+# أعمدة التوزيع بترتيب العرض: ركن واحد، ركنان، 3، 4، 5 فأكثر، ثم ندوة فقط.
+_DISTRIBUTION_BUCKETS: tuple[tuple[int, str], ...] = (
+    (1, "ركن واحد"),
+    (2, "ركنان"),
+    (3, "3 أركان"),
+    (4, "4 أركان"),
+    (5, "5 أركان فأكثر"),
+    (0, "ندوة فقط"),
+)
+
+# سقف الصفوف المرجعة لكل جدول — بيمنع رد بحجم كامل 25×24 زوج/انتقال.
+_CORNER_ITEMS_LIMIT = 60
+
+
+def _corner_key(college: Faculty) -> str:
+    """مفتاح ركن لكلية — الموسيقا دُمجت بالركن المركزي، والطب والصيدلة بالمجمع."""
+    if college == Faculty.music:
+        return "u:central"
+    if college in (Faculty.medicine, Faculty.pharmacy):
+        return "c:dentistry"
+    return f"c:{college.value}"
+
+
+def corner_label(key: str) -> str:
+    """التسمية العربية لركن بمفتاحه: 'c:arts' / 'u:central' / 'g:game'."""
+    prefix, _, name = key.partition(":")
+    if prefix == "u":
+        try:
+            return checkin_service.union_section_label(UnionSection(name))
+        except ValueError:
+            return name
+    if prefix == "g":
+        return _GAME_CORNER_LABEL
+    try:
+        return _FACULTY_LABELS[Faculty(name)]
+    except (KeyError, ValueError):
+        return name
+
+
+def _event_day_conditions(column) -> list:
+    """فلاتر المدى: يوم محدد [start, end)، و'all' محصور بأيام الفعالية الثلاثة.
+
+    حصر 'all' بأيام الفعالية بيخلي مجموع فلاتر الأيام يساوي رقم 'all' بالضبط،
+    وبيشيل أي بيانات قديمة برا الفعالية من حساب الحركة.
+    """
+    return [cast(column, Date).in_(list(EVENT_DAYS.values()))]
+
+
+def _day_conditions(column, rng: tuple[datetime, datetime] | None) -> list:
+    """فلاتر المدى ليوم محدد أو 'all' المحصور بأيام الفعالية."""
+    if rng is None:
+        return _event_day_conditions(column)
+    start, end = rng
+    return [column >= start, column < end]
+
+
+def _window_conditions(column) -> list:
+    """نافذة وقت الفعالية [08:00, 16:00) — بتتجاهل المسحات براها."""
+    time_col = cast(column, Time)
+    return [time_col >= EVENT_WINDOW_START, time_col < EVENT_WINDOW_END]
+
+
+def _corner_touches(
+    db: Session, rng: tuple[datetime, datetime] | None
+) -> tuple[dict[int, dict[str, dict]], dict[int, list[tuple[str, datetime, date]]]]:
+    """
+    زوايا كل طالب ضمن المدى — رجع قيمتين:
+
+    1) touches: {student_id: {corner_key: {"last_scan": dt|None}}}
+       الزاوية بتدخل بحجز جولة و/أو مسحة. last_scan آخر مسحة ضمن النافذة،
+       وNone إذا ما في مسحة (حجز بس).
+    2) scans: [(student_id, corner_key, scanned_at, day)] لكل مسحة ركن
+       (اتحاد/ترفيه/كليات) — للتوزيع والانتقالات. اليوم مع كل مسحة
+       لأن الانتقالات ما بتعدّي حدود اليوم.
+    """
+    touches: dict[int, dict[str, dict]] = {}
+    scans: dict[int, list[tuple[str, datetime, date]]] = {}
+
+    def _touch(student_id: int, key: str) -> dict:
+        return touches.setdefault(student_id, {}).setdefault(key, {"last_scan": None})
+
+    # 1) حجوزات الجولة — تثبت الزاوية (حتى لو الطالب ما وصل)، بس ما عندها
+    #    وقت زيارة، فبتضل last_scan = None.
+    booking_rows = (
+        db.query(Booking.student_id, Booking.college, func.min(Booking.booked_at))
+        .filter(
+            Booking.booking_type == BookingType.tour,
+            Booking.college.is_not(None),
+            *_day_conditions(Booking.booked_at, rng),
+        )
+        .group_by(Booking.student_id, Booking.college)
+        .all()
+    )
+    for student_id, college, _booked_at in booking_rows:
+        _touch(student_id, _corner_key(college))
+
+    # 2) مسحات الكليات (جولة أو استشارة) + الاتحاد + الترفيه.
+    college_rows = (
+        db.query(Checkin.student_id, Checkin.college, Checkin.checked_in_at)
+        .filter(
+            Checkin.college.is_not(None),
+            *_day_conditions(Checkin.checked_in_at, rng),
+            *_window_conditions(Checkin.checked_in_at),
+        )
+        .all()
+    )
+    for student_id, college, at in college_rows:
+        key = _corner_key(college)
+        entry = _touch(student_id, key)
+        if entry["last_scan"] is None or at > entry["last_scan"]:
+            entry["last_scan"] = at
+        scans.setdefault(student_id, []).append((key, at, at.date()))
+
+    # قسم الترفيه (game) ما إلو union_section — بيعرف بنوع النشاط لحاله.
+    union_game_rows = (
+        db.query(Checkin.student_id, Checkin.activity_type, Checkin.union_section, Checkin.checked_in_at)
+        .filter(
+            or_(
+                and_(
+                    Checkin.activity_type == ActivityType.union,
+                    Checkin.union_section.is_not(None),
+                ),
+                Checkin.activity_type == ActivityType.game,
+            ),
+            *_day_conditions(Checkin.checked_in_at, rng),
+            *_window_conditions(Checkin.checked_in_at),
+        )
+        .all()
+    )
+    for student_id, activity_type, section, at in union_game_rows:
+        key = (
+            _GAME_CORNER_KEY
+            if activity_type == ActivityType.game
+            else f"u:{section.value}"
+        )
+        entry = _touch(student_id, key)
+        if entry["last_scan"] is None or at > entry["last_scan"]:
+            entry["last_scan"] = at
+        scans.setdefault(student_id, []).append((key, at, at.date()))
+
+    return touches, scans
+
+
+def _lecture_students(db: Session, rng: tuple[datetime, datetime] | None) -> set[int]:
+    """طلاب عندهم مسحة ندوة (lecture) ضمن المدى — لعمود «ندوة فقط»."""
+    rows = (
+        db.query(Checkin.student_id)
+        .filter(
+            Checkin.activity_type == ActivityType.lecture,
+            *_day_conditions(Checkin.checked_in_at, rng),
+            *_window_conditions(Checkin.checked_in_at),
+        )
+        .distinct()
+        .all()
+    )
+    return {student_id for (student_id,) in rows}
+
+
+def _counter_rows(counter: dict[tuple[str, str], int], template: str) -> list[dict]:
+    """يحوّل Counter لمصفوفة رد مرتّبة تنازلياً بحتمية، ومحدودة بالسقف."""
+    ordered = sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))
+    return [
+        {
+            "source": source,
+            "target": target,
+            "label": template.format(
+                corner_label(source), corner_label(target)
+            ),
+            "count": count,
+        }
+        for (source, target), count in ordered[:_CORNER_ITEMS_LIMIT]
+    ]
+
+
+def corner_journey_for_day(db: Session, day: str) -> dict:
+    """
+    حركة الطلاب بين أركان الفعالية: التوزيع، أكثر الأزواج المشتركة، وأكثر
+    الانتقالات المباشرة.
+
+    'all' محصور بأيام الفعالية الثلاثة (تراكمي على الأيام)، ويوم محدد بيقصّ
+    على نطاق اليوم. الانتقالات محسوبة على المسحات فقط وبنفس اليوم، فمجموع
+    فلاتر الأيام يساوي رقم 'all' بالضبط.
+    """
+    rng = _resolve_day_range(day)
+
+    def _compute() -> dict:
+        touches, scans = _corner_touches(db, rng)
+
+        # توزيع: عدد الزوايا المميّزة لكل طالب بضمن المدى
+        buckets: dict[int, int] = {bucket: 0 for bucket, _ in _DISTRIBUTION_BUCKETS}
+        for student_corners in touches.values():
+            corners_n = len(student_corners)
+            buckets[min(corners_n, 5) if corners_n else 0] += 1
+
+        # «ندوة فقط» = عندهم ندوة وما زاروا ولا ركن ضمن المدى
+        for student_id in _lecture_students(db, rng):
+            if student_id not in touches:
+                buckets[0] += 1
+
+        # أزواج مشتركة: كل توليفتين من زوايا الطالب المميّزة (مش متسلسلة)
+        pairs: dict[tuple[str, str], int] = {}
+        for student_corners in touches.values():
+            for source, target in combinations(sorted(student_corners), 2):
+                key = (source, target)
+                pairs[key] = pairs.get(key, 0) + 1
+
+        # انتقالات مباشرة: نرتّب زوايا المسحة لكل (طالب، يوم) بآخر مسحة
+        # لكل ركن، والجوار بالترتيب = انتقال مباشر
+        transitions: dict[tuple[str, str], int] = {}
+        for student_scans in scans.values():
+            by_day: dict[date, dict[str, datetime]] = {}
+            for key, at, at_date in student_scans:
+                by_day.setdefault(at_date, {}).setdefault(key, at)
+            for day_corners in by_day.values():
+                chain = [
+                    key
+                    for key, _ in sorted(
+                        day_corners.items(), key=lambda kv: (kv[1], kv[0])
+                    )
+                ]
+                for source, target in zip(chain, chain[1:]):
+                    key = (source, target)
+                    transitions[key] = transitions.get(key, 0) + 1
+
+        multi_corner_students = sum(
+            buckets[bucket] for bucket in (2, 3, 4, 5)
+        )
+        return {
+            "total_students": sum(buckets.values()),
+            "multi_corner_students": multi_corner_students,
+            "distribution": [
+                {"bucket": bucket, "label": label, "count": buckets[bucket]}
+                for bucket, label in _DISTRIBUTION_BUCKETS
+            ],
+            "pairs": _counter_rows(pairs, "{} + {}"),
+            "total_transitions": sum(transitions.values()),
+            "transitions": _counter_rows(transitions, "من {} إلى {}"),
+        }
+
+    return cache.cached_call(
+        f"dashboard:corner-journey:{day}", _CACHE_TTL_SECONDS, _compute
+    )

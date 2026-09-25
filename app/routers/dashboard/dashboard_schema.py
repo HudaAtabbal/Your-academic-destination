@@ -262,3 +262,39 @@ class GuideInsightsResponse(BaseModel):
     # عدد الزيارات اللي دخلت بالمتوسط (المدّة محسوبة و فوق الحد الأدنى).
     measured_visits: int
     generated_at: datetime
+
+
+class CornerBucketItem(BaseModel):
+    """عمود بتوزيع الطلاب حسب عدد الأركان اللي زاروها."""
+
+    # 1..4 ركن بالضبط، 5 = "5 أركان فأكثر"، 0 = "ندوة فقط" (زاروا ولا ركن).
+    bucket: int
+    label: str
+    count: int
+
+
+class CornerPairItem(BaseModel):
+    """صف بجدول: زوج أركان (مشترك) أو انتقال مباشر بينهما."""
+
+    # مفتاح الركن: "c:<faculty>" أو "u:<section>" أو "g:game".
+    source: str
+    target: str
+    # التسمية العربية الجاهزة للعرض ("... + ..." للأزواج، "من ... إلى ..." للانتقالات).
+    label: str
+    count: int
+
+
+class CornerJourneyResponse(BaseModel):
+    """حركة الطلاب بين أركان الفعالية — التوزيع، الأزواج المشتركة، الانتقالات."""
+
+    day: EventDay
+    # عدد الطلاب اللي عندهم ركن واحد على الأقل أو ندوة واحدة على الأقل.
+    total_students: int
+    # عدد الطلاب اللي زاروا ركنين فأكثر (مجموع الأعمدة 2..5).
+    multi_corner_students: int
+    distribution: list[CornerBucketItem]
+    pairs: list[CornerPairItem]
+    # مجموع أعداد صفوف الانتقالات (انتقال واحد محسوب لكل زوج متجاور).
+    total_transitions: int
+    transitions: list[CornerPairItem]
+    generated_at: datetime

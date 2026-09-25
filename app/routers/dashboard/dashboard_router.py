@@ -18,6 +18,9 @@ from app.routers.dashboard.dashboard_schema import (
     CertificateCountItem,
     CheckinDeleteResponse,
     CollegeVisitItem,
+    CornerBucketItem,
+    CornerJourneyResponse,
+    CornerPairItem,
     DashboardStatsResponse,
     DayCollegeVisitsResponse,
     DayCountResponse,
@@ -285,3 +288,11 @@ def guide_insights(
 ) -> GuideInsightsResponse:
     data = dashboard_service.guide_insights(db, day)
     return GuideInsightsResponse(day=day, generated_at=time_utils.now_naive(), **data)
+
+
+@router.get("/corner-journey", response_model=CornerJourneyResponse)
+def corner_journey(
+    day: EventDay = "all", db: Session = Depends(get_db)
+) -> CornerJourneyResponse:
+    data = dashboard_service.corner_journey_for_day(db, day)
+    return CornerJourneyResponse(day=day, generated_at=time_utils.now_naive(), **data)
