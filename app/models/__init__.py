@@ -30,7 +30,6 @@ from app.models.account import Account
 from app.models.otp import OTP
 from app.models.sms_job import SmsJob
 from app.models.sms_heartbeat import SmsHeartbeat
-from app.models.page_visit import PageVisit
 
 __all__ = [
     "Student",
@@ -41,7 +40,6 @@ __all__ = [
     "OTP",
     "SmsJob",
     "SmsHeartbeat",
-    "PageVisit",
     "VerificationStatus",
     "RegistrationType",
     "StudentStatus",

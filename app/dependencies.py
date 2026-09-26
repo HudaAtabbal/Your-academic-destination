@@ -205,34 +205,3 @@ def rate_limit_public_lookup(request: Request) -> None:
             stale = [ip for ip, ts in _request_log.items() if not ts or ts[-1] < cutoff]
             for ip in stale:
                 del _request_log[ip]
-
-
-# حد على تسجيلات تتبّع الصفحات، بمفتاح visitor_id (معرّف المتصفح الثابت) —
-# مش بالـ IP أبداً: كل طلبة الجامعة على نفس شبكة الواي-فاي/مشغّل الشبكة،
-# فحدّ بالـ IP كان رح يوقف التطبيق كله على campus Wi-Fi.
-# الحد سخي (30 بداية بالساعة) لأنه تتبّع ولا يحمل أي حساسية.
-_visit_log: dict[str, list[float]] = defaultdict(list)
-_RATE_LIMIT_PAGE_VISIT_MAX = 30
-_RATE_LIMIT_PAGE_VISIT_WINDOW_SECONDS = 3600
-
-
-def rate_limit_page_visit(visitor_id: str, max_requests: int | None = None) -> None:
-    if max_requests is None:
-        max_requests = _RATE_LIMIT_PAGE_VISIT_MAX
-    key = f"page-visit:{visitor_id}"
-    now = time.monotonic()
-    with _rate_limit_lock:
-        timestamps = _visit_log[key]
-        cutoff = now - _RATE_LIMIT_PAGE_VISIT_WINDOW_SECONDS
-        while timestamps and timestamps[0] < cutoff:
-            timestamps.pop(0)
-        if len(timestamps) >= max_requests:
-            raise too_many_requests()
-        timestamps.append(now)
-
-        # نفس حماية النمو بلا حدود اللي فوق — المتصفحات بتجيب مفاتيح جديدة
-        # كل ما زائر جديد فتح الصفحة.
-        if len(_visit_log) > 10_000:
-            stale = [vid for vid, ts in _visit_log.items() if not ts or ts[-1] < cutoff]
-            for vid in stale:
-                del _visit_log[vid]
