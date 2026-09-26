@@ -1,4 +1,4 @@
-﻿"""
+"""
 منطق العمل لإحصائيات لوحة المدير العام — راجع قسم 9 بملف wijhatak_api_contract.md.
 
 ملاحظات القرارات المحسومة:
@@ -29,6 +29,7 @@ from app.event_days import (
     EVENT_WINDOW_START,
     day_range,
 )
+from app.faculty_labels import faculty_label
 from app.models import (
     ActivityType,
     Booking,
@@ -914,8 +915,8 @@ def _top_students_rows(db: Session, metric: str) -> list[dict]:
         ]
     if metric == "tours":
         # عدد حجوزات الجولة لكل طالب (Booking بكتغوري tour) — المسحات ما
-        # بتدخل هون. حجز الجولة إلزامية مرة وحدة لكل كلية، فالعدد يساوي عدد
-        # الكليات اللي جالها الطالب.
+        # بتدخل هون. الحجز مسموح مرة لكل كلية وبنفس اليوم، فالعدد = عدد
+        # الزيارات (نفس الكلية ممكن تتكرر بيوم تاني من أيام الفعالية).
         rows = (
             db.query(Booking.student_id, func.count(Booking.id))
             .filter(Booking.booking_type == BookingType.tour)
@@ -1096,37 +1097,8 @@ def _round_seconds(value: float | None) -> float | None:
 # والجوار بالترتيب = انتقال مباشر (انتقال عبر يومين مستحيل لأن التجميع بيعمل
 # لنفس اليوم بس).
 
-# التسميات العربية للكليات — نفس نصوص src/api/faculties.js بالفرونت
-# (FACULTY_OPTIONS). لازم تنحاذى معه؛ اللوحة نفسها بتعرّف نسخة موازية
-# (COLLEGE_VISIT_LABELS) بنفس النصوص.
-_FACULTY_LABELS: dict[Faculty, str] = {
-    Faculty.medicine: "كلية الطب البشري",
-    Faculty.dentistry: "المجمع الطبي",
-    Faculty.pharmacy: "كلية الصيدلة",
-    Faculty.health_sciences: "كلية العلوم الصحية",
-    Faculty.informatics: "كلية الهندسة المعلوماتية",
-    Faculty.civil_engineering: "كلية الهندسة المدنية",
-    Faculty.architecture: "كلية الهندسة المعمارية",
-    Faculty.agriculture: "كلية الهندسة الزراعية",
-    Faculty.electrical_mechanical: "كلية الهندسة الكهربائية والميكانيكية",
-    Faculty.chemical_food: "كلية الهندسة الكيميائية والغذائية",
-    Faculty.economics: "كلية الاقتصاد",
-    Faculty.tourism: "كلية السياحة",
-    Faculty.music: "كلية الموسيقى",
-    Faculty.arts: "كلية الآداب والعلوم الإنسانية",
-    Faculty.education: "كلية التربية",
-    Faculty.sciences: "كلية العلوم",
-    Faculty.applied: "الكلية التطبيقية",
-    Faculty.law: "كلية الحقوق",
-    Faculty.institute_agriculture: "معهد تقاني زراعي",
-    Faculty.institute_desert_affairs: "معهد تقاني لشؤون البادية والتصحر",
-    Faculty.institute_engineering: "معهد تقاني هندسي",
-    Faculty.institute_health: "معهد تقاني صحي",
-    Faculty.institute_dentistry: "معهد تقاني طب اسنان",
-    Faculty.institute_applied_industries: "معهد تقاني صناعات تطبيقية",
-    Faculty.institute_computer: "معهد تقاني حاسوب",
-}
-
+# التسميات العربية للكليات بملف app/faculty_labels.py (نفس نصوص src/api/faculties.js
+# بالفرونت — لازم تنحاذى معه).
 _GAME_CORNER_KEY = "g:game"
 _GAME_CORNER_LABEL = "قسم الترفيه"
 
@@ -1164,8 +1136,8 @@ def corner_label(key: str) -> str:
     if prefix == "g":
         return _GAME_CORNER_LABEL
     try:
-        return _FACULTY_LABELS[Faculty(name)]
-    except (KeyError, ValueError):
+        return faculty_label(Faculty(name))
+    except ValueError:
         return name
 
 

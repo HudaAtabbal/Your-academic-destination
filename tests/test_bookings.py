@@ -1,10 +1,12 @@
 """اختبارات الحجوزات (bookings) — زج جولة / استشارة."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi.testclient import TestClient
 
 import main as main_module
+from app import time_utils
+from app.models import Booking, BookingType, Faculty
 
 STUDENT = "R-9001"
 
@@ -48,6 +50,49 @@ def test_tour_booking_duplicate_409(
     resp = client.post("/bookings/tour", json={"unique_code": STUDENT}, headers=college_staff_headers)
     assert resp.status_code == 409
     assert resp.json()["error_code"] == "duplicate_booking"
+
+
+def test_tour_booking_duplicate_message_uses_arabic_college_name(
+    client, student_factory, students_admin_headers, college_staff_headers
+):
+    """رسالة التكرار بتعرض اسم الكلية العربي مش الرمز التقني (medicine)."""
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    assert (
+        client.post("/bookings/tour", json={"unique_code": STUDENT}, headers=college_staff_headers).status_code
+        == 201
+    )
+    resp = client.post("/bookings/tour", json={"unique_code": STUDENT}, headers=college_staff_headers)
+    assert resp.status_code == 409
+    message = resp.json()["message"]
+    assert "جولة كلية (كلية الطب البشري)" in message
+    assert "medicine" not in message
+
+
+def test_tour_booking_same_college_different_day_201(
+    client, db, student_factory, students_admin_headers, college_staff_headers
+):
+    """
+    نفس الكلية بيومين مختلفين = 201 بالمرة الثانية — القاعدة "مرة لكل كلية
+    باليوم" مش "مرة لكل كلية بطول الفعالية". حجز الأمبارح بينكتب مباشرة
+    بالـ DB، واليوم الحالي الطالب بيدخل من البوابة وبيحجز.
+    """
+    student = student_factory(STUDENT)
+    db.add(
+        Booking(
+            student_id=student.id,
+            booking_type=BookingType.tour,
+            college=Faculty.medicine,
+            booked_at=time_utils.today_start() - timedelta(hours=1),
+        )
+    )
+    db.commit()
+
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    assert (
+        client.post("/bookings/tour", json={"unique_code": STUDENT}, headers=college_staff_headers).status_code
+        == 201
+    )
 
 
 def test_tour_booking_unknown_code_404(client, students_admin_headers, college_staff_headers):
@@ -105,6 +150,32 @@ def test_consultation_booking_duplicate_409(
         == 201
     )
     resp = client.post("/bookings/consultation", json=payload, headers=college_staff_headers)
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "duplicate_booking"
+
+
+def test_consultation_booking_still_once_per_event(
+    client, db, student_factory, students_admin_headers, college_staff_headers
+):
+    """
+    الاستشارة ما تأثّرت بالDaily: حجز الأمبارح لسا يمنع حجز اليوم — القاعدة
+    "مرة وحدة طول الفعالية" (unique_consultation_booking بدون عمود تاريخ).
+    """
+    student = student_factory(STUDENT)
+    db.add(
+        Booking(
+            student_id=student.id,
+            booking_type=BookingType.consultation,
+            college=Faculty.medicine,
+            booked_at=time_utils.today_start() - timedelta(hours=1),
+        )
+    )
+    db.commit()
+
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    resp = client.post(
+        "/bookings/consultation", json={"unique_code": STUDENT}, headers=college_staff_headers
+    )
     assert resp.status_code == 409
     assert resp.json()["error_code"] == "duplicate_booking"
 

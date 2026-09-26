@@ -4,7 +4,8 @@
 
 القواعد المطبّقة:
 1) لازم يكون عند الطالب campus_entry مسبقاً قبل أي حجز.
-2) ما بينسمح حجز نفس الكلية مرتين (جولة)، ولا حجز استشارة مرتين.
+2) ما بينسمح حجز نفس الكلية مرتين بنفس اليوم (جولة) — وبإمكانه يرجع لها
+   بيوم تاني من أيام الفعالية. حجز الاستشارة مر وحدة وحدة طول الفعالية.
 """
 
 from datetime import datetime, timedelta
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app import time_utils
 from app.errors import duplicate_booking, missing_campus_entry, student_not_found
+from app.faculty_labels import faculty_label
 from app.models import Booking, BookingType, Checkin, ActivityType, Faculty, Student
 from app.student_lookup import get_student_or_raise
 
@@ -40,11 +42,20 @@ def _has_campus_entry(db: Session, student_id: int) -> bool:
 def _find_existing_booking(
     db: Session, student_id: int, booking_type: BookingType, college: Faculty | None = None
 ) -> Booking | None:
+    """
+    التكرار محسوب بنفس قاعدة الفهرس الفريد: جولة = (الطالب + الكلية + اليوم)،
+    فحجز نفس الكلية بيوم تاني مسموح. الاستشارة = مرة وحدة بالكامل (بدون تاريخ).
+    """
     query = db.query(Booking).filter(
         Booking.student_id == student_id, Booking.booking_type == booking_type
     )
     if booking_type == BookingType.tour:
-        query = query.filter(Booking.college == college)
+        today_start = time_utils.today_start()
+        query = query.filter(
+            Booking.college == college,
+            Booking.booked_at >= today_start,
+            Booking.booked_at < today_start + timedelta(days=1),
+        )
     return query.first()
 
 
@@ -57,7 +68,9 @@ def create_tour_booking(db: Session, unique_code: str, college: Faculty) -> tupl
     existing = _find_existing_booking(db, student.id, BookingType.tour, college=college)
     if existing is not None:
         raise duplicate_booking(
-            student.full_name or unique_code, unique_code, f"جولة كلية ({college.value})"
+            student.full_name or unique_code,
+            unique_code,
+            f"جولة كلية ({faculty_label(college)})",
         )
 
     booking = Booking(student_id=student.id, booking_type=BookingType.tour, college=college)

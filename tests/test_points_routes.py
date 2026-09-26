@@ -246,3 +246,23 @@ def test_points_tour_below_cap_not_capped(client, db, student_factory):
     assert body["total_points"] == 20
     assert body["today_tour_count"] == 2
     assert body["tours_capped_today"] is False
+
+
+def test_points_same_college_two_days_counts_both(client, db, student_factory):
+    """
+    نفس الكلية بيومين = نقطتين (10 + 10). الجولة صارت "مرة لكل كلية باليوم"،
+    وسقف 3 جولات يومي — فجولة يوم + جولة يوم تاني = 20 نقطة.
+    """
+    student_factory(CODE_A)
+    sid = _student_id(db, CODE_A)
+    now = datetime.now()
+
+    _insert_checkin(db, sid, ActivityType.tour, college=Faculty.medicine, at=now - timedelta(days=1))
+    _insert_checkin(db, sid, ActivityType.tour, college=Faculty.medicine, at=now)
+    _recalc(db, sid)
+
+    body = _get_points(client, CODE_A).json()
+    assert body["total_points"] == 20
+    assert body["today_tour_count"] == 1
+    assert body["tours_capped_today"] is False
+

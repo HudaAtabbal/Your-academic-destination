@@ -82,6 +82,26 @@ def _init_test_db():
                 "WHERE activity_type = 'union'"
             )
         )
+    # جولة الكلية: صارت "مرة لكل كلية وبنفس اليوم" (CAST(... AS DATE)) بعد ما كانت
+    # "مرة لكل كلية بطول الفعالية" — الفهرس القديم يُحذف لأن إعادة تعريف نفس الاسم
+    # تحتاج DROP على قاعدة موجودة. القيد أوسع، فالسجلات الموجودة بتلتزم فيه كلها.
+    with engine.begin() as conn:
+        conn.execute(text("DROP INDEX IF EXISTS unique_tour_booking"))
+        conn.execute(
+            text(
+                "CREATE UNIQUE INDEX unique_tour_booking "
+                "ON bookings (student_id, college, CAST(booked_at AS DATE)) "
+                "WHERE booking_type = 'tour'"
+            )
+        )
+        conn.execute(text("DROP INDEX IF EXISTS unique_tour_checkin"))
+        conn.execute(
+            text(
+                "CREATE UNIQUE INDEX unique_tour_checkin "
+                "ON checkins (student_id, college, CAST(checked_in_at AS DATE)) "
+                "WHERE activity_type = 'tour'"
+            )
+        )
     yield
 
 

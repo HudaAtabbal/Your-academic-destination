@@ -15,6 +15,36 @@
 from typing import Any
 from datetime import datetime
 
+from app import time_utils
+
+# أسماء أيام الأسبوع بالعربي — مفتاحها رقم اليوم حسب datetime.weekday()
+# (الاثنين=0 … الأحد=6). خريطة ثابتة بدل strftime("%A") لأن الأخير بيعتمد على
+# لغة السيرفر وبطلع أسماء إنجليزية على أغلب الأنظمة.
+_WEEKDAY_NAMES = {
+    0: "الاثنين",
+    1: "الثلاثاء",
+    2: "أربعاء",
+    3: "خميس",
+    4: "جمعة",
+    5: "سبت",
+    6: "أحد",
+}
+
+
+def _first_occurrence_phrase(first_occurred_at: datetime) -> str:
+    """
+    متى صار أول تسجيل: "الساعة HH:MM" لو اليوم، و"يوم أربعاء الساعة HH:MM" لو
+    من يوم سابق. بدون السنة لأن الفعالية بثلاثة أيام متقاربة.
+    """
+    time_str = first_occurred_at.strftime("%H:%M")
+    if time_utils.same_day(first_occurred_at, time_utils.now_naive()):
+        return f"الساعة {time_str}"
+    weekday = _WEEKDAY_NAMES.get(first_occurred_at.weekday())
+    if weekday is None:
+        return f"الساعة {time_str}"
+    return f"يوم {weekday} الساعة {time_str}"
+
+
 class AppError(Exception):
     def __init__(
         self,
@@ -90,11 +120,13 @@ def duplicate_checkin(
     activity_label: str,
     first_occurred_at: datetime,
     ) -> AppError:
-    time_str = first_occurred_at.strftime("%H:%M")
     return AppError(
         status_code=409,
         error_code="duplicate_checkin",
-        message=f"الطالب {student_name} سجّل {activity_label} مسبقاً الساعة {time_str}",
+        message=(
+            f"الطالب {student_name} سجّل {activity_label} مسبقاً "
+            f"{_first_occurrence_phrase(first_occurred_at)}"
+        ),
         details={
             "student_name": student_name,
             "unique_code": unique_code,

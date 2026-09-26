@@ -6,11 +6,15 @@ from fastapi.testclient import TestClient
 
 import main as main_module
 from app import time_utils
-from app.models import ActivityType, Checkin, College, Faculty, Lecture, Student, UnionSection
+from app.models import ActivityType, Booking, BookingType, Checkin, College, Faculty, Lecture, Student, UnionSection
 
 STUDENT = "R-9001"
 L1 = "lecture_1"
 L2 = "lecture_2"
+
+# أسماء أيام الأسبوع بالعربي — نسخة مستقلة عن خريطة التطبيق، عشان الاختبار
+# يتحقق من اسم اليوم الحقيقي مش من نفس المصدر يلي بيفحصه.
+_WEEKDAY_AR = ("الاثنين", "الثلاثاء", "أربعاء", "خميس", "جمعة", "سبت", "أحد")
 
 
 def _campus_entry(client, headers, code=STUDENT):
@@ -212,6 +216,155 @@ def test_tour_duplicate_same_college_409(
     resp = client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=college_staff_headers)
     assert resp.status_code == 409
     assert resp.json()["error_code"] == "duplicate_checkin"
+
+
+def test_tour_duplicate_today_message_has_time_only(
+    client, student_factory, students_admin_headers, college_staff_headers
+):
+    """
+    أول مسحة اليوم = نفس اليوم، فالرسالة بتذكر الوقت بس بدون اسم اليوم.
+    واسم الكلية بالعربي مش الرمز التقني.
+    """
+    student_factory(STUDENT)
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    assert _tour_booking(client, college_staff_headers).status_code == 201
+    assert (
+        client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=college_staff_headers).status_code
+        == 201
+    )
+    resp = client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=college_staff_headers)
+    assert resp.status_code == 409
+    message = resp.json()["message"]
+    assert "جولة كلية (كلية الطب البشري)" in message
+    assert "medicine" not in message
+    assert "الساعة" in message
+    assert " يوم " not in message
+
+
+def test_tour_same_college_different_day_201(
+    client, db, student_factory, students_admin_headers, college_staff_headers
+):
+    """
+    نفس الكلية بيومين مختلفين = 201 بالمرة الثانية —     القاعدة "مرة لكل كلية
+    باليوم" مش "مرة لكل كلية بطول الفعالية". حجز ومسحة الأمبارح بينكتبوا
+    مباشرة بالـ DB، واليوم الحالي الطالب بيدخل من البوابة وبيحجز وبيضح.
+    """
+    student = student_factory(STUDENT)
+    yesterday = time_utils.today_start() - timedelta(hours=1)
+    db.add(
+        Booking(
+            student_id=student.id,
+            booking_type=BookingType.tour,
+            college=Faculty.medicine,
+            booked_at=yesterday,
+        )
+    )
+    db.add(
+        Checkin(
+            student_id=student.id,
+            activity_type=ActivityType.tour,
+            college=Faculty.medicine,
+            checked_in_at=yesterday,
+        )
+    )
+    db.commit()
+
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    assert _tour_booking(client, college_staff_headers).status_code == 201
+    assert (
+        client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=college_staff_headers).status_code
+        == 201
+    )
+
+
+def test_tour_checkin_today_with_yesterday_booking_only_409(
+    client, db, student_factory, students_admin_headers, college_staff_headers
+):
+    """
+    حجز الأمبارح لنفس الكلية ما بيبرر مسحة اليوم — الحجز لازم يكون من اليوم
+    نفسه، وإلا 409 missing_booking.
+    """
+    student = student_factory(STUDENT)
+    db.add(
+        Booking(
+            student_id=student.id,
+            booking_type=BookingType.tour,
+            college=Faculty.medicine,
+            booked_at=time_utils.today_start() - timedelta(hours=1),
+        )
+    )
+    db.commit()
+
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    resp = client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=college_staff_headers)
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "missing_booking"
+
+
+def test_consultation_duplicate_other_day_message_mentions_weekday(
+    client, db, student_factory, students_admin_headers, college_staff_headers
+):
+    """
+    نشاط "مرة وحدة طول الفعالية" (الاستشارة) أول مسحة له كانت بيوم تاني،
+    فالرسالة بتذكر اسم اليوم العربي (أربعاء/خميس/سبت...) مع الوقت — مش وقت
+    لحاله. تكرار الجولة ما بيقدر يجرب هالشي لأن تكرارها صار يومي.
+    """
+    student = student_factory(STUDENT)
+    yesterday = time_utils.today_start() - timedelta(hours=2)
+    db.add(
+        Booking(
+            student_id=student.id,
+            booking_type=BookingType.consultation,
+            college=Faculty.medicine,
+            booked_at=yesterday,
+        )
+    )
+    db.add(
+        Checkin(
+            student_id=student.id,
+            activity_type=ActivityType.consultation,
+            college=Faculty.medicine,
+            checked_in_at=yesterday,
+        )
+    )
+    db.commit()
+
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    resp = client.post(
+        "/checkins/consultation", json={"unique_code": STUDENT}, headers=college_staff_headers
+    )
+    assert resp.status_code == 409
+    assert resp.json()["error_code"] == "duplicate_checkin"
+    message = resp.json()["message"]
+    weekday = _WEEKDAY_AR[yesterday.weekday()]
+    assert f"مسبقاً يوم {weekday} الساعة {yesterday.strftime('%H:%M')}" in message
+
+
+def test_tour_duplicate_other_day_is_allowed_again(
+    client, db, student_factory, students_admin_headers, college_staff_headers
+):
+    """
+    مسحة الأمبارح لنفس الكلية ما بتولّد رسالة تكرار اليوم — الطالب بيرجع
+    اليوم وبيمسح عادي (201)، وبيتأكد إن الرسالة ما بتذكر يوماً تاني.
+    """
+    student = student_factory(STUDENT)
+    yesterday = time_utils.today_start() - timedelta(hours=2)
+    db.add(
+        Checkin(
+            student_id=student.id,
+            activity_type=ActivityType.tour,
+            college=Faculty.medicine,
+            checked_in_at=yesterday,
+        )
+    )
+    db.commit()
+
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    assert _tour_booking(client, college_staff_headers).status_code == 201
+    assert (
+        client.post("/checkins/tour", json={"unique_code": STUDENT}, headers=college_staff_headers).status_code
+        == 201
+    )
 
 
 def test_tour_staff_without_college_400(

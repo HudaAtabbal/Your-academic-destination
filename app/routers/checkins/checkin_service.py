@@ -4,10 +4,12 @@
 
 القواعد المطبّقة هون بمنطق الكود (مش قيود DB فقط):
 1) ما في check-in لأي نشاط (محاضرة/جولة/استشارة) إلا إذا كان عند الطالب
-   campus_entry مسبقاً.
-2) ما في check-in فعلي لجولة/استشارة إلا بوجود booking مطابق.
+   campus_entry مسبقاً بنفس اليوم.
+2) ما في check-in فعلي لجولة/استشارة إلا بوجود booking مطابق — وللجولة
+   لازم يكون الحجز من اليوم نفسه (حجز الأمبارح ما بيبرر مسحة اليوم).
 3) أي محاولة check-in مكرر بترجع رسالة فيها اسم الطالب ووقت أول تسجيل —
-   مش رفض صامت.
+   مش رفض صامت. تكرار الجولة محسوب بنفس اليوم (كل كلية مرة باليوم)،
+   والاستشارة وركن الترفيه مر مرة وحدة طول الفعالية.
 """
 
 from datetime import datetime, timedelta
@@ -22,6 +24,7 @@ from app.errors import (
     missing_booking,
     missing_campus_entry,
 )
+from app.faculty_labels import faculty_label
 from app.models import ActivityType, Booking, BookingType, Checkin, Faculty, Lecture, Student, UnionSection
 from app.routers.points import point_service
 from app.student_lookup import get_student_or_raise
@@ -154,7 +157,14 @@ def _find_existing_checkin(
     if activity_type == ActivityType.lecture:
         query = query.filter(Checkin.lecture_name == lecture_name)
     elif activity_type == ActivityType.tour:
-        query = query.filter(Checkin.college == college)
+        # الجولة: التكرار محسوب بنفس اليوم فقط (college + اليوم) — نفس قيد
+        # الفهرس unique_tour_checkin، فالمسح المسموح تكراراً هو يوم تاني.
+        today_start, today_end = _today_range()
+        query = query.filter(
+            Checkin.college == college,
+            Checkin.checked_in_at >= today_start,
+            Checkin.checked_in_at < today_end,
+        )
     elif activity_type == ActivityType.union:
         # الاتحاد: التكرار محسوب بنفس اليوم فقط (union_section + اليوم) — نفس
         # قيد الفهرس unique_union_checkin، فالمسح المسموح تكراراً هو يوم تاني.
@@ -170,11 +180,21 @@ def _find_existing_checkin(
 def _has_matching_booking(
     db: Session, student_id: int, booking_type: BookingType, college: Faculty | None = None
 ) -> bool:
+    """
+    الحجز المطابق لازم يكون من اليوم نفسه للجولة: حجز الأمبارح لنفس الكلية ما
+    بيبرر مسحة اليوم، لأن الحجز والماسحة مرتبطين بنفس اليوم. الاستشارة
+    بتضل مرتبطة بالطالب طول الفعالية بدون حد زمني.
+    """
     query = db.query(Booking).filter(
         Booking.student_id == student_id, Booking.booking_type == booking_type
     )
     if booking_type == BookingType.tour:
-        query = query.filter(Booking.college == college)
+        today_start, today_end = _today_range()
+        query = query.filter(
+            Booking.college == college,
+            Booking.booked_at >= today_start,
+            Booking.booked_at < today_end,
+        )
     return query.first() is not None
 
 
@@ -297,13 +317,15 @@ def create_tour_checkin(
     if not _has_matching_booking(db, student.id, BookingType.tour, college=college):
         raise missing_booking()
 
+    activity_label = f"جولة كلية ({faculty_label(college)})"
+
     existing = _find_existing_checkin(db, student.id, ActivityType.tour, college=college)
     _raise_if_duplicate(
         existing,
         student.full_name,
         unique_code,
         ActivityType.tour,
-        f"جولة كلية ({college.value})",
+        activity_label,
     )
 
     checkin = Checkin(student_id=student.id, activity_type=ActivityType.tour, college=college)
@@ -314,7 +336,7 @@ def create_tour_checkin(
         student,
         unique_code,
         ActivityType.tour,
-        f"جولة كلية ({college.value})",
+        activity_label,
     )
     db.refresh(checkin)
     return checkin, student.full_name

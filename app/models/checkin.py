@@ -55,11 +55,13 @@ class Checkin(Base):
             unique=True,
             postgresql_where=(activity_type == ActivityType.lecture),
         ),
-        # جولة: كل college مرة وحدة للطالب
+        # جولة: كل college مرة وحدة للطالب وبنفس اليوم — مسموح يرجع لنفس الكلية
+        # بيوم تاني من أيام الفعالية (نفس نمط campus_entry و lecture و union).
         Index(
             "unique_tour_checkin",
             "student_id",
             "college",
+            cast(checked_in_at, Date),
             unique=True,
             postgresql_where=(activity_type == ActivityType.tour),
         ),

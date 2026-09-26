@@ -3,7 +3,7 @@
 مطابق تماماً لجدول bookings بـ wijhatak_schema_v2.sql.
 """
 
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Index
+from sqlalchemy import BigInteger, Column, Date, DateTime, ForeignKey, Index, cast
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -34,11 +34,13 @@ class Booking(Base):
     student = relationship("Student", back_populates="bookings")
 
     __table_args__ = (
-        # جولة: حجز كل كلية مرة وحدة للطالب
+        # جولة: كل كلية مرة وحدة للطالب وبنفس اليوم — مسموح يرجع لنفس الكلية
+        # بيوم تاني من أيام الفعالية (نفس نمط unique_campus_entry_checkin).
         Index(
             "unique_tour_booking",
             "student_id",
             "college",
+            cast(booked_at, Date),
             unique=True,
             postgresql_where=(booking_type == BookingType.tour),
         ),
