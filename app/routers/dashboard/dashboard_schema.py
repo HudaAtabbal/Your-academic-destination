@@ -19,6 +19,9 @@ from app.models.enums import (
 
 EventDay = Literal["all", "wed", "thu", "sat"]
 
+# وضع عدّ زيارات الكلية: "all" كل حجز عداد زيارة، و"unique" الطالب مرة وحدة.
+CollegeVisitMode = Literal["all", "unique"]
+
 
 class DashboardStatsResponse(BaseModel):
     registered_online_count: int
@@ -181,8 +184,26 @@ class DayCountResponse(BaseModel):
 
 class DayCollegeVisitsResponse(BaseModel):
     day: EventDay
+    mode: CollegeVisitMode
     total: int
     items: list[CollegeVisitItem]
+    generated_at: datetime
+
+
+class AttendanceSplitItem(BaseModel):
+    """شريحة وحدة من تقسيم الحضور — المفتاح بيتعرف عليه الواجهة."""
+
+    key: Literal["registered_in", "walkin_in", "registered_out"]
+    count: int
+
+
+class AttendanceSplitResponse(BaseModel):
+    """مين فات عالجامعة — مسجّلون فatroا، Walk-in فatroا، ومسجّلون ما فatroا."""
+
+    day: EventDay
+    # الشرائح الثلاث بالترتيب: registered_in, walkin_in, registered_out.
+    items: list[AttendanceSplitItem]
+    total: int
     generated_at: datetime
 
 
@@ -246,21 +267,6 @@ class TopStudentsResponse(BaseModel):
     limit: int
     total: int
     total_pages: int
-    generated_at: datetime
-
-
-class GuideInsightsResponse(BaseModel):
-    """تتبّع الدليل الأكاديمي — أشخاص مختلفون، عدد زيارات، ومدّة البقاء."""
-
-    day: EventDay
-    page: str
-    visitors_count: int
-    visits_count: int
-    # متوسط/وسيط مدّة البقاء بالثواني — null إذا ما في زيارات محسوبة بعد.
-    avg_duration_seconds: float | None
-    median_duration_seconds: float | None
-    # عدد الزيارات اللي دخلت بالمتوسط (المدّة محسوبة و فوق الحد الأدنى).
-    measured_visits: int
     generated_at: datetime
 
 

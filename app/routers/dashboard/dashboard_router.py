@@ -15,9 +15,12 @@ from app.models import AccountRole
 from app.routers.dashboard import dashboard_service
 from app.routers.dashboard.dashboard_schema import (
     AnalyticsResponse,
+    AttendanceSplitItem,
+    AttendanceSplitResponse,
     CertificateCountItem,
     CheckinDeleteResponse,
     CollegeVisitItem,
+    CollegeVisitMode,
     CornerBucketItem,
     CornerJourneyResponse,
     CornerPairItem,
@@ -26,7 +29,6 @@ from app.routers.dashboard.dashboard_schema import (
     DayCountResponse,
     DayUnionSectionsResponse,
     EventDay,
-    GuideInsightsResponse,
     HallClearResponse,
     HallStudentItem,
     HallStudentsResponse,
@@ -216,11 +218,14 @@ def game_scans(
 
 @router.get("/college-visits", response_model=DayCollegeVisitsResponse)
 def college_visits(
-    day: EventDay = "all", db: Session = Depends(get_db)
+    day: EventDay = "all",
+    mode: CollegeVisitMode = "all",
+    db: Session = Depends(get_db),
 ) -> DayCollegeVisitsResponse:
-    data = dashboard_service.college_visits_for_day(db, day)
+    data = dashboard_service.college_visits_for_day(db, day, mode)
     return DayCollegeVisitsResponse(
         day=day,
+        mode=data["mode"],
         total=data["total"],
         items=[CollegeVisitItem(**i) for i in data["items"]],
         generated_at=time_utils.now_naive(),
@@ -282,12 +287,17 @@ def top_students(
     )
 
 
-@router.get("/guide-insights", response_model=GuideInsightsResponse)
-def guide_insights(
+@router.get("/attendance-split", response_model=AttendanceSplitResponse)
+def attendance_split(
     day: EventDay = "all", db: Session = Depends(get_db)
-) -> GuideInsightsResponse:
-    data = dashboard_service.guide_insights(db, day)
-    return GuideInsightsResponse(day=day, generated_at=time_utils.now_naive(), **data)
+) -> AttendanceSplitResponse:
+    data = dashboard_service.attendance_split_for_day(db, day)
+    return AttendanceSplitResponse(
+        day=day,
+        total=data["total"],
+        items=[AttendanceSplitItem(**i) for i in data["items"]],
+        generated_at=time_utils.now_naive(),
+    )
 
 
 @router.get("/corner-journey", response_model=CornerJourneyResponse)

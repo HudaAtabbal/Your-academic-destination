@@ -53,24 +53,33 @@ def _checkin_for_day(
     return checkin
 
 
-def _tour_booking(
+def _booking(
     db,
     student,
+    booking_type: BookingType,
     day_key: str,
     college: Faculty,
     *,
     hour: int = 9,
     minute: int = 0,
 ):
-    """ينشئ Booking جولة بتاريخ ضمن يوم فعالية محدد (بتوقيت سوريا)."""
+    """ينشئ Booking (جولة أو استشارة) بتاريخ ضمن يوم فعالية محدد (بتوقيت سوريا)."""
     booking = Booking(
         student_id=student.id,
-        booking_type=BookingType.tour,
+        booking_type=booking_type,
         college=college,
         booked_at=_day_start(day_key) + timedelta(hours=hour, minutes=minute),
     )
     db.add(booking)
     return booking
+
+
+def _tour_booking(db, student, day_key: str, college: Faculty, **kwargs):
+    return _booking(db, student, BookingType.tour, day_key, college, **kwargs)
+
+
+def _consultation_booking(db, student, day_key: str, college: Faculty, **kwargs):
+    return _booking(db, student, BookingType.consultation, day_key, college, **kwargs)
 
 
 def _make_student(db, code: str, full_name: str = "طالب تجريبي"):
@@ -79,6 +88,34 @@ def _make_student(db, code: str, full_name: str = "طالب تجريبي"):
         full_name=full_name,
         registration_type=RegistrationType.registered,
         verification_status=VerificationStatus.verified,
+        status=StudentStatus.complete,
+    )
+    db.add(student)
+    db.commit()
+    db.refresh(student)
+    return student
+
+
+def _make_walkin(db, code: str, full_name: str = "طالب وافد تجريبي"):
+    """طالب Walk-in — ما إلو تحقق هوية، فverification_status ما بيتطبّق إلو."""
+    student = Student(
+        unique_code=code,
+        full_name=full_name,
+        registration_type=RegistrationType.walk_in,
+        status=StudentStatus.complete,
+    )
+    db.add(student)
+    db.commit()
+    db.refresh(student)
+    return student
+
+
+def _make_unverified(db, code: str, full_name: str = "طالب غير موثّق"):
+    student = Student(
+        unique_code=code,
+        full_name=full_name,
+        registration_type=RegistrationType.registered,
+        verification_status=VerificationStatus.pending,
         status=StudentStatus.complete,
     )
     db.add(student)
@@ -179,43 +216,120 @@ def test_game_scans_day_filtered(db, client, super_headers):
     assert sat["count"] == 0
 
 
-def test_college_visits_day_filtered(db, client, super_headers):
+def _civil_count(body) -> int:
+    """عدّاد كلية الهندسة المدنية من استجابة زيارات الكليات."""
+    return next(item["count"] for item in body["items"] if item["college"] == "civil_engineering")
+
+
+def _college_visits(client, headers, day: str, mode: str | None = None):
+    query = f"?day={day}" + ("" if mode is None else f"&mode={mode}")
+    return client.get(f"/admin/dashboard/college-visits{query}", headers=headers).json()
+
+
+def test_college_visits_counts_tours_and_consultations(db, client, super_headers):
+    # جولة + استشارة بنفس الكلية = زيارتين بالوضع "all"، ونفس الطالب بينحسب
+    # مرة وحدة بالوضع "فريد".
     s1 = _make_student(db, "R-0001")
-    s2 = _make_student(db, "R-0002")
-    s3 = _make_student(db, "R-0003")
-    # s1: حجز جولة civil_engineering يوم أربعاء + شيك جولة civil_engineering يوم خميس (بلا حجز → لا يُحتسب)
-    # s2: حجز جولة civil_engineering يوم خميس (مفترق حساب)
-    # s3: حجز استشارة civil_engineering يوم خميس (نوع خاطئ → لا يُحتسب)
     db.add_all(
         [
             _tour_booking(db, s1, "wed", Faculty.civil_engineering, hour=9),
-            _checkin_for_day(
-                db, s1, ActivityType.tour, "thu", college=Faculty.civil_engineering
-            ),
-            _tour_booking(db, s2, "thu", Faculty.civil_engineering, hour=11),
-            Booking(
-                student_id=s3.id,
-                booking_type=BookingType.consultation,
-                college=Faculty.civil_engineering,
-                booked_at=_day_start("thu") + timedelta(hours=12),
-            ),
+            _consultation_booking(db, s1, "thu", Faculty.civil_engineering, hour=12),
         ]
     )
     db.commit()
 
-    wed = client.get("/admin/dashboard/college-visits?day=wed", headers=super_headers).json()
-    eng = next(i for i in wed["items"] if i["college"] == "civil_engineering")
-    assert eng["count"] == 1
-    assert wed["total"] >= 1
+    every = _college_visits(client, super_headers, "all", "all")
+    assert every["mode"] == "all"
+    assert _civil_count(every) == 2
+    assert every["total"] == 2
 
-    thu = client.get("/admin/dashboard/college-visits?day=thu", headers=super_headers).json()
-    eng_thu = next(i for i in thu["items"] if i["college"] == "civil_engineering")
-    # فقط حجز s2 — شيك s1 بلا حجز واستشارة s3 لا يُحتسبان
-    assert eng_thu["count"] == 1
+    unique = _college_visits(client, super_headers, "all", "unique")
+    assert unique["mode"] == "unique"
+    assert _civil_count(unique) == 1
+    assert unique["total"] == 1
 
-    all_resp = client.get("/admin/dashboard/college-visits?day=all", headers=super_headers).json()
-    eng_all = next(i for i in all_resp["items"] if i["college"] == "civil_engineering")
-    assert eng_all["count"] == 2
+
+def test_college_visits_unique_total_counts_each_student_once(db, client, super_headers):
+    # طالب واحد بكليتين: مجموع أعمدة الكليات ٢، بس الإجمالي الفريد ١.
+    s1 = _make_student(db, "R-0001")
+    db.add_all(
+        [
+            _tour_booking(db, s1, "wed", Faculty.civil_engineering, hour=9),
+            _tour_booking(db, s1, "wed", Faculty.dentistry, hour=10),
+        ]
+    )
+    db.commit()
+
+    every = _college_visits(client, super_headers, "all", "all")
+    assert _civil_count(every) == 1
+    assert every["total"] == 2
+
+    unique = _college_visits(client, super_headers, "all", "unique")
+    assert _civil_count(unique) == 1
+    assert unique["total"] == 1
+
+
+def test_college_visits_day_filter_both_modes(db, client, super_headers):
+    s1 = _make_student(db, "R-0001")
+    db.add_all(
+        [
+            _tour_booking(db, s1, "wed", Faculty.civil_engineering, hour=9),
+            _consultation_booking(db, s1, "thu", Faculty.civil_engineering, hour=12),
+        ]
+    )
+    db.commit()
+
+    for mode, total in (("all", 2), ("unique", 1)):
+        assert _civil_count(_college_visits(client, super_headers, "wed", mode)) == 1
+        assert _civil_count(_college_visits(client, super_headers, "thu", mode)) == 1
+        assert _civil_count(_college_visits(client, super_headers, "sat", mode)) == 0
+        assert _college_visits(client, super_headers, "all", mode)["total"] == total
+
+
+def test_college_visits_ignore_checkins_and_default_to_all(db, client, super_headers):
+    # المصدر الحجوزات بس: شيك جولة بلا حجز ما بيتحسبش. والوضع الافتراضي "all".
+    s1 = _make_student(db, "R-0001")
+    s2 = _make_student(db, "R-0002")
+    db.add_all(
+        [
+            _checkin_for_day(
+                db, s1, ActivityType.tour, "thu", college=Faculty.civil_engineering
+            ),
+            _tour_booking(db, s2, "thu", Faculty.civil_engineering, hour=11),
+        ]
+    )
+    db.commit()
+
+    thu = _college_visits(client, super_headers, "thu")
+    assert thu["mode"] == "all"
+    assert _civil_count(thu) == 1
+    assert thu["total"] == 1
+
+
+def test_college_visits_invalid_mode_422(client, super_headers):
+    resp = client.get(
+        "/admin/dashboard/college-visits?day=all&mode=whatever", headers=super_headers
+    )
+    assert resp.status_code == 422
+
+
+def test_union_sections_music_merge_counts_students_once(db, client, super_headers):
+    # طلبة الموسيقا بيدخلوا «الركن المركزي» بعدّاد الطلاب المميزين مش بعدّاد
+    # الحجوزات — فالطالب اللي حجز جولة واستشارة بيطلع رقم واحد.
+    s1 = _make_student(db, "R-0001")
+    s2 = _make_student(db, "R-0002")
+    db.add_all(
+        [
+            _tour_booking(db, s1, "wed", Faculty.music, hour=9),
+            _consultation_booking(db, s1, "wed", Faculty.music, hour=11),
+            _tour_booking(db, s2, "wed", Faculty.music, hour=12),
+        ]
+    )
+    db.commit()
+
+    wed = client.get("/admin/dashboard/union-sections?day=wed", headers=super_headers).json()
+    central = next(i for i in wed["items"] if i["section"] == "central")
+    assert central["count"] == 2  # ثلاثة حجوزات، بس طالبين بس
 
 
 def test_union_sections_day_filtered(db, client, super_headers):
@@ -256,6 +370,119 @@ def test_union_sections_day_filtered(db, client, super_headers):
         "major_guide",
         "turkish_club",
     }
+
+
+# ---------------------------------------------------------------------------
+# "مين فات عالجامعة" (قسم 3.1c)
+# ---------------------------------------------------------------------------
+
+
+def _split(body) -> dict[str, int]:
+    return {item["key"]: item["count"] for item in body["items"]}
+
+
+def _attendance_split(client, headers, day: str):
+    return client.get(f"/admin/dashboard/attendance-split?day={day}", headers=headers).json()
+
+
+def test_attendance_split_counts_each_slice(db, client, super_headers):
+    reg_in = _make_student(db, "R-0001")
+    walkin_in = _make_walkin(db, "W-0001")
+    _make_student(db, "R-0002")  # مسجّل ما جاه أبداً
+    _make_unverified(db, "R-0003")  # مسجّل موثّق — مستثنى بكل الشرائح
+    db.add_all(
+        [
+            _checkin_for_day(db, reg_in, ActivityType.campus_entry, "wed", hour=9),
+            _checkin_for_day(db, walkin_in, ActivityType.campus_entry, "wed", hour=10),
+        ]
+    )
+    db.commit()
+
+    resp = client.get("/admin/dashboard/attendance-split?day=wed", headers=super_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["day"] == "wed"
+    assert [item["key"] for item in body["items"]] == [
+        "registered_in",
+        "walkin_in",
+        "registered_out",
+    ]
+    assert _split(body) == {"registered_in": 1, "walkin_in": 1, "registered_out": 1}
+    assert body["total"] == 3
+    assert "generated_at" in body
+
+
+def test_attendance_split_unverified_excluded_everywhere(db, client, super_headers):
+    pending = _make_unverified(db, "R-0001")
+    db.add(_checkin_for_day(db, pending, ActivityType.campus_entry, "wed", hour=9))
+    db.commit()
+
+    for day in ("all", "wed"):
+        body = _attendance_split(client, super_headers, day)
+        assert _split(body) == {"registered_in": 0, "walkin_in": 0, "registered_out": 0}
+        assert body["total"] == 0
+
+
+def test_attendance_split_day_by_day(db, client, super_headers):
+    # مسجّل جا الأربعاء بس — داخل مع wed ومع all، و"ما فات" مع thu. وآخر
+    # مسجّل ما جاه أبداً، فيطلّع "ما فات" بكل يوم.
+    wed_only = _make_student(db, "R-0001")
+    _make_student(db, "R-0002")
+    db.add(_checkin_for_day(db, wed_only, ActivityType.campus_entry, "wed", hour=9))
+    db.commit()
+
+    assert _split(_attendance_split(client, super_headers, "wed")) == {
+        "registered_in": 1,
+        "walkin_in": 0,
+        "registered_out": 1,
+    }
+    assert _split(_attendance_split(client, super_headers, "thu")) == {
+        "registered_in": 0,
+        "walkin_in": 0,
+        "registered_out": 2,
+    }
+    assert _split(_attendance_split(client, super_headers, "all")) == {
+        "registered_in": 1,
+        "walkin_in": 0,
+        "registered_out": 1,
+    }
+
+
+def test_attendance_split_all_ignores_entries_outside_event_days(db, client, super_headers):
+    # day=all بيقبل أيام الفعالية بس — دخول بتاريخ ثاني بيطلع برّا بالكامل.
+    late = _make_student(db, "R-0001")
+    db.add(
+        Checkin(
+            student_id=late.id,
+            activity_type=ActivityType.campus_entry,
+            checked_in_at=_day_start("wed") + timedelta(days=10),
+        )
+    )
+    db.commit()
+
+    assert _split(_attendance_split(client, super_headers, "all")) == {
+        "registered_in": 0,
+        "walkin_in": 0,
+        "registered_out": 1,
+    }
+
+
+def test_attendance_split_all_matches_registered_no_show_count(db, client, super_headers):
+    # مع كل الأيام، «مسجّلون ما فاتوا» = نفس registered_no_show_count من /stats.
+    _make_student(db, "R-0001")
+    reg_in = _make_student(db, "R-0002")
+    _make_walkin(db, "W-0001")
+    db.add(_checkin_for_day(db, reg_in, ActivityType.campus_entry, "wed", hour=9))
+    db.commit()
+
+    body = _attendance_split(client, super_headers, "all")
+    stats = client.get("/admin/dashboard/stats", headers=super_headers).json()
+    assert _split(body)["registered_out"] == stats["registered_no_show_count"] == 1
+
+
+def test_attendance_split_invalid_day_422(client, super_headers):
+    resp = client.get("/admin/dashboard/attendance-split?day=mon", headers=super_headers)
+    assert resp.status_code == 422
 
 
 # ---------------------------------------------------------------------------
@@ -891,6 +1118,7 @@ _ADMIN_V2_ENDPOINTS = [
     "/admin/dashboard/game-scans?day=thu",
     "/admin/dashboard/college-visits?day=sat",
     "/admin/dashboard/union-sections?day=wed",
+    "/admin/dashboard/attendance-split?day=wed",
     "/admin/dashboard/presence",
     "/admin/dashboard/peak-hours",
     "/admin/dashboard/top-students?metric=lectures",

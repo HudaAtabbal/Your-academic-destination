@@ -18,7 +18,7 @@
 from datetime import date, datetime, timedelta
 from itertools import combinations
 
-from sqlalchemy import Date, Time, and_, case, cast, func, or_
+from sqlalchemy import Date, Time, and_, cast, func, or_
 from sqlalchemy.orm import Session
 
 from app import cache, time_utils
@@ -38,7 +38,6 @@ from app.models import (
     Checkin,
     Faculty,
     Lecture,
-    PageVisit,
     PostSurvey,
     RegistrationType,
     Student,
@@ -46,7 +45,6 @@ from app.models import (
     UnionSection,
     VerificationStatus,
 )
-from app.models.page_visit import MIN_COUNTED_DURATION_SECONDS
 from app.routers.checkins import checkin_service
 from app.routers.internal import internal_service
 from app.routers.points import point_service
@@ -461,36 +459,64 @@ def list_survey_completions(
 # دُمجتا بالمجمع الطبي (طب الأسنان).
 _VISITS_EXCLUDED = {Faculty.music, Faculty.medicine, Faculty.pharmacy}
 
+# مصدر عدّ زيارات الكليات — الحجوزات بس: جولة أو استشارة عند باب الكلية.
+# المسحات (check-ins) ما بتدخل بالعدّ.
+_VISIT_BOOKING_TYPES = (BookingType.tour, BookingType.consultation)
+
 
 def _college_visit_counts(
-    db: Session, start: datetime | None = None, end: datetime | None = None
-) -> dict[Faculty, int]:
+    db: Session,
+    start: datetime | None = None,
+    end: datetime | None = None,
+    unique: bool = False,
+) -> tuple[dict[Faculty, int], int]:
     """
-    عدد الطلاب المميزين (distinct) اللي زاروا كل كلية — عبر حجوزات الجولة
-    (Booking بكتغوري tour) فقط، والكلية مطلوبة (college is not null).
-    المسحات (check-ins) وحجوزات الاستشارة ما بتدخل هون إطلاقاً.
+    زيارات الكليات من الحجوزات — جولة (tour) + استشارة (consultation)، والكلية
+    مطلوبة (college is not null). مصدرها الحجوزات بس (ما في مسحات).
 
-    start/end اختياريان — لو انبعتا، الفلترة الزمنية تنسحب على booked_at
-    بس. يارجع خريطة كاملة (بما فيها الكليات المستثناة من العرض) لأنها تستخدم
-    بموضعين: قائمة زيارات الكلية ودمج الموسيقا ضمن دليل الاتحاد.
+    unique=False: كل حجز عداد زيارة — جولة + استشارة بنفس الكلية = ٢، وجولات
+      بأيام مختلفة = زيارات منفصلة. والإجمالي = عدد صفوف الحجوزات.
+    unique=True: الطالب بينحسب مرة وحدة لكل كلية، والإجمالي = عدد الطلاب
+      المتمايزين على كل الكليات (اللي زار كليةين بينحسب مرة وحدة بالكل).
+
+    start/end اختياريان — لو انبعتا، الفلترة الزمنية تنسحب على booked_at بس.
+    يارجع (خريطة الكليات، الإجمالي): الخريطة كاملة (بما فيها الكليات المستثناة
+    من العرض) لأنها تستخدم بموضعين — قائمة زيارات الكلية ودمج الموسيقا ضمن
+    الركن المركزي للاتحاد. أما الإجمالي فمستثني كليات _VISITS_EXCLUDED لأنه
+    العدّاد الظاهر للزائر — وما بيحسب مرة مرتين، فوضع "فريد" الإجمالي تاعو
+    أصغر من مجموع أعمدة الكليات.
     """
-    q = (
-        db.query(Booking.college, func.count(func.distinct(Booking.student_id)))
-        .filter(
-            Booking.booking_type == BookingType.tour,
-            Booking.college.is_not(None),
-        )
+    counter = func.count(func.distinct(Booking.student_id)) if unique else func.count()
+    q = db.query(Booking.college, counter).filter(
+        Booking.booking_type.in_(_VISIT_BOOKING_TYPES),
+        Booking.college.is_not(None),
     )
     if start is not None:
         q = q.filter(Booking.booked_at >= start, Booking.booked_at < end)
 
-    rows = q.group_by(Booking.college).all()
-    return {college: count for college, count in rows}
+    counts = {college: count for college, count in q.group_by(Booking.college).all()}
+
+    if not unique:
+        total = sum(
+            count for college, count in counts.items() if college not in _VISITS_EXCLUDED
+        )
+        return counts, total
+
+    # مجموع أعمدة الكليات ما بينفع يكون إجمالي الوضع "فريد" — الطالب اللي زار
+    # كليةين بينحسب مرتين. فالإجمالي بينحسب على الطلاب المتمايزين مباشرةً.
+    total_q = db.query(func.count(func.distinct(Booking.student_id))).filter(
+        Booking.booking_type.in_(_VISIT_BOOKING_TYPES),
+        Booking.college.is_not(None),
+        Booking.college.notin_(list(_VISITS_EXCLUDED)),
+    )
+    if start is not None:
+        total_q = total_q.filter(Booking.booked_at >= start, Booking.booked_at < end)
+    return counts, int(total_q.scalar() or 0)
 
 
 def _union_section_counts(
     db: Session,
-    college_counts: dict[Faculty, int],
+    music_students: int,
     start: datetime | None = None,
     end: datetime | None = None,
 ) -> dict[UnionSection, int]:
@@ -500,6 +526,10 @@ def _union_section_counts(
     "كلية الموسيقا" ما عادت ركن مستقل بالفعالية، فأي زيارة/إضافة مسجّلة عليها
     تُحسب على «الركن المركزي» وتختفي الموسيقا من قائمة زيارات الكليات — نفس
     قرار dimfes في /analytics.
+
+    music_students عدد الطلاب المميزين (distinct) اللي حجزوا جولة/استشارة
+    بكلية الموسيقا، مش عدد الحجوزات — عشان الطالب اللي حجز وزار ما ينحسب
+    مرتين بنفس الركن.
     """
     union_q = (
         db.query(Checkin.union_section, func.count(Checkin.id))
@@ -510,8 +540,7 @@ def _union_section_counts(
     rows = union_q.group_by(Checkin.union_section).all()
     union_count_map = {section: count for section, count in rows}
     union_count_map[UnionSection.central] = (
-        union_count_map.get(UnionSection.central, 0)
-        + college_counts.get(Faculty.music, 0)
+        union_count_map.get(UnionSection.central, 0) + music_students
     )
     return union_count_map
 
@@ -520,12 +549,12 @@ def get_dashboard_analytics(db: Session) -> dict:
     """
     إحصائيات تفصيلية للوحة المدير العام — كلها إجمالية لكل الأيام (تراكمية).
 
-    - college_visits: "زيارة الكلية (ركن التوجيه)" — عدد الطلاب المميزين اللي
-      زاروا الكلية عبر أي مسح بيسجّل كلية (حجز/شيك جولة أو استشارة عند الكلية).
-      تُعرض كل أعضاء Faculty عدا كلية الموسيقا (دُمجت ضمن «الركن المركزي»
-      بالاتحاد). الطب البشري والصيدلة ما عادن ركنان مستقلان — دُمجتا ضمن
-      مجموعة واحدة باسم «المجمع الطبي» (كلية طب الأسنان) بعملية دمج بيانات
-      لمرة وحدة، ولذلك لا تكونان كصفين منفصلين هنا. مرتّبة تنازلياً.
+    - college_visits: "زيارة الكلية (ركن التوجيه)" — عدد الزيارات للكليات من
+      حجوزات الجولة والاستشارة معاً (وضع "all": كل حجز عداد زيارة). تُعرض كل
+      أعضاء Faculty عدا كلية الموسيقا (دُمجت ضمن «الركن المركزي» بالاتحاد).
+      الطب البشري والصيدلة ما عادن ركنان مستقلان — دُمجتا ضمن مجموعة واحدة باسم
+      «المجمع الطبي» (كلية طب الأسنان) بعملية دمج بيانات لمرة وحدة، ولذلك لا
+      تكونان كصفين منفصلين هنا. مرتّبة تنازلياً.
     - lecture_attendance: حضور المحاضرات — كل الـ16 مضمنة (صفر للفاضي)،
       بترتيب enum، مع الاسم العربي الرسمي لكل محاضرة.
     - score_distribution: توزيع معدل الطالب (bacc_average) على فترات عرض 10
@@ -537,11 +566,9 @@ def get_dashboard_analytics(db: Session) -> dict:
     - union_sections: مسحات ركن الاتحاد لكل قسم (الركن المركزي / دليل التخصص /
       نادي التركي) — إجمالية لكل الأيام، الأقسام الثلاثة مدرجة دائماً (صفر للفاضي).
     """
-    # "زيارة الكلية (ركن التوجيه)" — عدد الطلاب المميزين (distinct) اللي زاروا
-    # الكلية، عبر أي مسح سجّل كلية: حجز/شيك جولة، أو حجز/شيك استشارة عند باب
-    # الكلية. كل طالب يُحسب مرة واحدة لكل كلية حتى لو عمل الحجز والشيك معاً
-    # (union + distinct) — فارح لأي مصدر تاني بس يثبت مرور الطالب.
-    college_count_map = _college_visit_counts(db)
+    # "زيارة الكلية (ركن التوجيه)" — وضع "all": كل حجز جولة أو استشارة عداد
+    # زيارة واحدة للكلية، فالطالب اللي عمل جولة واستشارة بنفس الكلية بيطلع ٢.
+    college_count_map, _ = _college_visit_counts(db)
     college_visits = [
         {"college": college, "count": college_count_map.get(college, 0)}
         for college in Faculty
@@ -607,8 +634,10 @@ def get_dashboard_analytics(db: Session) -> dict:
     ]
 
     # مسحات ركن الاتحاد لكل قسم — الأقسام الثلاثة مدرجة دائماً (صفر للفاضي)،
-    # بنفس نمط حضور المحاضرات، مع الاسم العربي الرسمي لكل قسم.
-    union_count_map = _union_section_counts(db, college_count_map)
+    # بنفس نمط حضور المحاضرات، مع الاسم العربي الرسمي لكل قسم. الموسيقا بتدخل
+    # الركن المركزي بعدّاد الطلاب المميزين (unique)، مش بعدّاد الحجوزات.
+    music_count_map, _ = _college_visit_counts(db, unique=True)
+    union_count_map = _union_section_counts(db, music_count_map.get(Faculty.music, 0))
 
     union_sections = [
         {
@@ -666,30 +695,35 @@ def count_game_scans_for_day(db: Session, day: str) -> int:
     return q.count()
 
 
-def college_visits_for_day(db: Session, day: str) -> dict:
+def college_visits_for_day(db: Session, day: str, mode: str = "all") -> dict:
     """
-    زيارة الكلية (ركن التوجيه) مفلترة باليوم — نفس منطق /analytics بالضبط
-    (union الحجوزات والمسحات، استثناء الموسيقا/الطب/الصيدلة، ترتيب تنازلي).
-    الفلترة الزمنية على booked_at للحجوزات و checked_in_at للمسحات.
+    زيارة الكلية (ركن التوجيه) مفلترة باليوم — من حجوزات الجولة والاستشارة معاً
+    (المسحات مش مصدر عدّ)، مع استثناء الموسيقا/الطب/الصيدلة وترتيب تنازلي.
+
+    mode="all" كل حجز عداد زيارة، وmode="unique" الطالب بينحسب مرة وحدة لكل
+    كلية. الإجمالي بالوضع "فريد" عدد الطلاب المتمايزين على كل الكليات، فمش
+    لازم يساوي مجموع أعمدة الكليات (اللي بينحسب مرتين لو الطالب زار كليتين).
     """
     rng = _resolve_day_range(day)
     start, end = rng if rng is not None else (None, None)
-    college_count_map = _college_visit_counts(db, start, end)
+    college_count_map, total = _college_visit_counts(db, start, end, unique=mode == "unique")
     items = [
         {"college": college, "count": college_count_map.get(college, 0)}
         for college in Faculty
         if college not in _VISITS_EXCLUDED
     ]
     items.sort(key=lambda item: item["count"], reverse=True)
-    return {"items": items, "total": sum(item["count"] for item in items)}
+    return {"mode": mode, "items": items, "total": total}
 
 
 def union_sections_for_day(db: Session, day: str) -> dict:
     """مسحات ركن الاتحاد لكل قسم مفلترة باليوم — الأقسام الثلاثة مدرجة دائماً."""
     rng = _resolve_day_range(day)
     start, end = rng if rng is not None else (None, None)
-    college_count_map = _college_visit_counts(db, start, end)
-    union_count_map = _union_section_counts(db, college_count_map, start, end)
+    college_count_map, _ = _college_visit_counts(db, start, end, unique=True)
+    union_count_map = _union_section_counts(
+        db, college_count_map.get(Faculty.music, 0), start, end
+    )
     items = [
         {
             "section": section,
@@ -1016,72 +1050,62 @@ def list_top_students(
 
 
 # ---------------------------------------------------------------------------
-# تتبّع الدليل الأكاديمي (قسم 3.5) — guide-insights
+# "مين فات عالجامعة" (قسم 3.1c) — attendance-split
 # ---------------------------------------------------------------------------
 
-# الصفحة المتتبَّعة حالياً — الدليل الأكاديمي المدمجة بالـ iframe.
-GUIDE_PAGE = "academic-guide"
-
-# حد أدنى للزيارة المحسوبة — تحتو زي ارتداد سريع (فتح وطلع).
-_MIN_MEASURED_SECONDS = MIN_COUNTED_DURATION_SECONDS
+# مفتاح كل شريحة بالاستجابة — ترتيبها ثابت لأن الواجهة بتعرضها بهالترتيب.
+_ATTENDANCE_SLICES = ("registered_in", "walkin_in", "registered_out")
 
 
-def guide_insights(db: Session, day: str) -> dict:
+def _attendance_entry_filter(day: str):
     """
-    إحصاءات الدليل الأكاديمي: كم شخص فتحه، كم مرة، وكم بقي.
-
-    'all' بتجمع كل الزيارات المسجّلة (التراكمية). ويوم محدّد بيقصّ على نطاق
-    اليوم حسب EventDay من app/event_days.py.
-
-    مدّة البقاء بتنحسب بالمتوسط والوسيط على الزيارات اللي مدّتها محسوبة
-    وفوق الحد الأدنى بس — إحصاءات متوسطات متحمّسة للتلاعب، مش مجاميع.
+    شرط تاريخي على شيك campus_entry يطابق اليوم المطلوب. اليوم المحدد بيقصّ على
+    نطاق ذلك اليوم، و"all" بيقبل أي واحد من أيام الفعالية (مش أي تاريخ بالداتابيز).
     """
-    day_bounds = _resolve_day_range(day)
-
-    def _compute() -> dict:
-        filters = [PageVisit.page == GUIDE_PAGE]
-        if day_bounds is not None:
-            filters.append(PageVisit.entered_at >= day_bounds[0])
-            filters.append(PageVisit.entered_at < day_bounds[1])
-
-        measured = [PageVisit.duration_seconds.isnot(None)]
-        measured.append(PageVisit.duration_seconds >= _MIN_MEASURED_SECONDS)
-
-        row = (
-            db.query(
-                func.count(PageVisit.id).label("visits"),
-                func.count(func.distinct(PageVisit.visitor_id)).label("visitors"),
-                func.count(case((and_(*measured), PageVisit.id))).label("measured"),
-                func.avg(case((and_(*measured), PageVisit.duration_seconds))).label(
-                    "avg_seconds"
-                ),
-                func.percentile_cont(0.5)
-                .within_group(
-                    case((and_(*measured), PageVisit.duration_seconds)).asc()
-                )
-                .label("median_seconds"),
-            )
-            .filter(*filters)
-            .one()
-        )
-
-        return {
-            "page": GUIDE_PAGE,
-            "visitors_count": int(row.visitors or 0),
-            "visits_count": int(row.visits or 0),
-            "measured_visits": int(row.measured or 0),
-            "avg_duration_seconds": _round_seconds(row.avg_seconds),
-            "median_duration_seconds": _round_seconds(row.median_seconds),
-        }
-
-    return cache.cached_call(
-        f"dashboard:guide-insights:{day}", _CACHE_TTL_SECONDS, _compute
+    rng = _resolve_day_range(day)
+    if rng is not None:
+        return and_(Checkin.checked_in_at >= rng[0], Checkin.checked_in_at < rng[1])
+    windows = [day_range(key) for key in EVENT_DAYS]
+    return or_(
+        *[
+            and_(Checkin.checked_in_at >= start, Checkin.checked_in_at < end)
+            for start, end in windows
+        ]
     )
 
 
-def _round_seconds(value: float | None) -> float | None:
-    """يقرّب المدّة لثانية وحدة (و null إذا ما في بيانات محسوبة)."""
-    return None if value is None else round(float(value), 1)
+def attendance_split_for_day(db: Session, day: str) -> dict:
+    """
+    تقسيم الحضور لثلاث شرائح: مسجّلون موثّقون فatroا، Walk-in فatroا، ومسجّلون
+    موثّقون ما فatroا. الثلاث شرائح محسوبة بنفس اليوم المحدد (أو على كل أيام
+    الفعالية مع day=all) — فمتل جاي الأربعاء بس ومنفلت بخميس بيطلع registered_in
+    مع كل الأيام، وregistered_out مع الخميس.
+
+    Walk-in ما إلهم تحقق هوية، فverification_status ما بيتطبّق إلهم.
+    """
+    has_entry = (
+        db.query(Checkin.id)
+        .filter(
+            Checkin.activity_type == ActivityType.campus_entry,
+            Checkin.student_id == Student.id,
+            _attendance_entry_filter(day),
+        )
+        .exists()
+    )
+
+    registered = db.query(Student).filter(
+        Student.registration_type == RegistrationType.registered,
+        Student.verification_status == VerificationStatus.verified,
+    )
+    walkin = db.query(Student).filter(Student.registration_type == RegistrationType.walk_in)
+
+    counts = {
+        "registered_in": registered.filter(has_entry).count(),
+        "walkin_in": walkin.filter(has_entry).count(),
+        "registered_out": registered.filter(~has_entry).count(),
+    }
+    items = [{"key": key, "count": counts[key]} for key in _ATTENDANCE_SLICES]
+    return {"day": day, "items": items, "total": sum(counts.values())}
 
 
 # ---------------------------------------------------------------------------
