@@ -179,3 +179,30 @@ class SmsJobStatus(str, enum.Enum):
     sent = "sent"          # تأكّد وصوله للمُرسِل وسيرياتيل
     failed = "failed"      # استُنفدت المحاولات أو فشل دائم
 
+
+# تابات عجلة الحظ — ترتيب القيم هنا هو ترتيب العرض المعتمد بالشاشة
+# (الجائزة الأولى → الثانية → الثالثة → النهائية). مش "كيان جوائز": ما في
+# أسماء جوايز ولا أنواع محفوظة بالنظام، التاب هو "الشريحة" فقط.
+class WheelTab(str, enum.Enum):
+    first_prize = "first_prize"      # الجائزة الأولى
+    second_prize = "second_prize"    # الجائزة الثانية
+    third_prize = "third_prize"      # الجائزة الثالثة
+    final_prize = "final_prize"      # الجائزة النهائية
+
+
+# حالة عملية السحب الواحدة. السحب ينحفظ صفاً واحداً بحالة، فسجل الفائزين هو
+# просто فلترة status='accepted' — والفرفض بنفس الجدول بحالة rejected، وهاد
+# يلي بيخلّي "أعد السحب" مجرد طلب جديد بلا جدول أو endpoint خاص.
+# revealed = انكشف الاسم وبانتظار قرار الأدمن (لحظة تشويق).
+class WheelDrawStatus(str, enum.Enum):
+    revealed = "revealed"    # انكشف الاسم، لسا ما اتخّذ قرار
+    accepted = "accepted"    # قبول → فوز نهائي
+    rejected = "rejected"    # رفض → استبعاد بدون فوز
+
+
+# قرار الأدمن على العملية. القبول يلزمه كمان presence_verified (تحقق يدوي
+# منفصل) — انظر wheel_service.submit_decision.
+class WheelDecision(str, enum.Enum):
+    accepted = "accepted"
+    rejected = "rejected"
+

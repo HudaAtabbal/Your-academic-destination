@@ -21,6 +21,9 @@ from app.models.enums import (
     StudentStatus,
     UnionSection,
     VerificationStatus,
+    WheelDecision,
+    WheelDrawStatus,
+    WheelTab,
 )
 from app.models.student import Student
 from app.models.checkin import Checkin
@@ -30,6 +33,12 @@ from app.models.account import Account
 from app.models.otp import OTP
 from app.models.sms_job import SmsJob
 from app.models.sms_heartbeat import SmsHeartbeat
+from app.models.wheel import (
+    WheelDraw,
+    WheelExclusion,
+    WheelFreezeAudit,
+    WheelSettings,
+)
 
 __all__ = [
     "Student",
@@ -40,6 +49,10 @@ __all__ = [
     "OTP",
     "SmsJob",
     "SmsHeartbeat",
+    "WheelSettings",
+    "WheelFreezeAudit",
+    "WheelDraw",
+    "WheelExclusion",
     "VerificationStatus",
     "RegistrationType",
     "StudentStatus",
@@ -53,4 +66,7 @@ __all__ = [
     "CertificateType",
     "SmsJobStatus",
     "UnionSection",
+    "WheelTab",
+    "WheelDrawStatus",
+    "WheelDecision",
 ]

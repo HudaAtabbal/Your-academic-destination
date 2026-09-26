@@ -241,3 +241,75 @@ def too_many_requests() -> AppError:
         error_code="too_many_requests",
         message="عدد كبير من الطلبات، حاولي بعد شوي",
     )
+
+
+# ── عجلة الحظ ────────────────────────────────────────────────────────────────
+# روتر العجلة بيعتمد على AppError بدل HTTPException مثل باقي الروترات، فبتوصل
+# كل الأخطاء بالشكل الموحّد {error_code, message, details} المذكور بقسم 12.
+
+
+def wheel_tab_empty(tab_label: str, required_points: int | None = None) -> AppError:
+    return AppError(
+        status_code=409,
+        error_code="wheel_tab_empty",
+        message=f"ما في طلاب مؤهلين بـ«{tab_label}»",
+        details={"tab": tab_label, "required_points": required_points},
+    )
+
+
+def wheel_draw_not_found() -> AppError:
+    return AppError(
+        status_code=404,
+        error_code="wheel_draw_not_found",
+        message="عملية السحب مش موجودة",
+    )
+
+
+def wheel_draw_already_decided() -> AppError:
+    return AppError(
+        status_code=409,
+        error_code="wheel_draw_already_decided",
+        message="هاد السحب اتحسم مسبقاً — ما في قرار جديد",
+    )
+
+
+def wheel_presence_verification_required() -> AppError:
+    return AppError(
+        status_code=409,
+        error_code="wheel_presence_verification_required",
+        message="لازم تتأكد من حضور الطالب يدوياً قبل قبوله كفائز",
+    )
+
+
+def wheel_reject_confirmation_required() -> AppError:
+    return AppError(
+        status_code=400,
+        error_code="wheel_reject_confirmation_required",
+        message="الرفض لازم يتأكد منه — الطالب رح ينستبعد نهائياً من كل التابات",
+    )
+
+
+def wheel_freeze_out_of_range(message: str) -> AppError:
+    return AppError(
+        status_code=400,
+        error_code="wheel_freeze_out_of_range",
+        message=message,
+    )
+
+
+def wheel_student_already_excluded() -> AppError:
+    return AppError(
+        status_code=409,
+        error_code="wheel_student_already_excluded",
+        message="الطالب مستبعد سابقاً من العجلة",
+    )
+
+
+def wheel_pending_draw_exists(tab_label: str) -> AppError:
+    """ضغط "ابدأ السحب" مرتين بنفس التاب — فيه اسم معروض وبانتظار قرار."""
+    return AppError(
+        status_code=409,
+        error_code="wheel_pending_draw_exists",
+        message=f"فيه اسم معروض حالياً بـ«{tab_label}» وبانتظار قرارك — "
+        "اقبله أو ارفضه قبل ما تسحب مرة تانية",
+    )

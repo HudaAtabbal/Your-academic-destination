@@ -27,6 +27,7 @@ from app.routers.registration import registration_router
 from app.routers.students import student_router
 from app.routers.survey import survey_router
 from app.routers.walkin import walkin_router
+from app.routers.wheel import wheel_router
 
 _APP_ENV = os.getenv("APP_ENV", "development")
 _IS_PRODUCTION = _APP_ENV == "production"
@@ -217,6 +218,10 @@ app.include_router(dashboard_router.router)
 app.include_router(registration_router.router)
 app.include_router(point_router.router)
 app.include_router(internal_router.router)
+# العجلة: لوح الأدمن (super_admin) + شاشة الجمهور (أي حساب). الراوترين
+# منفصلين لأن النطاق والدور مختلفة — لازم يتسجّلوا كلَين.
+app.include_router(wheel_router.admin_router)
+app.include_router(wheel_router.router)
 
 
 @app.get("/health", tags=["health"])

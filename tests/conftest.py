@@ -114,7 +114,8 @@ def _clean_tables(_init_test_db):
         conn.execute(
             text(
                 "TRUNCATE TABLE students, checkins, bookings, post_survey, otps, accounts, "
-                "sms_jobs, sms_heartbeats RESTART IDENTITY CASCADE"
+                "sms_jobs, sms_heartbeats, wheel_draws, wheel_exclusions, "
+                "wheel_freeze_audit, wheel_settings RESTART IDENTITY CASCADE"
             )
         )
     yield
