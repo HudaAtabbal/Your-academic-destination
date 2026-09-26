@@ -2,7 +2,7 @@
 Pydantic schemas لروتر admin/dashboard — مطابقة لقسم 9 بملف wijhatak_api_contract.md
 """
 
-from datetime import datetime
+from datetime import date, datetime
 from typing import Literal
 
 from pydantic import BaseModel
@@ -81,6 +81,29 @@ class StudentsInsideItem(BaseModel):
 
 class StudentsInsideListResponse(BaseModel):
     items: list[StudentsInsideItem]
+    page: int
+    limit: int
+    total: int
+    total_pages: int
+
+
+class DayEntryItem(BaseModel):
+    """طالب دخل الحرم (campus_entry) بيوم فعالية معيّن."""
+
+    unique_code: str
+    full_name: str | None = None
+    bacc_average: float | None = None
+    total_points: int
+    contact_id: str | None = None
+    # أول دخول من البوابة بذلك اليوم (مش كل المسحات) — للتقارير التشغيلية.
+    first_entry_at: datetime | None = None
+
+
+class DayEntriesListResponse(BaseModel):
+    day: EventDay
+    # تاريخ اليوم الفعلي المقابل للمفتاح (مثلاً sat -> 2026-09-26).
+    day_date: date
+    items: list[DayEntryItem]
     page: int
     limit: int
     total: int

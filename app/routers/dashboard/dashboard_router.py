@@ -27,6 +27,8 @@ from app.routers.dashboard.dashboard_schema import (
     DashboardStatsResponse,
     DayCollegeVisitsResponse,
     DayCountResponse,
+    DayEntriesListResponse,
+    DayEntryItem,
     DayUnionSectionsResponse,
     EventDay,
     HallClearResponse,
@@ -55,6 +57,7 @@ from app.routers.dashboard.dashboard_schema import (
     UnionSectionCountItem,
     YearCountItem,
 )
+from app.event_days import EVENT_DAYS
 from app.models import Lecture
 
 router = APIRouter(
@@ -131,6 +134,34 @@ def students_inside(
     )
     return StudentsInsideListResponse(
         items=[StudentsInsideItem(**item) for item in items],
+        page=page,
+        limit=limit,
+        total=total,
+        total_pages=max(1, math.ceil(total / limit)),
+    )
+
+
+@router.get("/day-entries", response_model=DayEntriesListResponse)
+def day_entries(
+    day: EventDay = Query(..., description="يوم الفعالية: wed | thu | sat"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    code: str | None = Query(default=None, max_length=20),
+    reg_type: str | None = Query(default=None, pattern="^(R|W)$"),
+    order: str = Query("asc", pattern="^(asc|desc)$"),
+    db: Session = Depends(get_db),
+) -> DayEntriesListResponse:
+    """
+    قائمة الطلاب يلي دخلوا الحرم (campus_entry) بيوم واحد محدد — للمصادر التشغيلية
+    (كشف حضور يومي). الترتيب الافتراضي بأول دخول، و reg_type لفلترة المسجّلين/الووك إن.
+    """
+    items, total = dashboard_service.list_students_entered_on_day(
+        db, day, page, limit, code=code, reg_type=reg_type, order=order
+    )
+    return DayEntriesListResponse(
+        day=day,
+        day_date=EVENT_DAYS[day],
+        items=[DayEntryItem(**item) for item in items],
         page=page,
         limit=limit,
         total=total,

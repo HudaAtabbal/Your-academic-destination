@@ -324,6 +324,93 @@ def list_students_inside_all_days(
     return items, total
 
 
+def list_students_entered_on_day(
+    db: Session,
+    day: str,
+    page: int,
+    limit: int,
+    code: str | None = None,
+    reg_type: str | None = None,
+    order: str = "asc",
+) -> tuple[list[dict], int]:
+    """
+    قائمة الطلاب المميزين (distinct) يلي دخلوا الحرم (campus_entry) **بتاريخ يوم
+    فعالية واحد** — على عكس list_students_inside_all_days يلي تراكمي لكل الأيام.
+
+    الفاصل الزمني من day_range (بتوقيت سوريا)، فالتطابق يومي دقيق. المفتاح "all"
+    مش مدعوم هنا (مش_day_endpoint بtoday) — برمي 400.
+
+    لكل طالب: الرمز والاسم والمعدل (bacc_average) ومجموع نقاطه المخزّن ورقم
+    التواصل ووقت أول دخول بذلك اليوم (min(checked_in_at)).
+
+    الفلترة/الترتيب:
+    - code: بحث جزئي بالرمز (ILIKE) — ما بفرّق بين walk_in و registered.
+    - reg_type: "R" للمسجّلين أو "W" للووك إن (يُطهّر على RegistrationType).
+    - order: "asc" (أول دخول بالأول) أو "desc" (آخر دخول بالأول).
+    - الصفحات مرتبة دائماً بنفس الترتيب الثانوي (unique_code) لترقيم ثابت.
+    """
+    rng = _resolve_day_range(day)
+    if rng is None:
+        raise validation_error("اليوم 'all' مش صالح لهاد التقرير — حدّد wed أو thu أو sat")
+    start, end = rng
+
+    # أول campus_entry لكل طالب ضمن اليوم — نجمّع عليه عشان نرجع وقت واحد/طالب
+    # بدل تكرار الطالب مع كل مسحة.
+    first_entry = (
+        db.query(
+            Checkin.student_id.label("student_id"),
+            func.min(Checkin.checked_in_at).label("first_entry_at"),
+        )
+        .filter(
+            Checkin.activity_type == ActivityType.campus_entry,
+            Checkin.checked_in_at >= start,
+            Checkin.checked_in_at < end,
+        )
+        .group_by(Checkin.student_id)
+        .subquery()
+    )
+
+    query = db.query(Student, first_entry.c.first_entry_at).join(
+        first_entry, Student.id == first_entry.c.student_id
+    )
+
+    if code:
+        query = query.filter(Student.unique_code.ilike(f"%{code}%"))
+
+    if reg_type:
+        query = query.filter(
+            Student.registration_type
+            == (RegistrationType.registered if reg_type == "R" else RegistrationType.walk_in)
+        )
+
+    total = query.count()
+
+    if order == "desc":
+        order_by = (first_entry.c.first_entry_at.desc(), Student.unique_code.asc())
+    else:
+        order_by = (first_entry.c.first_entry_at.asc(), Student.unique_code.asc())
+
+    rows = (
+        query.order_by(*order_by)
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+    )
+
+    items = [
+        {
+            "unique_code": student.unique_code,
+            "full_name": student.full_name,
+            "bacc_average": float(student.bacc_average) if student.bacc_average is not None else None,
+            "total_points": student.total_points,
+            "contact_id": student.contact_id,
+            "first_entry_at": first_entry_at,
+        }
+        for student, first_entry_at in rows
+    ]
+    return items, total
+
+
 def _registered_no_show_query(db: Session):
     """
     استعلام الـ"مسجّلون بلا حضور": طلاب مسجّلون أونلاين وموثّقون (verified)

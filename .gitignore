@@ -13,3 +13,5 @@ passenger_wsgi.log
 __x__
 _req_no_pg.txt
 package-lock.json
+# تصدير بيانات الطلاب (أرقام هواتف) — ما برفع شي منو على git
+exports/
