@@ -77,12 +77,14 @@ class Checkin(Base):
             unique=True,
             postgresql_where=(activity_type == ActivityType.game),
         ),
-        # ركن الاتحاد: مرة وحدة لكل قسم (union_section) — الطالب فيه يزور
-        # الأقسام الثلاثة (3 سجلات منفصلة)، بس مش نفس القسم مرتين.
+        # ركن الاتحاد: مرة وحدة لكل قسم (union_section) وبنفس اليوم — الطالب فيه
+        # يزور الأقسام الثلاثة (3 سجلات منفصلة) وبإمكانه يرجع لنفس القسم بيوم
+        # تاني، بنفس نمط campus_entry و lecture.
         Index(
             "unique_union_checkin",
             "student_id",
             "union_section",
+            cast(checked_in_at, Date),
             unique=True,
             postgresql_where=(activity_type == ActivityType.union),
         ),

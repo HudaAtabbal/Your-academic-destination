@@ -70,12 +70,16 @@ def _init_test_db():
         )
     # كتسجيل فريد لكل قسم (بدل "مرة وحدة بالكامل" القديمة) — يُحذف الفهرس
     # القديم أولاً لأن إعادة تعريف بنفس الاسم تحتاج DROP على قاعدة موجودة.
+    # محدّث: القيد صار لكل قسم وبنفس اليوم (CAST(checked_in_at AS DATE))،
+    # بنفس نمط unique_campus_entry_checkin — فالقاعدة وسعة مش أضيق،
+    # و السجلات الموجودة بتلتزم فيها كلها.
     with engine.begin() as conn:
         conn.execute(text("DROP INDEX IF EXISTS unique_union_checkin"))
         conn.execute(
             text(
                 "CREATE UNIQUE INDEX unique_union_checkin "
-                "ON checkins (student_id, union_section) WHERE activity_type = 'union'"
+                "ON checkins (student_id, union_section, CAST(checked_in_at AS DATE)) "
+                "WHERE activity_type = 'union'"
             )
         )
     yield

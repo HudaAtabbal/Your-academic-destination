@@ -544,6 +544,40 @@ def test_top_students_union_all(db, client, super_headers):
     assert len(resp["items"]) == 1
 
 
+def test_top_students_union_all_with_repeat_visit(db, client, super_headers):
+    """
+    مقياس union_all بيعدّ الأقسام المميّزة (count distinct) مش المسحات: طالب زار
+    الركن المركزي مرتين (يومين) + دليل التخصص + نادي التركي = 3 أقسام، فبينحسب
+    بقيمة 3 — الزيارة المكررة ما بتخبط العدّاد.
+    """
+    s1 = _make_student(db, "R-0001", full_name="أحمد")
+    s2 = _make_student(db, "R-0002", full_name="سمير")
+    db.add_all(
+        [
+            # s1: المركزي يومين + قسمين مرة وحدة لكل منهما
+            _checkin_for_day(db, s1, ActivityType.union, "wed", union_section=UnionSection.central),
+            _checkin_for_day(db, s1, ActivityType.union, "thu", union_section=UnionSection.central),
+            _checkin_for_day(
+                db, s1, ActivityType.union, "sat", union_section=UnionSection.major_guide
+            ),
+            _checkin_for_day(
+                db, s1, ActivityType.union, "wed", hour=14, union_section=UnionSection.turkish_club
+            ),
+            # s2: قسمين فقط (مع تكرار أحدهما بيوم تاني) — ما بينحسب
+            _checkin_for_day(db, s2, ActivityType.union, "wed", union_section=UnionSection.central),
+            _checkin_for_day(db, s2, ActivityType.union, "thu", union_section=UnionSection.central),
+            _checkin_for_day(
+                db, s2, ActivityType.union, "sat", union_section=UnionSection.major_guide
+            ),
+        ]
+    )
+    db.commit()
+    resp = client.get("/admin/dashboard/top-students?metric=union_all", headers=super_headers).json()
+    assert resp["total"] == 1
+    assert resp["items"][0]["unique_code"] == "R-0001"
+    assert resp["items"][0]["value"] == 3
+
+
 def test_top_students_pagination(db, client, super_headers):
     _seed_top_students(db)
     db.commit()

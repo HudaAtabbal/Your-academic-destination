@@ -1,11 +1,12 @@
 """اختبارات تسجيل الحضور (check-ins) — الأنواع الأربعة + العدادات."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from fastapi.testclient import TestClient
 
 import main as main_module
-from app.models import ActivityType, Checkin, College, Faculty, Lecture, Student
+from app import time_utils
+from app.models import ActivityType, Checkin, College, Faculty, Lecture, Student, UnionSection
 
 STUDENT = "R-9001"
 L1 = "lecture_1"
@@ -447,8 +448,8 @@ def test_game_unauthenticated_401(client, student_factory):
 
 # ---------- union (مسؤول الاتحاد) ----------
 # شروط المسح عند الاتحاد: يكفي دخول الحرم بنفس اليوم (بدون حجز/جولات) — بدون نقاط.
-# قاعدة التكرار: مرة وحدة لكل قسم (union_section) — الطالب فيه يزور الأقسام
-# الثلاثة (3 سجلات منفصلة)، بس مش نفس القسم مرتين.
+# قاعدة التكرار: مرة وحدة لكل قسم (union_section) وبنفس اليوم — الطالب فيه يزور
+# الأقسام الثلاثة (3 سجلات منفصلة) بنفس اليوم، وبإمكانه يرجع لنفس القسم بيوم تاني.
 
 
 def test_union_happy(client, student_factory, students_admin_headers, union_headers):
@@ -502,6 +503,7 @@ def test_union_without_campus_entry_409(client, student_factory, union_headers):
 def test_union_duplicate_same_section_409(
     client, student_factory, students_admin_headers, union_headers
 ):
+    """نفس القسم مرتين بنفس اليوم = 409 — القاعدة "مرة لكل قسم باليوم"."""
     student_factory(STUDENT)
     assert _campus_entry(client, students_admin_headers).status_code == 201
     payload = {"unique_code": STUDENT, "union_section": "central"}
@@ -510,6 +512,30 @@ def test_union_duplicate_same_section_409(
     assert resp.status_code == 409
     assert resp.json()["error_code"] == "duplicate_checkin"
     assert "الركن المركزي" in resp.json()["message"]
+
+
+def test_union_same_section_different_day_201(
+    client, db, student_factory, students_admin_headers, union_headers
+):
+    """
+    نفس القسم بيومين مختلفين = 201 بالمرة الثانية — القاعدة "مرة لكل قسم باليوم"
+    مش "مرة لكل القسم بطول الفعالية". مسحة الأمبارح بتنكتب مباشرة بالـ DB، واليوم
+    الحالي الطالب بيدخل من البوابة وبيمسح.
+    """
+    student = student_factory(STUDENT)
+    db.add(
+        Checkin(
+            student_id=student.id,
+            activity_type=ActivityType.union,
+            union_section=UnionSection.central,
+            checked_in_at=time_utils.today_start() - timedelta(hours=1),
+        )
+    )
+    db.commit()
+
+    assert _campus_entry(client, students_admin_headers).status_code == 201
+    payload = {"unique_code": STUDENT, "union_section": "central"}
+    assert client.post("/checkins/union", json=payload, headers=union_headers).status_code == 201
 
 
 def test_union_forbidden_for_other_roles(client, student_factory, students_admin_headers):

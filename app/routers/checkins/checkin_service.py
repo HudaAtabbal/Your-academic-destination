@@ -156,7 +156,14 @@ def _find_existing_checkin(
     elif activity_type == ActivityType.tour:
         query = query.filter(Checkin.college == college)
     elif activity_type == ActivityType.union:
-        query = query.filter(Checkin.union_section == union_section)
+        # الاتحاد: التكرار محسوب بنفس اليوم فقط (union_section + اليوم) — نفس
+        # قيد الفهرس unique_union_checkin، فالمسح المسموح تكراراً هو يوم تاني.
+        today_start, today_end = _today_range()
+        query = query.filter(
+            Checkin.union_section == union_section,
+            Checkin.checked_in_at >= today_start,
+            Checkin.checked_in_at < today_end,
+        )
     return query.first()
 
 
@@ -398,8 +405,9 @@ def create_union_checkin(
     مسح ركن الاتحاد — مثل الاستشارة من ناحية الشروط المسبقة: يكفي أن يكون
     الطالب دخل الحرم بنفس اليوم (بدون حجز أو جولات). بدون نقاط.
 
-    قاعدة التكرار: مرة وحدة لكل قسم (union_section) — الطالب فيه يزور الأقسام
-    الثلاثة (3 سجلات منفصلة)، بس مش نفس القسم مرتين.
+    قاعدة التكرار: مرة وحدة لكل قسم (union_section) وبنفس اليوم — الطالب فيه
+    يزور الأقسام الثلاثة (3 سجلات منفصلة) وبنفس اليوم، وبيقدر يرجع لنفس القسم
+    بيوم تاني من أيام الفعالية.
     """
     student = get_student_or_raise(db, unique_code)
 
