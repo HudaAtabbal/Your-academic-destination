@@ -146,9 +146,7 @@ a.gd-dash-trio__go {
 /* ————————————————— Summary cards ————————————————— */
 .gd-dash-groups {
   display: grid;
-  /* 5 كروت: auto-fit بيخلّي المتصفح يقرّر شو يندفع لصف تاني بدل ما نحسب
-     أعمدة يدوياً، وبيضمن إن كل كرت يضل ≥230px بدون ما يتلخبط النص. */
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  grid-template-columns: 1.25fr 1.25fr 1fr 1.25fr;
   gap: 20px;
 }
 
@@ -249,47 +247,6 @@ a.gd-dash-trio__go {
   margin-top: 12px;
 }
 
-/* كرت الدليل الأكاديمي — كل الأنماط تحت scope .gd-dash-guide حتى ما نلمس
-   أي كرت موجود. الأرقام أصغر من .gd-dash-split__n (2.1rem) لأن بالكرت
-   ثلاث مجموعات أرقام بالمряд الواحد. */
-
-.gd-dash-guide__lbl {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--gd-muted);
-  margin-top: 2px;
-}
-
-.gd-dash-guide__rule {
-  height: 1px;
-  background: var(--gd-line);
-  margin: 14px 0 12px;
-}
-
-.gd-dash-guide__split {
-  display: flex;
-  gap: 26px;
-}
-
-.gd-dash-guide__split > div {
-  min-width: 0;
-}
-
-.gd-dash-guide__n {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--gd-teal);
-  line-height: 1.15;
-  font-variant-numeric: tabular-nums;
-}
-
-.gd-dash-guide__l {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--gd-muted);
-  margin-top: 2px;
-}
-
 /* ————————————————— Section heading + grid rows ————————————————— */
 
 .gd-dash-sechd {
@@ -315,6 +272,15 @@ a.gd-dash-trio__go {
 .gd-dash-grid2 {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* صف الدونات — 3 أعمدة على الشاشات الكبيرة. كل كارت إلها دائرة 120px مع
+   وسيلة إيضاح، فثلاثة أعمدة بتضل مقروءة على 1440. وبينزل عمودين على الشاشات
+   المتوسطة (1199–600) وعمود واحد على الجوال. */
+.gd-dash-grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 20px;
 }
 
@@ -845,9 +811,9 @@ a.gd-dash-more {
   border: 1.5px solid var(--gd-teal);
 }
 
-/* ————————————————— DayFilter ————————————————— */
+/* ————————————————— SegmentedControl ————————————————— */
 
-.gd-dash-dayfilter {
+.gd-dash-seg {
   display: inline-flex;
   background-color: var(--gd-track);
   border-radius: 40px;
@@ -855,7 +821,7 @@ a.gd-dash-more {
   gap: 2px;
 }
 
-.gd-dash-dayfilter__btn {
+.gd-dash-seg__btn {
   border: none;
   background: none;
   cursor: pointer;
@@ -867,25 +833,25 @@ a.gd-dash-more {
   border-radius: 40px;
 }
 
-.gd-dash-dayfilter__btn.is-on {
+.gd-dash-seg__btn.is-on {
   background-color: var(--gd-teal);
   color: #fff;
 }
 
-.gd-dash-dayfilter--dark {
+.gd-dash-seg--dark {
   background-color: rgba(255, 255, 255, 0.1);
 }
 
-.gd-dash-dayfilter--dark .gd-dash-dayfilter__btn {
+.gd-dash-seg--dark .gd-dash-seg__btn {
   color: var(--gd-hero-muted);
 }
 
-.gd-dash-dayfilter--dark .gd-dash-dayfilter__btn.is-on {
+.gd-dash-seg--dark .gd-dash-seg__btn.is-on {
   background-color: #fff;
   color: var(--gd-teal);
 }
 
-.gd-dash-dayfilter__btn:focus-visible,
+.gd-dash-seg__btn:focus-visible,
 .gd-dash-tabs__btn:focus-visible,
 .gd-dash-more:focus-visible,
 .gd-dash-btn:focus-visible,
@@ -902,6 +868,10 @@ a.gd-dash-more {
   }
 
   .gd-dash-groups {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gd-dash-grid3 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -997,6 +967,10 @@ a.gd-dash-more {
     grid-template-columns: 1fr;
   }
 
+  .gd-dash-grid3 {
+    grid-template-columns: 1fr;
+  }
+
   .gd-dash-dur {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -1072,7 +1046,7 @@ a.gd-dash-more {
 /* ————————————————— Touch targets ————————————————— */
 
 @media (pointer: coarse) {
-  .gd-dash-dayfilter__btn {
+  .gd-dash-seg__btn {
     padding: 8px 14px;
   }
 

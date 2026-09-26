@@ -122,9 +122,20 @@ const CORNER_JOURNEY = {
   generated_at: '2026-09-26T10:00:00',
 };
 
-function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections, cornerJourney } = {}) {
+const ATTENDANCE_SPLIT = {
+  day: 'all',
+  total: 8,
+  items: [
+    { key: 'registered_in', count: 5 },
+    { key: 'walkin_in', count: 2 },
+    { key: 'registered_out', count: 1 },
+  ],
+};
+
+function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections, cornerJourney, attendanceSplit } = {}) {
   const college = collegeVisits ?? {
     day: 'all',
+    mode: 'all',
     total: 2,
     items: [{ college: 'medicine', count: 2 }],
   };
@@ -133,17 +144,17 @@ function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections, corn
     total: 3,
     items: ANALYTICS.union_sections,
   };
-  apiGet.mockImplementation((path) => {
+  // الافتراضي لكل مسار — بيضل متاح للاختبارات اللي بدها تبدّل مسار واحد بس
+  // (مثلاً كرت الزيارات وقت التبديل بين «الكل» و«فريد»).
+  const byDefault = (path) => {
     if (path.startsWith('/admin/accounts'))
       return Promise.resolve(accounts || ACCOUNTS);
     if (path.startsWith('/admin/dashboard/students-inside-count'))
       return Promise.resolve({ day: 'all', count: 3 });
     if (path.startsWith('/admin/dashboard/game-scans'))
       return Promise.resolve({ day: 'all', count: 12 });
-    if (path.startsWith('/admin/dashboard/guide-insights'))
-      return Promise.resolve(GUIDE);
-    if (path.startsWith('/admin/dashboard/college-visits'))
-      return Promise.resolve(college);
+    if (path.startsWith('/admin/dashboard/attendance-split'))
+      return Promise.resolve(attendanceSplit || ATTENDANCE_SPLIT);
     if (path.startsWith('/admin/dashboard/union-sections'))
       return Promise.resolve(union);
     if (path.startsWith('/admin/dashboard/corner-journey'))
@@ -162,8 +173,15 @@ function mockEndpoints({ smsStatus, accounts, collegeVisits, unionSections, corn
     if (path === '/admin/dashboard/presence') return Promise.resolve(PRESENCE);
     if (path === '/admin/dashboard/peak-hours') return Promise.resolve(PEAK_HOURS);
     return Promise.reject(new Error(`unexpected path ${path}`));
-  });
+  };
+
+  defaultEndpoint = byDefault;
+  apiGet.mockImplementation((path) =>
+    path.startsWith('/admin/dashboard/college-visits') ? Promise.resolve(college) : byDefault(path)
+  );
 }
+
+let defaultEndpoint = null;
 
 function renderDashboard() {
   return render(
@@ -172,17 +190,6 @@ function renderDashboard() {
     </MemoryRouter>
   );
 }
-
-const GUIDE = {
-  day: 'all',
-  page: 'academic-guide',
-  visitors_count: 98,
-  visits_count: 400,
-  avg_duration_seconds: 200.4,
-  median_duration_seconds: 180,
-  measured_visits: 380,
-  generated_at: '2026-09-26T10:00:00',
-};
 
 function cardByHeading(text) {
   return screen.getByText(text).closest('.gd-dash-card');
@@ -235,22 +242,81 @@ describe('GeneralDirectorDashboard - live data', () => {
     expect(game).toHaveTextContent('12');
   });
 
-  it('renders the academic guide card with dwell time, people and visits', async () => {
+  it('renders the college visits card with the counting-mode control', async () => {
     renderDashboard();
 
-    await waitFor(() => expect(screen.getByText('الدليل الأكاديمي')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
 
-    const guide = cardByHeading('الدليل الأكاديمي');
-    // متوسط البقاء 200.4 ثانية → 3:20
-    expect(within(guide).getByText('3:20')).toBeInTheDocument();
-    expect(within(guide).getByText('98')).toBeInTheDocument();
-    expect(within(guide).getByText('400')).toBeInTheDocument();
-    expect(within(guide).getByText('شخص')).toBeInTheDocument();
-    expect(within(guide).getByText('مرة')).toBeInTheDocument();
-    // 400 زيارة ÷ 98 شخص ≈ 4 مرات
-    expect(guide).toHaveTextContent('≈ 4 مرات لكل شخص');
-    // نفس فلتر الأيام تبع الكروت التانية
-    expect(within(guide).getByRole('group', { name: 'فلترة حسب اليوم' })).toBeInTheDocument();
+    const college = cardByHeading('زيارة الكلية');
+    // الوضع الافتراضي «الكل» → الإجمالي بعدد الزيارات
+    expect(within(college).getByText('الإجمالي: 2 زيارة')).toBeInTheDocument();
+    // أزرار الوضع: الكل / فريد
+    const modes = within(college).getByRole('group', { name: 'طريقة العد' });
+    expect(within(modes).getByRole('button', { name: 'الكل' })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(modes).getByRole('button', { name: 'فريد' })).toHaveAttribute('aria-pressed', 'false');
+    // وفلتر الأيام لسا موجود بنفس الكارت
+    expect(within(college).getByRole('group', { name: 'فلترة حسب اليوم' })).toBeInTheDocument();
+  });
+
+  it('switches the college card to unique counting and changes the unit', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
+
+    const college = cardByHeading('زيارة الكلية');
+    expect(
+      apiGet.mock.calls.some((c) => c[0].startsWith('/admin/dashboard/college-visits?day=all&mode=all'))
+    ).toBe(true);
+
+    // «فريد» بترجع نفس الأرقام بس بإجمالي طلاب
+    const restOfEndpoints = defaultEndpoint;
+    apiGet.mockImplementation((path) =>
+      path.startsWith('/admin/dashboard/college-visits')
+        ? Promise.resolve({ day: 'all', mode: 'unique', total: 1, items: [{ college: 'medicine', count: 1 }] })
+        : restOfEndpoints(path)
+    );
+
+    fireEvent.click(within(college).getByRole('button', { name: 'فريد' }));
+
+    await waitFor(() => {
+      expect(
+        apiGet.mock.calls.some((c) => c[0].startsWith('/admin/dashboard/college-visits?day=all&mode=unique'))
+      ).toBe(true);
+    }, { timeout: 2000 });
+
+    await waitFor(() =>
+      expect(within(college).getByText('الإجمالي: 1 طالب')).toBeInTheDocument()
+    );
+  });
+
+  it('renders the attendance split donut with slice labels', async () => {
+    renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
+
+    const split = cardByHeading('مين فات عالجامعة');
+    // الإجمالي 8 بتظهر مرتين: مرة بترويسة الكارت ومرة بنص الدونات
+    expect(within(split).getByText('8', { selector: '.gd-dash-tot' })).toBeInTheDocument();
+    expect(split.querySelector('.gd-dash-donut__val').textContent).toBe('8');
+    expect(within(split).getByText('مسجّل وحضر')).toBeInTheDocument();
+    expect(within(split).getByText('Walk-in وحضروا')).toBeInTheDocument();
+    expect(within(split).getByText('مسجّل وبلا حضور')).toBeInTheDocument();
+    // 5 من 8 = 63٪
+    expect(within(split).getByText('63٪ (5)')).toBeInTheDocument();
+    // كل كارت دونات إلها فلتر يومي مستقل
+    expect(within(split).getByRole('group', { name: 'فلترة حسب اليوم' })).toBeInTheDocument();
+  });
+
+  it('puts the three donuts in a three-column row', async () => {
+    const { container } = renderDashboard();
+
+    await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
+
+    const row = container.querySelector('.gd-dash-grid3');
+    expect(row).not.toBeNull();
+    ['مين فات عالجامعة', 'مسحات ركن الاتحاد', 'علمي / أدبي'].forEach((t) => {
+      expect(within(row).getByText(t)).toBeInTheDocument();
+    });
   });
 
   it('shows the presence average and per-day durations', async () => {
@@ -460,17 +526,17 @@ describe('GeneralDirectorDashboard - independent day filters', () => {
     );
   });
 
-  it('guide card filter refetches only guide-insights', async () => {
+  it('attendance card filter refetches only attendance-split', async () => {
     renderDashboard();
 
     await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
 
     apiGet.mockClear();
-    const guideCard = cardByHeading('الدليل الأكاديمي');
-    fireEvent.click(within(guideCard).getByRole('button', { name: 'خميس' }));
+    const splitCard = cardByHeading('مين فات عالجامعة');
+    fireEvent.click(within(splitCard).getByRole('button', { name: 'خميس' }));
 
     await waitFor(() => {
-      expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/guide-insights?day=thu'))).toBe(
+      expect(calledPaths().some((p) => p.startsWith('/admin/dashboard/attendance-split?day=thu'))).toBe(
         true
       );
     }, { timeout: 2000 });
@@ -527,7 +593,7 @@ describe('GeneralDirectorDashboard - independent day filters', () => {
     }, { timeout: 2000 });
 
     // باقي الأقسام ما بتتأثر
-    ['students-inside-count', 'game-scans', 'college-visits', 'union-sections', 'guide-insights'].forEach(
+    ['students-inside-count', 'game-scans', 'college-visits', 'union-sections', 'attendance-split'].forEach(
       (endpoint) => {
         expect(calledPaths().some((p) => p.startsWith(`/admin/dashboard/${endpoint}?day=thu`))).toBe(
           false
@@ -566,7 +632,8 @@ describe('GeneralDirectorDashboard - empty states', () => {
     localStorage.clear();
     mockEndpoints({
       smsStatus: { counts: {}, worker_online: true },
-      collegeVisits: { day: 'all', total: 0, items: [] },
+      collegeVisits: { day: 'all', mode: 'all', total: 0, items: [] },
+      attendanceSplit: { day: 'all', total: 0, items: [] },
       cornerJourney: {
         day: 'all',
         total_students: 0,
@@ -589,6 +656,7 @@ describe('GeneralDirectorDashboard - empty states', () => {
 
     await waitFor(() => expect(screen.getByText('218')).toBeInTheDocument());
     expect(screen.getByText('ما في بيانات عن زيارات الكليات للآن')).toBeInTheDocument();
+    expect(screen.getByText('ما في بيانات عن الحضور للآن')).toBeInTheDocument();
     expect(screen.getByText('ما في بيانات عن توزيع المعدل للآن')).toBeInTheDocument();
     expect(screen.getByText('ما في بيانات عن توزيع سنوات الشهادة للآن')).toBeInTheDocument();
     expect(screen.getByText('ما في بيانات عن حركة الطلاب بين الأركان للآن')).toBeInTheDocument();

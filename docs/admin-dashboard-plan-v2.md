@@ -82,44 +82,9 @@ All new admin endpoints go in the existing `app/routers/dashboard/` feature fold
 |---|---|---|
 | `GET /admin/dashboard/students-inside-count?day=` | `{ day, count, generated_at }` | Distinct `student_id` with `activity_type = campus_entry`. When `day != all`, filter `checked_in_at` to that day. When `day = all`, return the same number as `students_inside_all_days` in `/stats`. |
 | `GET /admin/dashboard/game-scans?day=` | `{ day, count, generated_at }` | Count of `activity_type = game` checkins, optionally day-filtered. |
-| `GET /admin/dashboard/college-visits?day=` | `{ day, total, items: [{college, count}], generated_at }` | Same logic as `college_visits` inside `get_dashboard_analytics`: the union of `Booking(college, student_id)` and `Checkin(college, student_id)`, distinct students per college, the same `_VISITS_EXCLUDED` set, sorted descending. The day filter applies `booked_at` to bookings and `checked_in_at` to checkins. `total` = sum of counts. **Refactor:** extract the existing logic into a helper that takes an optional `(start, end)` range, and have both `/analytics` and this endpoint call it. |
-| `GET /admin/dashboard/union-sections?day=` | `{ day, total, items: [{section, count}], generated_at }` | Same logic as `union_sections` in `/analytics`, plus the optional day filter. All three sections are always present (zero if empty). Extract a shared helper the same way. |
-
-### 3.1a Academic guide tracking (added after v2 shipped)
-
-The Academic Guide (`/academic-guide`) is an embedded iframe, so there is no
-checkin to count. A dedicated table measures it instead. This is the only
-page-usage tracking in the product, and it is limited to that one page.
-
-| Endpoint | Purpose |
-|---|---|
-| `POST /students/page-visit/start` | Public. Body: `{ page, visitor_id, student_code? }`. Creates the row with `entered_at = time_utils.now_naive()` and returns `{ visit_id, entered_at }`. Rate-limited per `visitor_id` (30/hour), **never per IP** — all students share one campus network. |
-| `POST /students/page-visit/end` | Public. Body: `{ visit_id }` — no duration field exists anywhere in the schema. The server computes `duration_seconds = now_naive() - entered_at`, capped at 12 hours. |
-| `GET /admin/dashboard/guide-insights?day=` | `super_admin` only (inherited from the router). Returns `{ day, page, visitors_count, visits_count, avg_duration_seconds, median_duration_seconds, measured_visits, generated_at }`. Cached 300s server-side like `/presence`. |
-
-Table `page_visits`: `id` (PK, also the start↔end correlation handle), `page`,
-`visitor_id`, `student_code?`, `entered_at`, `duration_seconds?`, indexed on
-`(page, entered_at)` and `(page, visitor_id)`. Created by `create_all` on
-restart — no migration.
-
-Rules that keep the numbers honest:
-- **Dwell time is server-measured.** No endpoint accepts a client-reported
-  duration, so the average cannot be inflated from the browser.
-- **Averages and medians, not sums.** Every aggregate except the visit count
-  is an average or median, so repeating a visit cannot move the headline much.
-- **3-second minimum.** The client only fires `start` after 3 seconds of
-  *visible* time, and the server excludes `duration < 3` from the averages.
-  Bounces still count as visits, they just don't pollute the dwell figures.
-- **No backfill.** Tracking starts at deploy. On non-event days `all` shows
-  cumulative data while a specific event day may legitimately be `—`.
-
-Frontend: `usePageVisit(active, page)` in `src/hooks/usePageVisit.js`, called
-once from `AcademicGuide.jsx` (`active` arrives from `StudentTabsLayout`).
-It uses a `useRef` guard against StrictMode double-effects, freezes its dwell
-counter while the tab is hidden, and ends the visit on `pagehide`. Rendering:
-a 5th card in the existing `SummaryCards` row, titled **الدليل الأكاديمي**,
-carrying the same `<DayFilter>` as the neighbouring cards plus متوسط البقاء،
-عدد الأشخاص، وعدد الزيارات.
+| `GET /admin/dashboard/college-visits?day=&mode=` | `{ day, mode, total, items: [{college, count}], generated_at }` | Bookings only — `booking_type IN (tour, consultation)` and `college IS NOT NULL`; a tour and a consultation at the same college are both real visits, so both count. The day filter applies to `booked_at`. `_VISITS_EXCLUDED` (`music`/`medicine`/`pharmacy`) is still dropped, sorted descending. `mode` is `all` (default, `COUNT(*)`) or `unique` (`COUNT(DISTINCT student_id)`). `total` always excludes `_VISITS_EXCLUDED`; in `unique` mode it is a **separate** `COUNT(DISTINCT student_id)` over all non-excluded colleges, not the sum of the columns. |
+| `GET /admin/dashboard/attendance-split?day=` | `{ day, total, items: [{key, count}], generated_at }` | Who showed up. `registered_in` = `registration_type=registered` **and** `verification_status=verified` **and** has a `campus_entry` check-in in range; `walkin_in` = `registration_type=walk_in` with such a check-in; `registered_out` = registered+verified **without** one. `day=all` ORs the three `EVENT_DAYS` ranges (they are not contiguous, so a min/max span would wrongly swallow non-event days). Walk-ins are not filtered by `verification_status` — they never had an OTP. `total` = the three slices added up. |
+| `GET /admin/dashboard/union-sections?day=` | `{ day, total, items: [{section, count}], generated_at }` | Same logic as `union_sections` in `/analytics`, plus the optional day filter. All three sections are always present (zero if empty). Extract a shared helper the same way. The `music` → `u:central` merge now takes the **distinct** music student count (`unique` mode), so somebody is not counted as both a college visitor and a union visitor. |
 
 ### 3.1b Corner journey (added after v2 shipped)
 
@@ -157,9 +122,8 @@ Rules that keep the numbers honest:
 - **Duplicate scans collapse.** The unique check-in indexes mean one tour per
   college per student, so self-pairs like A+A cannot exist; a booked-but-not-
   visited corner has no check-in time and is therefore absent from transitions.
-- **`all` is restricted to the event days** (`EVENT_DAYS`), unlike
-  `/guide-insights` where `all` is cumulative. That restriction is what makes
-  the per-day filters add up to the `all` figure.
+- **`all` is restricted to the event days** (`EVENT_DAYS`) — the three day
+  filters add up to the `all` figure, and nothing outside the event counts.
 - **Check-ins are bounded by the event window.** `EVENT_WINDOW_START`/
   `EVENT_WINDOW_END` (`[08:00, 16:00)`) applies, so manual entries made at
   18:00 after the event cannot reorder anybody's journey.
@@ -345,10 +309,36 @@ Percentages: guard against division by zero (show `0٪`).
 
 ### 4.6 College visits — `زيارة الكلية (ركن التوجيه)`
 
-- Header: orange total + DayFilter.
+- Header: orange total + counting-mode control + DayFilter.
 - Horizontal bar list: label (use `COLLEGE_VISIT_LABELS`, keeping the existing `dentistry → المجمع الطبي` override), bar (teal, width relative to the max), and the value.
 - Show the top 8. Below them, a text button `عرض كل الكليات ({n})` expands the full list in place and toggles to `عرض أقل`.
 - In RTL the bars grow from the right.
+
+#### Counting mode (added after v2 shipped)
+
+A tour booking **and** a consultation booking both mean "this student went to
+that college", so both are counted. But a student who tours two colleges then
+takes a consultation at a third appears three times, and the headline total
+stops meaning "how many people". The card therefore has a two-button
+`SegmentedControl` (`طريقة العد`) next to its `DayFilter`:
+
+| Mode | Backend `mode` | Per-college count | `total` | Header unit |
+|---|---|---|---|---|
+| `الكل` (default) | `all` | every booking | every booking, `_VISITS_EXCLUDED` removed | `الإجمالي: N زيارة` |
+| `فريد` | `unique` | distinct `student_id` | distinct `student_id` across all non-excluded colleges | `الإجمالي: N طالب` |
+
+Notes:
+- In `unique` mode `total` is **not** the sum of the per-college bars — it is a
+  separate `COUNT(DISTINCT student_id)` over all non-excluded colleges, so the
+  same student at two colleges counts once in the headline and once per column.
+- `/analytics` keeps `all` (it has no filter UI to switch it), but the music →
+  `u:central` merge inside `union_sections` now uses the `unique` counts so a
+  student is not double-counted as both a college visitor and a union visitor.
+- The fetch keeps both a `collegeDayRef` and a `collegeModeRef` and discards a
+  response whose day *or* mode is no longer selected.
+- `SegmentedControl` (`src/pages/Admin/dashboard/SegmentedControl.jsx`) is the
+  generalized pill; `DayFilter` is now a thin wrapper over it with the
+  `EVENT_DAYS` options, so both share one implementation and one style.
 
 ### 4.7 Lecture attendance — `حضور كل محاضرة`
 
@@ -360,6 +350,14 @@ Percentages: guard against division by zero (show `0٪`).
 
 ### 4.8 Donuts row
 
+Three donuts in a `.gd-dash-grid3` row — 3 columns ≥1200px, 2 columns
+600–1199px, 1 column <600px. `.gd-dash-grid2` is untouched because a dozen other
+rows still use it.
+
+- **`مين فات عالجامعة`**: header total + its own DayFilter, data from
+  `/attendance-split?day=`. Legend `مسجّل وحضر`, `Walk-in وحضروا`,
+  `مسجّل وبلا حضور`, each with `{pct}٪ ({count})`. Colors: teal, orange, plum.
+  Empty: `ما في بيانات عن الحضور للآن`.
 - **`مسحات ركن الاتحاد`**: header total + DayFilter, data from `/union-sections?day=`. Legend `الركن المركزي`, `دليل التخصص`, `نادي التركي`, each with `{pct}٪ ({count})`. Colors: teal, orange, plum.
 - **`علمي / أدبي`**: from `/analytics` `certificate_distribution`, no filter. Colors: teal = علمي, orange = أدبي.
 - Keep the existing SVG donut technique (stroke-dasharray on r=15.9). Fix the segment offsets so they add up correctly for 3 segments.
@@ -417,7 +415,7 @@ card: `بتتحدث تلقائياً · الانتقالات محسوبة من �
   §6.3 component) but they all bind to the same `journeyDay` state, so the
   whole section switches together. The fetch keeps a `journeyDayRef` and
   discards a response whose day is no longer selected, the same way the
-  `insideDay` / `guideDay` sections do.
+  `insideDay` / `splitDay` sections do.
 - Poll on `SLOW_MS` (5 min) — nothing here changes faster than the 300s
   server cache behind it, so polling faster would just burn queries.
 - Empty states: `ما في بيانات عن حركة الطلاب بين الأركان للآن`,
@@ -455,7 +453,7 @@ Intervals:
 | Data | Interval |
 |---|---|
 | `/stats`, `/sms-status` | 15 s (unchanged) |
-| `/students-inside-count`, `/game-scans`, `/college-visits`, `/union-sections`, `/analytics` | 60 s |
+| `/students-inside-count`, `/game-scans`, `/college-visits`, `/attendance-split`, `/union-sections`, `/analytics` | 60 s |
 | `/presence`, `/peak-hours`, `/top-students` | 5 min (server caches for 5 min too, so polling faster is pointless) |
 | `/corner-journey` | 5 min (same 300 s server cache, added with §3.1b) |
 

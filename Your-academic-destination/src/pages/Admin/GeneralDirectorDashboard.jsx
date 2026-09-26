@@ -13,6 +13,7 @@ import ColumnChart from './dashboard/ColumnChart';
 import TopStudents from './dashboard/TopStudents';
 import TeamSummaryBar from './dashboard/TeamSummaryBar';
 import DayFilter from './dashboard/DayFilter';
+import SegmentedControl from './dashboard/SegmentedControl';
 import '../../style/GeneralDirectorDashboard.css';
 
 const COLLEGE_VISIT_LABELS = {
@@ -24,6 +25,19 @@ const UNION_COLORS = {
   central: 'var(--gd-teal)',
   major_guide: 'var(--gd-orange)',
   turkish_club: 'var(--gd-plum)',
+};
+
+// وضع عدّ زيارات الكليات — «الكل» بعدد الزيارات، «فريد» بعدد الطلاب
+const COLLEGE_MODES = [
+  { key: 'all', label: 'الكل' },
+  { key: 'unique', label: 'فريد' },
+];
+
+// شرائح الحضور — نفس ترتيب الـ API (registered_in / walkin_in / registered_out)
+const ATTENDANCE_SLICES = {
+  registered_in: { label: 'مسجّل وحضر', color: 'var(--gd-teal)' },
+  walkin_in: { label: 'Walk-in وحضروا', color: 'var(--gd-orange)' },
+  registered_out: { label: 'مسجّل وبلا حضور', color: 'var(--gd-plum)' },
 };
 
 // فترات التحديث حسب القسم (بالمللي ثانية)
@@ -45,17 +59,26 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
     gameDayRef.current = gameDay;
   }, [gameDay]);
 
-  const [guideDay, setGuideDay] = useState('all');
-  const guideDayRef = useRef(guideDay);
-  useEffect(() => {
-    guideDayRef.current = guideDay;
-  }, [guideDay]);
-
   const [collegeDay, setCollegeDay] = useState('all');
   const collegeDayRef = useRef(collegeDay);
   useEffect(() => {
     collegeDayRef.current = collegeDay;
   }, [collegeDay]);
+
+  // وضع عدّ زيارات الكليات: «الكل» يحسب كل زيارة (جولة + استشارة)، و«فريد»
+  // بيحسب كل طالب مرة وحدة مهما زار كليات — فالرقم بيتقارن بعدد الناس مش
+  // بعدد الخطوات.
+  const [collegeMode, setCollegeMode] = useState('all');
+  const collegeModeRef = useRef(collegeMode);
+  useEffect(() => {
+    collegeModeRef.current = collegeMode;
+  }, [collegeMode]);
+
+  const [splitDay, setSplitDay] = useState('all');
+  const splitDayRef = useRef(splitDay);
+  useEffect(() => {
+    splitDayRef.current = splitDay;
+  }, [splitDay]);
 
   const [unionDay, setUnionDay] = useState('all');
   const unionDayRef = useRef(unionDay);
@@ -77,8 +100,8 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
   const [analytics, setAnalytics] = useState(null);
   const [studentsInsideCount, setStudentsInsideCount] = useState(null);
   const [gameScans, setGameScans] = useState(null);
-  const [guide, setGuide] = useState(null);
   const [collegeVisits, setCollegeVisits] = useState(null);
+  const [attendanceSplit, setAttendanceSplit] = useState(null);
   const [unionSections, setUnionSections] = useState(null);
   const [presence, setPresence] = useState(null);
   const [peakHours, setPeakHours] = useState(null);
@@ -133,32 +156,32 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
     [gameDay]
   );
 
-  // الدليل الأكاديمي: إحصاءات مخزّنة مؤقتاً بالسيرفر (300 ثانية) — فبـ SLOW_MS
-  // نفسه، مع نفس حارس guideDayRef عشان ردّ متأخر ما يكسر الفلتر الحالي.
-  usePolling(
-    () => {
-      const requestedDay = guideDay;
-      apiGet(`/admin/dashboard/guide-insights?day=${requestedDay}`)
-        .then((r) => {
-          if (requestedDay === guideDayRef.current) setGuide(r);
-        })
-        .catch(() => {});
-    },
-    SLOW_MS,
-    [guideDay]
-  );
-
   usePolling(
     () => {
       const requestedDay = collegeDay;
-      apiGet(`/admin/dashboard/college-visits?day=${requestedDay}`)
+      const requestedMode = collegeMode;
+      apiGet(`/admin/dashboard/college-visits?day=${requestedDay}&mode=${requestedMode}`)
         .then((r) => {
-          if (requestedDay === collegeDayRef.current) setCollegeVisits(r);
+          if (requestedDay === collegeDayRef.current && requestedMode === collegeModeRef.current)
+            setCollegeVisits(r);
         })
         .catch(() => {});
     },
     MEDIUM_MS,
-    [collegeDay]
+    [collegeDay, collegeMode]
+  );
+
+  usePolling(
+    () => {
+      const requestedDay = splitDay;
+      apiGet(`/admin/dashboard/attendance-split?day=${requestedDay}`)
+        .then((r) => {
+          if (requestedDay === splitDayRef.current) setAttendanceSplit(r);
+        })
+        .catch(() => {});
+    },
+    MEDIUM_MS,
+    [splitDay]
   );
 
   usePolling(
@@ -253,6 +276,11 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
   const collegeItems = (collegeVisits?.items || [])
     .map((it) => ({ label: COLLEGE_VISIT_LABELS[it.college] || it.college || it.label || it.college, count: it.count }))
     .sort((a, b) => b.count - a.count);
+  // الوحدة بتتبع الوضع: بأسلوب «الكل» الرقم عدّ زيارات، وبـ«فريد» بعدد طلاب.
+  const collegeTotalText =
+    collegeVisits?.total != null
+      ? `الإجمالي: ${collegeVisits.total} ${collegeMode === 'unique' ? 'طالب' : 'زيارة'}`
+      : null;
 
   const lectureItems = (analytics?.lecture_attendance || [])
     .map((it) => ({ label: it.label || it.lecture_name, count: it.count }))
@@ -266,6 +294,15 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
     count: it.count,
     color: UNION_COLORS[it.section] || 'var(--gd-teal)',
   }));
+
+  // مين فات عالجامعة — التسمية واللون جاهزين من الباك، فنربطهم بالمفتاح
+  const splitSeries = (attendanceSplit?.items || []).map((it) => ({
+    key: it.key,
+    label: ATTENDANCE_SLICES[it.key]?.label || it.key,
+    count: it.count,
+    color: ATTENDANCE_SLICES[it.key]?.color || 'var(--gd-teal)',
+  }));
+  const splitTotal = attendanceSplit?.total ?? null;
 
   const certItems = analytics?.certificate_distribution || [];
   const certScientific = certItems.find((c) => c.certificate_type === 'scientific')?.count || 0;
@@ -316,9 +353,6 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
           gameScans={gameScans}
           day={gameDay}
           onDayChange={setGameDay}
-          guide={guide}
-          guideDay={guideDay}
-          onGuideDayChange={setGuideDay}
         />
 
         <PresenceRow presence={presence} />
@@ -334,8 +368,18 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
           <HorizontalBars
             title="زيارة الكلية"
             items={collegeItems}
-            totalText={collegeVisits?.total ?? null}
-            filter={<DayFilter value={collegeDay} onChange={setCollegeDay} />}
+            totalText={collegeTotalText}
+            filter={
+              <>
+                <SegmentedControl
+                  options={COLLEGE_MODES}
+                  value={collegeMode}
+                  onChange={setCollegeMode}
+                  ariaLabel="طريقة العد"
+                />
+                <DayFilter value={collegeDay} onChange={setCollegeDay} />
+              </>
+            }
             accent="teal"
             empty="ما في بيانات عن زيارات الكليات للآن"
             expandable
@@ -350,7 +394,14 @@ export default function GeneralDirectorDashboard({ userRole = 'المدير ال
           />
         </div>
 
-        <div className="gd-dash-grid2">
+        <div className="gd-dash-grid3">
+          <Donut
+            title="مين فات عالجامعة"
+            headerTotal={splitTotal}
+            filter={<DayFilter value={splitDay} onChange={setSplitDay} />}
+            series={splitSeries}
+            empty="ما في بيانات عن الحضور للآن"
+          />
           <Donut
             title="مسحات ركن الاتحاد"
             headerTotal={unionSections?.total ?? null}
